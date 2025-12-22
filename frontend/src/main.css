@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+/* Asegura que el contenido principal no luche contra el sidebar */
+main {
+  flex: 1;
+  min-width: 0; /* Previene desbordamientos flex que causan recálculos pesados */
+  transform: translateZ(0); /* Aceleración GPU */
+}
