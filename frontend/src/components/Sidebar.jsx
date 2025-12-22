@@ -30,7 +30,7 @@ const Sidebar = () => {
     <aside 
       className={`
         relative h-screen flex flex-col shrink-0 bg-[#4a1d7c] border-r border-white/5 z-50
-        transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+        transition-[width] duration-300 ease-in-out
         ${isCollapsed ? 'w-20' : 'w-72'}
       `}
       style={{
