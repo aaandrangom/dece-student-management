@@ -1,3 +1,22 @@
 build/bin
 node_modules
 frontend/dist
+
+# Archivos de Wails y Binarios
+build/bin/
+*/node_modules/
+*node_modules/
+
+# Archivos de sistema y entorno
+.DS_Store
+.env
+
+# Base de Datos (¡Muy importante agregar esto!)
+*.db
+*.db-journal
+*.sqlite
+
+# Logs y archivos temporales
+*.log
+
+.vscode/
