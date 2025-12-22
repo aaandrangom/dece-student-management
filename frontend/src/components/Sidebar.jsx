@@ -91,7 +91,7 @@ const Sidebar = () => {
       {/* Menú Flotante */}
       {isCollapsed && hoveredItem && hoveredItem.subOptions && (
         <div 
-          className="fixed z-[9999] bg-[#3d1866] rounded-lg shadow-xl border border-white/10 w-52 py-2"
+          className="fixed z-9999 bg-[#3d1866] rounded-lg shadow-xl border border-white/10 w-52 py-2"
           style={{ top: menuPosition.top, left: menuPosition.left }}
           onMouseEnter={() => setHoveredItem(hoveredItem)}
           onMouseLeave={() => setHoveredItem(null)}
@@ -177,7 +177,7 @@ const SidebarItem = ({ item, isCollapsed, setHoveredItem, setMenuPosition }) => 
 
       {hasSubOptions && !isCollapsed && (
         <div 
-          className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
+          className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out ${isOpen ? 'max-h-125 opacity-100' : 'max-h-0 opacity-0'}`}
           style={{ visibility: isOpen ? 'visible' : 'hidden' }}
         >
           <div className="ml-5 pl-4 border-l border-white/10 mt-1 space-y-1 pb-1">
