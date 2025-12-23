@@ -1,22 +1,22 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { ScreenLockProvider, useScreenLock } from './context/ScreenLockContext';
 import SecurityWrapper from './components/SecurityWrapper';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import GenericPage from './pages/GenericPage';
+import AcademicYearsPage from './pages/AcademicYearsPage';
 import { menuOptions } from './constants/items';
 
-// Helper function to generate routes recursively
 const generateRoutes = (items) => {
   let routes = [];
   items.forEach((item) => {
     if (item.subOptions && item.subOptions.length > 0) {
       routes = [...routes, ...generateRoutes(item.subOptions)];
     } else {
-      // Skip the dashboard path as it is handled manually
-      if (item.path !== '/panel-principal') {
+      if (item.path !== '/panel-principal' && item.path !== '/settings/school-years') {
         routes.push(
           <Route 
             key={item.path} 
@@ -30,7 +30,6 @@ const generateRoutes = (items) => {
   return routes;
 };
 
-// Componente interno que consume el contexto
 const MainLayout = () => {
   const { isLocked } = useScreenLock();
 
@@ -45,13 +44,12 @@ const MainLayout = () => {
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header />
         
-        {/* Content Area */}
         <div className="flex-1 p-8 overflow-auto">
           <Routes>
             <Route path="/" element={<Navigate to="/panel-principal" replace />} />
             <Route path="/panel-principal" element={<Dashboard />} />
+            <Route path="/settings/school-years" element={<AcademicYearsPage />} />
             {generateRoutes(menuOptions)}
-            {/* Fallback for unknown routes */}
             <Route path="*" element={<GenericPage title="Página no encontrada" />} />
           </Routes>
         </div>
@@ -63,6 +61,7 @@ const MainLayout = () => {
 function App() {
   return (
     <ScreenLockProvider>
+      <Toaster position="bottom-right" richColors closeButton />
       <Router>
         <MainLayout />
       </Router>

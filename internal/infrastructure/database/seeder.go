@@ -20,7 +20,7 @@ func SeedAdminUser() error {
 	}
 
 	var count int64
-	DB.Model(&institution.Usuario{}).Where("rol_id = ?", adminRole.ID).Count(&count)
+	DB.Model(&institution.Usuario{}).Where("username = ?", "admin").Count(&count)
 
 	if count > 0 {
 		return nil

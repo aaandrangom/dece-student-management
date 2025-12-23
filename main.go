@@ -1,6 +1,8 @@
 package main
 
 import (
+	"dece/internal/application/services"
+	"dece/internal/infrastructure/database"
 	"embed"
 
 	"github.com/wailsapp/wails/v2"
@@ -12,6 +14,14 @@ import (
 var assets embed.FS
 
 func main() {
+	// Initialize Database
+	database.InitDB()
+	database.SeedAdminUser()
+
+	// Initialize Services
+	authService := services.NewAuthService(database.DB)
+	academicService := services.NewAcademicService(database.DB)
+
 	// Create an instance of the app structure
 	app := NewApp()
 
@@ -28,6 +38,8 @@ func main() {
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
+			authService,
+			academicService,
 		},
 	})
 

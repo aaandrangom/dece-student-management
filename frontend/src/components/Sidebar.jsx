@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo, useRef, useEffect } from 'react'; // Importar memo y useCallback
+import React, { useState, useCallback, memo, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   HeartHandshake, ChevronLeft, ChevronRight, LogOut,
@@ -21,7 +21,6 @@ const Sidebar = () => {
   const [hoveredItem, setHoveredItem] = useState(null);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
-  // useCallback evita que esta función se re-cree en cada render
   const toggleCollapse = useCallback(() => {
     setIsCollapsed(prev => !prev);
   }, []);
@@ -29,33 +28,33 @@ const Sidebar = () => {
   return (
     <aside 
       className={`
-        relative h-screen flex flex-col shrink-0 bg-[#4a1d7c] border-r border-white/5 z-50
+        relative h-screen flex flex-col shrink-0 bg-[#4a1d7c] border-r border-white/10 z-50
         transition-[width] duration-300 ease-in-out
         ${isCollapsed ? 'w-20' : 'w-72'}
       `}
       style={{
-        background: 'linear-gradient(180deg, #5b2c8a 0%, #3d1866 100%)',
-        contain: 'layout style' // OPTIMIZACIÓN CSS CRÍTICA PARA WAILS
+        background: 'linear-gradient(180deg, #5b2c8a 0%, #2e1065 100%)',
+        contain: 'layout style'
       }}
       onMouseLeave={() => setHoveredItem(null)}
     >
-      {/* Header - Memoizado visualmente por simplicidad */}
+      {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-white/10 h-20 overflow-hidden shrink-0">
-        <div className="shrink-0 w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-sm">
-           <HeartHandshake className="w-6 h-6 text-white/90" />
+        <div className="shrink-0 w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shadow-md ring-1 ring-white/10">
+           <HeartHandshake className="w-6 h-6 text-white" />
         </div>
         
         <div className={`flex flex-col overflow-hidden transition-opacity duration-200 ${
           isCollapsed ? 'w-0 opacity-0' : 'w-40 opacity-100'
         }`}>
-          <h1 className="text-lg font-bold text-white tracking-wide whitespace-nowrap pl-2">DECE</h1>
-          <p className="text-xs text-white/60 whitespace-nowrap font-medium pl-2">Sistema Admin</p>
+          <h1 className="text-lg font-bold text-white tracking-wide whitespace-nowrap pl-2 drop-shadow-sm">DECE</h1>
+          <p className="text-xs text-indigo-200 whitespace-nowrap font-medium pl-2">Administración</p>
         </div>
       </div>
 
       <button
         onClick={toggleCollapse}
-        className="absolute -right-3 top-24 bg-[#5b2c8a] text-white p-1.5 rounded-full shadow-md border border-white/10 hover:bg-[#6d35a6] transition-colors z-50"
+        className="absolute -right-3 top-24 bg-[#5b2c8a] text-white p-1.5 rounded-full shadow-lg border border-white/20 hover:bg-[#7c3aed] transition-colors z-50 flex items-center justify-center"
       >
         <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
       </button>
@@ -77,10 +76,10 @@ const Sidebar = () => {
       <div className="p-4 border-t border-white/10 shrink-0">
         <Link
           to="/"
-          className={`flex items-center gap-3 px-3 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors duration-200 group overflow-hidden ${isCollapsed ? 'justify-center' : ''}`}
+          className={`flex items-center gap-3 px-3 py-3 rounded-xl text-indigo-100 hover:bg-white/10 hover:text-white transition-colors duration-200 group overflow-hidden ${isCollapsed ? 'justify-center' : ''}`}
         >
-          <LogOut className="w-5 h-5 shrink-0 group-hover:text-red-300 transition-colors" />
-          <span className={`text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${
+          <LogOut className="w-5 h-5 shrink-0 text-red-300 group-hover:text-red-200 transition-colors" />
+          <span className={`text-sm font-semibold whitespace-nowrap overflow-hidden transition-all duration-300 ${
             isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100 ml-1'
           }`}>
             Cerrar Sesión
@@ -88,23 +87,23 @@ const Sidebar = () => {
         </Link>
       </div>
 
-      {/* Menú Flotante */}
+      {/* Menú Flotante (Tooltip/Submenú para modo colapsado) */}
       {isCollapsed && hoveredItem && hoveredItem.subOptions && (
         <div 
-          className="fixed z-9999 bg-[#3d1866] rounded-lg shadow-xl border border-white/10 w-52 py-2"
+          className="fixed z-9999 bg-[#3d1866] rounded-xl shadow-2xl border border-white/20 w-56 py-2 backdrop-blur-xl bg-opacity-95"
           style={{ top: menuPosition.top, left: menuPosition.left }}
           onMouseEnter={() => setHoveredItem(hoveredItem)}
           onMouseLeave={() => setHoveredItem(null)}
         >
-          <div className="px-4 py-2 border-b border-white/10 mb-1">
-             <span className="text-sm font-semibold text-white block truncate">{hoveredItem.title}</span>
+          <div className="px-4 py-3 border-b border-white/10 mb-1">
+             <span className="text-sm font-bold text-white block truncate">{hoveredItem.title}</span>
           </div>
           {hoveredItem.subOptions.map((sub, idx) => {
              const SubIcon = iconMap[sub.icon];
              return (
-               <Link key={idx} to={sub.path} className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors">
-                 <SubIcon className="w-4 h-4 shrink-0" />
-                 <span className="truncate">{sub.title}</span>
+               <Link key={idx} to={sub.path} className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-200 hover:bg-white/10 hover:text-white transition-colors">
+                 {SubIcon && <SubIcon className="w-4 h-4 shrink-0 opacity-80" />}
+                 <span className="truncate font-medium">{sub.title}</span>
                </Link>
              )
           })}
@@ -114,7 +113,6 @@ const Sidebar = () => {
   );
 };
 
-// --- COMPONENTE MEMOIZADO (CRUCIAL PARA RENDIMIENTO) ---
 const SidebarItem = ({ item, isCollapsed, setHoveredItem, setMenuPosition }) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
@@ -154,22 +152,22 @@ const SidebarItem = ({ item, isCollapsed, setHoveredItem, setMenuPosition }) => 
         to={hasSubOptions ? '#' : item.path}
         onClick={handleClick}
         className={`
-          flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-200 group relative select-none
+          flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative select-none
           ${isActive || (isChildActive && !isOpen && !isCollapsed)
-            ? 'bg-white/10 text-white shadow-sm' 
-            : 'text-white/70 hover:bg-white/5 hover:text-white'}
+            ? 'bg-white/20 text-white shadow-md ring-1 ring-white/10 font-semibold' 
+            : 'text-indigo-100 hover:bg-white/10 hover:text-white font-medium'}
           ${isCollapsed ? 'justify-center' : ''}
         `}
       >
-        <Icon className={`w-5 h-5 shrink-0 transition-colors ${isActive || isChildActive ? 'text-white' : ''}`} />
+        <Icon className={`w-5 h-5 shrink-0 transition-colors ${isActive || isChildActive ? 'text-white' : 'text-indigo-200 group-hover:text-white'}`} />
         
         <div className={`flex items-center overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out ${
           isCollapsed ? 'w-0 opacity-0' : 'w-full opacity-100 ml-2'
         }`}>
-          <span className="flex-1 text-sm font-medium truncate">{item.title}</span>
+          <span className="flex-1 text-sm truncate">{item.title}</span>
           {hasSubOptions && (
-            <div className={`transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`}>
-               <ChevronRight className="w-4 h-4 shrink-0 opacity-70" />
+            <div className={`transition-transform duration-300 ${isOpen ? 'rotate-90 text-white' : 'text-indigo-300'}`}>
+               <ChevronRight className="w-4 h-4 shrink-0" />
             </div>
           )}
         </div>
@@ -180,7 +178,7 @@ const SidebarItem = ({ item, isCollapsed, setHoveredItem, setMenuPosition }) => 
           className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out ${isOpen ? 'max-h-125 opacity-100' : 'max-h-0 opacity-0'}`}
           style={{ visibility: isOpen ? 'visible' : 'hidden' }}
         >
-          <div className="ml-5 pl-4 border-l border-white/10 mt-1 space-y-1 pb-1">
+          <div className="ml-5 pl-4 border-l-2 border-white/10 mt-1 space-y-1 pb-1">
             {item.subOptions.map((subItem, idx) => {
               const SubIcon = iconMap[subItem.icon];
               const isSubActive = location.pathname === subItem.path;
@@ -188,9 +186,12 @@ const SidebarItem = ({ item, isCollapsed, setHoveredItem, setMenuPosition }) => 
                 <Link
                   key={idx}
                   to={subItem.path}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors duration-150 ${isSubActive ? 'text-white bg-white/10 font-medium translate-x-1' : 'text-white/60 hover:text-white hover:bg-white/5 hover:translate-x-1'}`}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors duration-150 
+                    ${isSubActive 
+                        ? 'text-white bg-white/15 font-semibold translate-x-1 shadow-sm' 
+                        : 'text-indigo-200 hover:text-white hover:bg-white/5 hover:translate-x-1 font-medium'}`}
                 >
-                  <SubIcon className="w-3.5 h-3.5 opacity-70 shrink-0" />
+                  {SubIcon && <SubIcon className={`w-3.5 h-3.5 shrink-0 ${isSubActive ? 'text-white' : 'opacity-70'}`} />}
                   <span className="truncate">{subItem.title}</span>
                 </Link>
               );
@@ -202,7 +203,6 @@ const SidebarItem = ({ item, isCollapsed, setHoveredItem, setMenuPosition }) => 
   );
 };
 
-// Envolver en memo() compara las props. Si no cambian, React no re-renderiza este componente.
 const MemoizedSidebarItem = memo(SidebarItem);
 
 export default Sidebar;

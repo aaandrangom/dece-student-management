@@ -6,11 +6,10 @@ export const useScreenLock = () => useContext(ScreenLockContext);
 
 export const ScreenLockProvider = ({ children }) => {
   const [isLocked, setIsLocked] = useState(true);
-  const [hasSession, setHasSession] = useState(false); // Para diferenciar Login de Bloqueo
+  const [hasSession, setHasSession] = useState(false);
   const [user, setUser] = useState({ username: 'admin', name: 'Administrador' });
   const timeoutRef = useRef(null);
   
-  // Tiempo de inactividad: 5 minutos
   const INACTIVITY_TIME = 5 * 60 * 1000; 
 
   const lockScreen = useCallback(() => {
@@ -34,13 +33,15 @@ export const ScreenLockProvider = ({ children }) => {
     setIsLocked(false);
   };
 
-  const login = () => {
+  const login = (userData) => {
+    if (userData) {
+      setUser(userData);
+    }
     setHasSession(true);
     unlockScreen();
   };
 
   useEffect(() => {
-    // Eventos para detectar actividad
     const events = ['mousemove', 'keydown', 'click', 'scroll'];
     
     const handleActivity = () => {

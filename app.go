@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"dece/internal/infrastructure/database"
 )
 
 type App struct {
@@ -15,6 +14,4 @@ func NewApp() *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	database.InitDB()
-	database.SeedAdminUser()
 }
