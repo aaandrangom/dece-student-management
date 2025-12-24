@@ -12,7 +12,7 @@ import {
   GetAniosLectivos, CreateAnioLectivo, 
   UpdateAnioFechas, ActivateAnioLectivo, CloseAnioLectivo,
   DeleteAnioLectivo, CloneAnioStructure
-} from '../../wailsjs/go/services/AcademicService';
+} from '../../wailsjs/go/academic/YearService';
 
 const AcademicYearsPage = () => {
   const [years, setYears] = useState([]);
@@ -151,8 +151,8 @@ const AcademicYearsPage = () => {
     });
 
     if (sourceYearID) {
+      const loadingToast = toast.loading('Clonando estructura...');
       try {
-        const loadingToast = toast.loading('Clonando estructura...');
         await CloneAnioStructure(parseInt(sourceYearID), targetYear.ID);
         toast.dismiss(loadingToast);
         toast.success('Estructura importada exitosamente');
@@ -230,9 +230,9 @@ const AcademicYearsPage = () => {
 
         {/* Tabla Contenedor */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
-          <div className="overflow-x-auto custom-scrollbar">
+          <div className="overflow-x-auto custom-scrollbar-light max-h-[60vh] overflow-y-auto">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-slate-50 border-b border-slate-200">
+              <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                 <tr>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha Inicio</th>

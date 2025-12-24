@@ -8,6 +8,19 @@ import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import GenericPage from './pages/GenericPage';
 import AcademicYearsPage from './pages/AcademicYearsPage';
+import CoursesPage from './pages/CoursesPage';
+import ParallelsPage from './pages/ParallelsPage';
+import SubjectsPage from './pages/SubjectsPage';
+import TeachersPage from './pages/TeachersPage';
+import ClassroomsPage from './pages/ClassroomsPage';
+import StudentsPage from './pages/StudentsPage';
+import StudentEnrollmentPage from './pages/StudentEnrollmentPage';
+import StudentProfilePage from './pages/StudentProfilePage';
+import ArchivedStudentsPage from './pages/ArchivedStudentsPage';
+import VulnerabilityPage from './pages/VulnerabilityPage';
+import DisciplinePage from './pages/DisciplinePage';
+import ViolencePage from './pages/ViolencePage';
+import AgendaPage from './pages/AgendaPage';
 import { menuOptions } from './constants/items';
 
 const generateRoutes = (items) => {
@@ -16,7 +29,7 @@ const generateRoutes = (items) => {
     if (item.subOptions && item.subOptions.length > 0) {
       routes = [...routes, ...generateRoutes(item.subOptions)];
     } else {
-      if (item.path !== '/panel-principal' && item.path !== '/settings/school-years') {
+      if (item.path !== '/panel-principal' && item.path !== '/settings/school-years' && item.path !== '/settings/courses' && item.path !== '/settings/parallels' && item.path !== '/academic/subjects' && item.path !== '/academic/teachers' && item.path !== '/academic/classrooms' && item.path !== '/students/list' && item.path !== '/students/enrollment' && item.path !== '/students/archived' && item.path !== '/dece/vulnerability' && item.path !== '/dece/discipline' && item.path !== '/dece/violence') {
         routes.push(
           <Route 
             key={item.path} 
@@ -49,6 +62,19 @@ const MainLayout = () => {
             <Route path="/" element={<Navigate to="/panel-principal" replace />} />
             <Route path="/panel-principal" element={<Dashboard />} />
             <Route path="/settings/school-years" element={<AcademicYearsPage />} />
+            <Route path="/settings/courses" element={<CoursesPage />} />
+            <Route path="/settings/parallels" element={<ParallelsPage />} />
+            <Route path="/academic/subjects" element={<SubjectsPage />} />
+            <Route path="/academic/teachers" element={<TeachersPage />} />
+            <Route path="/academic/classrooms" element={<ClassroomsPage />} />
+            <Route path="/students/list" element={<StudentsPage />} />
+            <Route path="/students/enrollment" element={<StudentEnrollmentPage />} />
+            <Route path="/students/archived" element={<ArchivedStudentsPage />} />
+            <Route path="/students/profile/:id" element={<StudentProfilePage />} />
+            <Route path="/dece/vulnerability" element={<VulnerabilityPage />} />
+            <Route path="/dece/discipline" element={<DisciplinePage />} />
+            <Route path="/dece/violence" element={<ViolencePage />} />
+            <Route path="/agenda/appointments" element={<AgendaPage />} />
             {generateRoutes(menuOptions)}
             <Route path="*" element={<GenericPage title="Página no encontrada" />} />
           </Routes>

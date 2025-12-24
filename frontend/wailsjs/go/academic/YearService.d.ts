@@ -13,6 +13,8 @@ export function CreateAnioLectivo(arg1:string,arg2:time.Time,arg3:time.Time):Pro
 
 export function DeleteAnioLectivo(arg1:number):Promise<void>;
 
+export function GetActiveSchoolYear():Promise<academic.AnioLectivo>;
+
 export function GetAniosLectivos():Promise<Array<academic.AnioLectivo>>;
 
 export function UpdateAnioFechas(arg1:number,arg2:time.Time,arg3:time.Time):Promise<void>;

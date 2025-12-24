@@ -16,8 +16,8 @@ export const menuOptions = [
                 icon: "Users"
             },
             {
-                title: "Nuevo Ingreso",
-                path: "/students/new",
+                title: "Matriculación",
+                path: "/students/enrollment",
                 icon: "UserPlus"
             },
             {
@@ -33,9 +33,9 @@ export const menuOptions = [
         icon: "HeartHandshake",
         subOptions: [
             {
-                title: "Casos y Seguimiento",
-                path: "/dece/cases",
-                icon: "FolderOpen"
+                title: "Violencia y Derivaciones",
+                path: "/dece/violence",
+                icon: "ShieldAlert"
             },
             {
                 title: "Disciplina y Conducta",
@@ -65,7 +65,7 @@ export const menuOptions = [
                 icon: "Briefcase"
             },
             {
-                title: "Materias y Carga",
+                title: "Materias",
                 path: "/academic/subjects",
                 icon: "BookOpen"
             }
@@ -97,6 +97,16 @@ export const menuOptions = [
                 title: "Años Lectivos",
                 path: "/settings/school-years",
                 icon: "History"
+            },
+            {
+                title: "Cursos",
+                path: "/settings/courses",
+                icon: "Layers"
+            },
+            {
+                title: "Paralelos",
+                path: "/settings/parallels",
+                icon: "Split"
             },
             {
                 title: "Usuarios del Sistema",

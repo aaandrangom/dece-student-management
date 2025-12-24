@@ -1,6 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { GetCitasProximas } from '../../wailsjs/go/welfare/AgendaService';
 
 const Dashboard = () => {
+  const [citasCount, setCitasCount] = useState(0);
+
+  useEffect(() => {
+    const fetchCitas = async () => {
+      try {
+        const citas = await GetCitasProximas();
+        if (citas) {
+          setCitasCount(citas.length);
+        }
+      } catch (err) {
+        console.error("Error fetching citas:", err);
+      }
+    };
+    fetchCitas();
+  }, []);
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -42,7 +59,7 @@ const Dashboard = () => {
               </svg>
             </span>
           </div>
-          <p className="text-3xl font-bold text-gray-800">0</p>
+          <p className="text-3xl font-bold text-gray-800">{citasCount}</p>
           <p className="text-xs text-gray-400 mt-2">Para esta semana</p>
         </div>
       </div>

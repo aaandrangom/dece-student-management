@@ -7,14 +7,13 @@
 body {
   font-family: "Poppins", sans-serif;
 }
-/* Asegura que el contenido principal no luche contra el sidebar */
+
 main {
   flex: 1;
-  min-width: 0; /* Previene desbordamientos flex que causan recálculos pesados */
-  transform: translateZ(0); /* Aceleración GPU */
+  min-width: 0;
+  transform: translateZ(0);
 }
 
-/* Custom Scrollbar for Sidebar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
@@ -30,4 +29,21 @@ main {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3); 
+}
+
+.custom-scrollbar-light::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.25); /* gris visible en fondo blanco */
+  border-radius: 10px;
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
 }
