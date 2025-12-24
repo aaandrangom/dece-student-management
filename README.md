@@ -1,19 +1,27 @@
-# README
+# SIGDECE - Sistema Integral de Gestión DECE
 
-## About
+![Wails](https://img.shields.io/badge/Wails-v2-red?style=for-the-badge&logo=wails)
+![Go](https://img.shields.io/badge/Go-1.18+-00ADD8?style=for-the-badge&logo=go)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)
+![SQLite](https://img.shields.io/badge/SQLite-Local_DB-003B57?style=for-the-badge&logo=sqlite)
 
-This is the official Wails React template.
+**SIGDECE** es una aplicación de escritorio robusta y moderna diseñada específicamente para el **Departamento de Consejería Estudiantil (DECE)**. Su objetivo es optimizar el registro, seguimiento y gestión de expedientes estudiantiles mediante una interfaz intuitiva y segura que funciona 100% local.
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+---
 
-## Live Development
+## ✨ Características Principales
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+* **Gestión de Expedientes:** Creación y seguimiento detallado de casos estudiantiles.
+* **Interfaz Moderna (Frameless):** Diseño personalizado con barra de título integrada y colores institucionales.
+* **Arquitectura Híbrida:** Combina el rendimiento nativo de **Go** en el backend con la flexibilidad de **React** en el frontend.
+* **Base de Datos Local:** Implementación con **SQLite** para garantizar la privacidad de los datos.
+* **Reportes:** Generación de documentos y fichas de seguimiento.
 
-## Building
+---
 
-To build a redistributable, production mode package, use `wails build`.
+## 🛠️ Tecnologías Utilizadas
+
+* **Backend:** Go (Golang)
+* **Frontend:** React.js
+* **Framework:** Wails v2
+* **Base de Datos:** SQLite (Gorm / sql)
