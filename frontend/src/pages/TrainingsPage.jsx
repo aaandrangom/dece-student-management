@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import {
     Presentation, Users, FileText, Plus, Trash2,
     Save, Upload, CheckCircle2,
@@ -333,7 +333,6 @@ const TrainingsPage = () => {
                     </div>
                 </div>
             </div>
-            <Toaster position="top-right" />
         </div>
     );
 };
