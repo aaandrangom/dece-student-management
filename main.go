@@ -2,6 +2,9 @@ package main
 
 import (
 	"dece/internal/application/services"
+	"dece/internal/application/services/academic"
+	"dece/internal/application/services/student"
+	"dece/internal/application/services/welfare"
 	"dece/internal/infrastructure/database"
 	"embed"
 
@@ -20,7 +23,16 @@ func main() {
 
 	// Initialize Services
 	authService := services.NewAuthService(database.DB)
-	academicService := services.NewAcademicService(database.DB)
+	yearService := academic.NewYearService(database.DB)
+	courseService := academic.NewCourseService(database.DB)
+	parallelService := academic.NewParallelService(database.DB)
+	subjectService := academic.NewSubjectService(database.DB)
+	teacherService := academic.NewTeacherService(database.DB)
+	classroomService := academic.NewClassroomService(database.DB)
+	studentService := student.NewStudentService(database.DB)
+	healthService := welfare.NewHealthService(database.DB)
+	disciplineService := welfare.NewDisciplineService(database.DB)
+	agendaService := welfare.NewAgendaService(database.DB)
 
 	// Create an instance of the app structure
 	app := NewApp()
@@ -39,7 +51,16 @@ func main() {
 		Bind: []interface{}{
 			app,
 			authService,
-			academicService,
+			yearService,
+			courseService,
+			parallelService,
+			subjectService,
+			teacherService,
+			classroomService,
+			studentService,
+			healthService,
+			disciplineService,
+			agendaService,
 		},
 	})
 
