@@ -184,10 +184,13 @@ CREATE TABLE salud_vulnerabilidad (
     
     -- Salud
     discapacidad BOOLEAN,
+    porcentaje_discapacidad INTEGER,
+    tipo_discapacidad TEXT,
     detalles_discapacidad TEXT,
     evaluacion_psicopedagogica BOOLEAN,
     archivo_evaluacion_path TEXT,
     alergias TEXT,
+    cirugias TEXT,
     enfermedades TEXT,
     
     -- Genero / Maternidad / Paternidad
@@ -196,6 +199,7 @@ CREATE TABLE salud_vulnerabilidad (
     controles_salud BOOLEAN,
     riesgo_embarazo BOOLEAN,
     nombre_pareja TEXT,
+    edad_pareja INTEGER,
     
     FOREIGN KEY(historial_id) REFERENCES historial_academico(id)
 );
@@ -205,13 +209,24 @@ CREATE TABLE disciplina_casos (
     historial_id INTEGER,
     fecha DATE,
     tipo TEXT, -- 'DISCIPLINA' o 'VIOLENCIA'
+    subtipo TEXT, -- Para violencia: 'SEXUAL', 'INTRAFAMILIAR', etc.
     descripcion_motivo TEXT,
+    gravedad TEXT, -- 'LEVE', 'GRAVE', 'MUY_GRAVE'
     
     -- Gestión
     acciones_realizadas TEXT,
+    resolucion TEXT,
     derivado_a TEXT, -- 'Fiscalia', 'Distrito'
+    fecha_derivacion DATE, -- Para violencia
     archivo_adjunto_path TEXT,
-    estado TEXT, -- 'ABIERTO', 'CERRADO'
+    archivo_acta_path TEXT,
+    estado TEXT, -- 'ABIERTO', 'CERRADO', 'EN_SEGUIMIENTO'
+    
+    -- Representantes
+    notifico_representante BOOLEAN,
+    firmo_acta BOOLEAN,
+    motivo_no_firma TEXT,
+    cumplio_medida BOOLEAN,
     
     FOREIGN KEY(historial_id) REFERENCES historial_academico(id)
 );
@@ -224,9 +239,11 @@ CREATE TABLE citas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     historial_id INTEGER,
     fecha_cita DATETIME,
+    motivo TEXT,
     entidad_destino TEXT,
     notificar_dias_antes INTEGER,
     visto BOOLEAN DEFAULT 0,
+    estado TEXT DEFAULT 'PENDIENTE',
     FOREIGN KEY(historial_id) REFERENCES historial_academico(id)
 );
 

@@ -27,6 +27,7 @@ type Materia struct {
 	ID     uint   `gorm:"primaryKey"`
 	Nombre string `gorm:"not null"` // "Matemáticas"
 	Area   string
+	Activo bool `gorm:"default:true"`
 }
 
 type Curso struct {

@@ -47,9 +47,9 @@ func InitDB() {
 		// Welfare
 		&welfare.SaludVulnerabilidad{},
 		&welfare.DisciplinaCaso{},
+		&welfare.Cita{},
 
 		// Management
-		&management.Cita{},
 		&management.Capacitacion{},
 	)
 

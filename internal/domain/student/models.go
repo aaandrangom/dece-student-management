@@ -38,6 +38,11 @@ type HistorialAcademico struct {
 	EdadCalculada int
 	TipoSangre    string
 
+	// Estado de la Matrícula
+	Estado       string `gorm:"default:'MATRICULADO'"` // MATRICULADO, RETIRADO
+	FechaRetiro  *time.Time
+	MotivoRetiro string
+
 	Estudiante Estudiante    `gorm:"foreignKey:EstudianteID"`
 	Aula       academic.Aula `gorm:"foreignKey:AulaID"`
 }

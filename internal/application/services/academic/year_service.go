@@ -1,4 +1,4 @@
-package services
+package academic
 
 import (
 	"dece/internal/domain/academic"
@@ -9,21 +9,29 @@ import (
 	"gorm.io/gorm"
 )
 
-type AcademicService struct {
+type YearService struct {
 	db *gorm.DB
 }
 
-func NewAcademicService(db *gorm.DB) *AcademicService {
-	return &AcademicService{db: db}
+func NewYearService(db *gorm.DB) *YearService {
+	return &YearService{db: db}
 }
 
-func (s *AcademicService) GetAniosLectivos() ([]academic.AnioLectivo, error) {
+func (s *YearService) GetAniosLectivos() ([]academic.AnioLectivo, error) {
 	var anios []academic.AnioLectivo
 	result := s.db.Order("id desc").Find(&anios)
 	return anios, result.Error
 }
 
-func (s *AcademicService) CreateAnioLectivo(nombre string, fechaInicio time.Time, fechaFin time.Time) (academic.AnioLectivo, error) {
+func (s *YearService) GetActiveSchoolYear() (*academic.AnioLectivo, error) {
+	var anio academic.AnioLectivo
+	if err := s.db.Where("activo = ?", true).First(&anio).Error; err != nil {
+		return nil, err
+	}
+	return &anio, nil
+}
+
+func (s *YearService) CreateAnioLectivo(nombre string, fechaInicio time.Time, fechaFin time.Time) (academic.AnioLectivo, error) {
 	anio := academic.AnioLectivo{
 		Nombre:      nombre,
 		FechaInicio: fechaInicio,
@@ -36,14 +44,14 @@ func (s *AcademicService) CreateAnioLectivo(nombre string, fechaInicio time.Time
 	return anio, result.Error
 }
 
-func (s *AcademicService) UpdateAnioFechas(id uint, fechaInicio time.Time, fechaFin time.Time) error {
+func (s *YearService) UpdateAnioFechas(id uint, fechaInicio time.Time, fechaFin time.Time) error {
 	return s.db.Model(&academic.AnioLectivo{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"fecha_inicio": fechaInicio,
 		"fecha_fin":    fechaFin,
 	}).Error
 }
 
-func (s *AcademicService) ActivateAnioLectivo(id uint) error {
+func (s *YearService) ActivateAnioLectivo(id uint) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&academic.AnioLectivo{}).Where("activo = ?", true).Update("activo", false).Error; err != nil {
 			return err
@@ -57,11 +65,11 @@ func (s *AcademicService) ActivateAnioLectivo(id uint) error {
 	})
 }
 
-func (s *AcademicService) CloseAnioLectivo(id uint) error {
+func (s *YearService) CloseAnioLectivo(id uint) error {
 	return s.db.Model(&academic.AnioLectivo{}).Where("id = ?", id).Update("cerrado", true).Error
 }
 
-func (s *AcademicService) DeleteAnioLectivo(id uint) error {
+func (s *YearService) DeleteAnioLectivo(id uint) error {
 	var count int64
 	err := s.db.Model(&student.HistorialAcademico{}).
 		Joins("JOIN aulas ON aulas.id = historial_academicos.aula_id").
@@ -92,7 +100,7 @@ func (s *AcademicService) DeleteAnioLectivo(id uint) error {
 	})
 }
 
-func (s *AcademicService) CloneAnioStructure(sourceYearID uint, targetYearID uint) error {
+func (s *YearService) CloneAnioStructure(sourceYearID uint, targetYearID uint) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		var sourceAulas []academic.Aula
 		if err := tx.Where("anio_lectivo_id = ?", sourceYearID).Find(&sourceAulas).Error; err != nil {

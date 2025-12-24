@@ -11,10 +11,13 @@ type SaludVulnerabilidad struct {
 
 	// Salud
 	Discapacidad              bool
+	PorcentajeDiscapacidad    int
+	TipoDiscapacidad          string
 	DetallesDiscapacidad      string
 	EvaluacionPsicopedagogica bool
 	ArchivoEvaluacionPath     string
 	Alergias                  string
+	Cirugias                  string
 	Enfermedades              string
 
 	// Genero / Maternidad / Paternidad
@@ -23,6 +26,17 @@ type SaludVulnerabilidad struct {
 	ControlesSalud  bool
 	RiesgoEmbarazo  bool
 	NombrePareja    string
+	EdadPareja      int
+
+	Historial student.HistorialAcademico `gorm:"foreignKey:HistorialID"`
+}
+
+type ConvivienteHogar struct {
+	ID               uint `gorm:"primaryKey"`
+	HistorialID      uint
+	NombresCompletos string
+	Parentesco       string
+	Edad             int
 
 	Historial student.HistorialAcademico `gorm:"foreignKey:HistorialID"`
 }
@@ -32,13 +46,37 @@ type DisciplinaCaso struct {
 	HistorialID       uint
 	Fecha             time.Time
 	Tipo              string // 'DISCIPLINA' o 'VIOLENCIA'
+	Subtipo           string // 'SEXUAL', 'INTRAFAMILIAR', 'NEGLIGENCIA', 'ACOSO'
 	DescripcionMotivo string
+	Gravedad          string // 'LEVE', 'GRAVE', 'MUY_GRAVE'
 
 	// Gestión
 	AccionesRealizadas string
+	Resolucion         string // Medida tomada
 	DerivadoA          string // 'Fiscalia', 'Distrito'
-	ArchivoAdjuntoPath string
-	Estado             string // 'ABIERTO', 'CERRADO'
+	FechaDerivacion    *time.Time
+	ArchivoAdjuntoPath string // Evidencia general / Informe Derivación
+	ArchivoActaPath    string // Acta de compromiso firmada
+	Estado             string // 'ABIERTO', 'CERRADO', 'EN_SEGUIMIENTO'
+
+	// Representantes
+	NotificoRepresentante bool
+	FirmoActa             bool
+	MotivoNoFirma         string
+	CumplioMedida         bool
+
+	Historial student.HistorialAcademico `gorm:"foreignKey:HistorialID"`
+}
+
+type Cita struct {
+	ID                 uint `gorm:"primaryKey"`
+	HistorialID        uint
+	FechaCita          time.Time
+	Motivo             string
+	EntidadDestino     string
+	NotificarDiasAntes int
+	Visto              bool
+	Estado             string // 'PENDIENTE', 'REALIZADA', 'CANCELADA'
 
 	Historial student.HistorialAcademico `gorm:"foreignKey:HistorialID"`
 }
