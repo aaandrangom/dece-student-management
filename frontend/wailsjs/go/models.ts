@@ -211,6 +211,53 @@ export namespace academic {
 
 }
 
+export namespace management {
+	
+	export class TrainingDTO {
+	    id: number;
+	    anio_lectivo_id: number;
+	    tema: string;
+	    fecha: time.Time;
+	    publico_objetivo: string;
+	    asistentes_count: number;
+	    archivo_evidencia_path: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new TrainingDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.anio_lectivo_id = source["anio_lectivo_id"];
+	        this.tema = source["tema"];
+	        this.fecha = this.convertValues(source["fecha"], time.Time);
+	        this.publico_objetivo = source["publico_objetivo"];
+	        this.asistentes_count = source["asistentes_count"];
+	        this.archivo_evidencia_path = source["archivo_evidencia_path"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace services {
 	
 	export class LoginResponse {

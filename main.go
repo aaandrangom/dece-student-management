@@ -3,6 +3,7 @@ package main
 import (
 	"dece/internal/application/services"
 	"dece/internal/application/services/academic"
+	"dece/internal/application/services/management"
 	"dece/internal/application/services/student"
 	"dece/internal/application/services/welfare"
 	"dece/internal/infrastructure/database"
@@ -33,6 +34,7 @@ func main() {
 	healthService := welfare.NewHealthService(database.DB)
 	disciplineService := welfare.NewDisciplineService(database.DB)
 	agendaService := welfare.NewAgendaService(database.DB)
+	trainingService := management.NewTrainingService(database.DB)
 
 	// Create an instance of the app structure
 	app := NewApp()
@@ -61,6 +63,7 @@ func main() {
 			healthService,
 			disciplineService,
 			agendaService,
+			trainingService,
 		},
 	})
 
