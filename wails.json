@@ -8,6 +8,13 @@
   "frontend:dev:serverUrl": "auto",
   "author": {
     "name": "Anthony Andrango",
-    "email": "aaandrangom@utn.edu.ec"
+    "email": "anthony.andrango500@gmail.com"
+  },
+  "info": {
+    "productName": "SIGDECE",
+    "companyName": "Anthony Andrango Dev",
+    "productVersion": "1.0.0",
+    "copyright": "© 2025 Anthony Andrango",
+    "comments": "Sistema para el Departamento de Consejería Estudiantil"
   }
 }
