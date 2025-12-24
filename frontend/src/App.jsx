@@ -22,6 +22,7 @@ import DisciplinePage from './pages/DisciplinePage';
 import ViolencePage from './pages/ViolencePage';
 import AgendaPage from './pages/AgendaPage';
 import TrainingsPage from './pages/TrainingsPage';
+import InstitutionPage from './pages/InstitutionPage';
 import { menuOptions } from './constants/items';
 
 const generateRoutes = (items) => {
@@ -30,7 +31,7 @@ const generateRoutes = (items) => {
     if (item.subOptions && item.subOptions.length > 0) {
       routes = [...routes, ...generateRoutes(item.subOptions)];
     } else {
-      if (item.path !== '/panel-principal' && item.path !== '/settings/school-years' && item.path !== '/settings/courses' && item.path !== '/settings/parallels' && item.path !== '/academic/subjects' && item.path !== '/academic/teachers' && item.path !== '/academic/classrooms' && item.path !== '/students/list' && item.path !== '/students/enrollment' && item.path !== '/students/archived' && item.path !== '/dece/vulnerability' && item.path !== '/dece/discipline' && item.path !== '/dece/violence' && item.path !== '/agenda/appointments' && item.path !== '/agenda/trainings') {
+      if (item.path !== '/panel-principal' && item.path !== '/settings/school-years' && item.path !== '/settings/courses' && item.path !== '/settings/parallels' && item.path !== '/academic/subjects' && item.path !== '/academic/teachers' && item.path !== '/academic/classrooms' && item.path !== '/students/list' && item.path !== '/students/enrollment' && item.path !== '/students/archived' && item.path !== '/dece/vulnerability' && item.path !== '/dece/discipline' && item.path !== '/dece/violence' && item.path !== '/agenda/appointments' && item.path !== '/agenda/trainings' && item.path !== '/settings/institution') {
         routes.push(
           <Route 
             key={item.path} 
@@ -77,6 +78,7 @@ const MainLayout = () => {
             <Route path="/dece/violence" element={<ViolencePage />} />
             <Route path="/agenda/appointments" element={<AgendaPage />} />
             <Route path="/agenda/trainings" element={<TrainingsPage />} />
+            <Route path="/settings/institution" element={<InstitutionPage />} />
             {generateRoutes(menuOptions)}
             <Route path="*" element={<GenericPage title="Página no encontrada" />} />
           </Routes>

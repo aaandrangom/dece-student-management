@@ -211,6 +211,35 @@ export namespace academic {
 
 }
 
+export namespace institution {
+	
+	export class Institucion {
+	    ID: number;
+	    Nombre: string;
+	    CodigoAmie: string;
+	    Distrito: string;
+	    Circuito: string;
+	    Direccion: string;
+	    LogoPath: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Institucion(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ID = source["ID"];
+	        this.Nombre = source["Nombre"];
+	        this.CodigoAmie = source["CodigoAmie"];
+	        this.Distrito = source["Distrito"];
+	        this.Circuito = source["Circuito"];
+	        this.Direccion = source["Direccion"];
+	        this.LogoPath = source["LogoPath"];
+	    }
+	}
+
+}
+
 export namespace management {
 	
 	export class TrainingDTO {

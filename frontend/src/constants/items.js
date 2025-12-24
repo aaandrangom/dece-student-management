@@ -109,11 +109,6 @@ export const menuOptions = [
                 icon: "Split"
             },
             {
-                title: "Usuarios del Sistema",
-                path: "/settings/users",
-                icon: "ShieldCheck"
-            },
-            {
                 title: "Datos Institución",
                 path: "/settings/institution",
                 icon: "Building2"
