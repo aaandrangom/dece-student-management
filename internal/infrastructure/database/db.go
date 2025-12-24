@@ -20,16 +20,13 @@ func InitDB() {
 		panic("Error al conectar base de datos: " + err.Error())
 	}
 
-	// Habilitar Foreign Keys en SQLite
 	DB.Exec("PRAGMA foreign_keys = ON")
 
 	err = DB.AutoMigrate(
-		// Institution
 		&institution.Institucion{},
 		&institution.Rol{},
 		&institution.Usuario{},
 
-		// Academic
 		&academic.AnioLectivo{},
 		&academic.Docente{},
 		&academic.Materia{},
@@ -38,18 +35,15 @@ func InitDB() {
 		&academic.Aula{},
 		&academic.CargaHoraria{},
 
-		// Student
 		&student.Estudiante{},
 		&student.HistorialAcademico{},
 		&student.Familiar{},
 		&student.ConvivienteHogar{},
 
-		// Welfare
 		&welfare.SaludVulnerabilidad{},
 		&welfare.DisciplinaCaso{},
 		&welfare.Cita{},
 
-		// Management
 		&management.Capacitacion{},
 	)
 

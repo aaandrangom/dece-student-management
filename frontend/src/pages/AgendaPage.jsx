@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
-import { 
-    Calendar, 
-    Clock, 
-    MapPin, 
-    Bell, 
-    Plus, 
-    Trash2, 
-    Save, 
+import {
+    Calendar,
+    Clock,
+    MapPin,
+    Bell,
+    Plus,
+    Trash2,
+    Save,
     X,
     CalendarDays,
     AlertCircle,
     CheckCircle2
 } from 'lucide-react';
-import { 
-    GetAllCitas, 
-    SaveCita, 
-    DeleteCita 
+import {
+    GetAllCitas,
+    SaveCita,
+    DeleteCita
 } from '../../wailsjs/go/welfare/AgendaService';
 
 const AgendaPage = () => {
@@ -27,7 +27,7 @@ const AgendaPage = () => {
 
     const emptyCita = {
         id: 0,
-        fecha_cita: new Date().toISOString().slice(0, 16), // YYYY-MM-DDTHH:mm
+        fecha_cita: new Date().toISOString().slice(0, 16),
         motivo: '',
         entidad_destino: '',
         notificar_dias_antes: 1,
@@ -68,14 +68,12 @@ const AgendaPage = () => {
     };
 
     const handleEdit = (cita) => {
-        // Convert ISO string to datetime-local format
         const date = new Date(cita.fecha_cita);
-        // Adjust for timezone offset to show correct local time in input
         const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-        
-        setSelectedCita({ 
-            ...cita, 
-            fecha_cita: localDate 
+
+        setSelectedCita({
+            ...cita,
+            fecha_cita: localDate
         });
         setIsEditing(true);
     };
@@ -138,8 +136,7 @@ const AgendaPage = () => {
     return (
         <div className="min-h-full w-full bg-slate-50/50 font-sans">
             <div className="mx-auto w-full flex flex-col gap-6">
-                
-                {/* Header */}
+
                 <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4 w-full sm:w-auto">
                         <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100 shadow-sm">
@@ -150,7 +147,7 @@ const AgendaPage = () => {
                             <p className="text-sm text-slate-500 font-medium">Gestión de citas y alertas tempranas</p>
                         </div>
                     </div>
-                    <button 
+                    <button
                         onClick={handleCreateNew}
                         className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm shadow-indigo-200"
                     >
@@ -160,8 +157,7 @@ const AgendaPage = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    {/* List of Appointments */}
+
                     <div className="lg:col-span-1 space-y-4">
                         <h3 className="font-bold text-slate-700 flex items-center gap-2">
                             <Clock className="w-4 h-4" />
@@ -178,7 +174,7 @@ const AgendaPage = () => {
                                 </div>
                             ) : (
                                 citas.map(c => (
-                                    <div 
+                                    <div
                                         key={c.id}
                                         onClick={() => handleEdit(c)}
                                         className={`bg-white p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md ${selectedCita?.id === c.id ? 'border-indigo-500 ring-1 ring-indigo-500/20' : 'border-slate-200 hover:border-indigo-300'}`}
@@ -196,14 +192,14 @@ const AgendaPage = () => {
                                                 {c.estado}
                                             </span>
                                         </div>
-                                        
+
                                         <h4 className="font-bold text-slate-800 text-sm mb-1">{c.motivo}</h4>
-                                        
+
                                         <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
                                             <Clock className="w-3 h-3" />
                                             {new Date(c.fecha_cita).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </div>
-                                        
+
                                         {c.entidad_destino && (
                                             <div className="flex items-center gap-2 text-xs text-indigo-600 font-medium">
                                                 <MapPin className="w-3 h-3" />
@@ -216,7 +212,6 @@ const AgendaPage = () => {
                         </div>
                     </div>
 
-                    {/* Form / Details */}
                     <div className="lg:col-span-2">
                         {isEditing ? (
                             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-right-4">
@@ -226,7 +221,7 @@ const AgendaPage = () => {
                                         {selectedCita.id === 0 ? 'Agendar Nueva Cita' : 'Detalles de la Cita'}
                                     </h3>
                                     {selectedCita.id !== 0 && (
-                                        <button 
+                                        <button
                                             onClick={() => handleDelete(selectedCita.id)}
                                             className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
                                             title="Eliminar cita"
@@ -235,13 +230,12 @@ const AgendaPage = () => {
                                         </button>
                                     )}
                                 </div>
-                                
+
                                 <div className="p-6 space-y-6">
-                                    {/* Fecha y Hora */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha y Hora</label>
-                                            <input 
+                                            <input
                                                 type="datetime-local"
                                                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                                                 value={selectedCita.fecha_cita}
@@ -250,7 +244,7 @@ const AgendaPage = () => {
                                         </div>
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</label>
-                                            <select 
+                                            <select
                                                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                                                 value={selectedCita.estado}
                                                 onChange={(e) => updateField('estado', e.target.value)}
@@ -262,10 +256,9 @@ const AgendaPage = () => {
                                         </div>
                                     </div>
 
-                                    {/* Motivo */}
                                     <div className="space-y-1">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Motivo de la Cita</label>
-                                        <input 
+                                        <input
                                             type="text"
                                             className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                                             placeholder="Ej: Reunión con Fiscalía, Entrevista con Padres..."
@@ -274,11 +267,10 @@ const AgendaPage = () => {
                                         />
                                     </div>
 
-                                    {/* Entidad y Alerta */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Entidad / Involucrado</label>
-                                            <select 
+                                            <select
                                                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                                                 value={selectedCita.entidad_destino}
                                                 onChange={(e) => updateField('entidad_destino', e.target.value)}
@@ -294,7 +286,7 @@ const AgendaPage = () => {
                                                 <Bell className="w-3 h-3" />
                                                 Alerta Temprana (Días antes)
                                             </label>
-                                            <input 
+                                            <input
                                                 type="number"
                                                 min="0"
                                                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
@@ -305,15 +297,14 @@ const AgendaPage = () => {
                                         </div>
                                     </div>
 
-                                    {/* Footer Actions */}
                                     <div className="pt-6 flex items-center justify-end gap-3 border-t border-slate-100 mt-4">
-                                        <button 
+                                        <button
                                             onClick={() => setIsEditing(false)}
                                             className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium transition-colors"
                                         >
                                             Cancelar
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={handleSave}
                                             className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 shadow-sm shadow-indigo-200 transition-all flex items-center gap-2"
                                         >

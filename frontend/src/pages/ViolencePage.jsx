@@ -1,52 +1,28 @@
 import React, { useState } from 'react';
 import { Toaster, toast } from 'sonner';
-import { 
-    Siren, 
-    Search, 
-    Save, 
-    Upload, 
-    FileText, 
-    AlertTriangle, 
-    Loader2,
-    Plus,
-    Trash2,
-    User,
-    X,
-    CheckCircle2,
-    AlertCircle,
-    ArrowRight,
-    Calendar,
-    FileCheck,
-    Info,
-    LayoutList,
-    ShieldAlert,
-    Building2,
-    Gavel
+import {
+    Siren, Search, Save, Upload, FileText, AlertTriangle, Loader2, Plus, Trash2,
+    User, X, CheckCircle2, ArrowRight, Calendar, FileCheck, Info, LayoutList,
+    ShieldAlert, Building2, Gavel
 } from 'lucide-react';
 import { GetStudents } from '../../wailsjs/go/student/StudentService';
-import { 
-    GetViolenceCases, 
-    SaveDisciplineCase, 
-    DeleteDisciplineCase, 
-    UploadSignedAct,
-    GetSignedAct 
+import {
+    GetViolenceCases, SaveDisciplineCase, DeleteDisciplineCase,
+    UploadSignedAct, GetSignedAct
 } from '../../wailsjs/go/welfare/DisciplineService';
 
 const ViolencePage = () => {
-    // Search State
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [loadingSearch, setLoadingSearch] = useState(false);
 
-    // Data State
     const [loadingData, setLoadingData] = useState(false);
     const [cases, setCases] = useState([]);
     const [selectedCase, setSelectedCase] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [actPreview, setActPreview] = useState(null);
 
-    // Constants
     const SUBTYPES = [
         { value: 'VIOLENCIA_SEXUAL', label: 'Violencia Sexual' },
         { value: 'INTRAFAMILIAR', label: 'Intrafamiliar' },
@@ -66,14 +42,13 @@ const ViolencePage = () => {
         { value: 'OTROS', label: 'Otros' }
     ];
 
-    // Empty Case Template
     const emptyCase = {
         id: 0,
         fecha: new Date().toISOString().split('T')[0],
         tipo: 'VIOLENCIA',
         subtipo: '',
         descripcion_motivo: '',
-        gravedad: 'GRAVE', // Default to Grave for violence
+        gravedad: 'GRAVE',
         acciones_realizadas: '',
         resolucion: '',
         derivado_a: '',
@@ -142,8 +117,8 @@ const ViolencePage = () => {
     };
 
     const handleEdit = async (c) => {
-        setSelectedCase({ 
-            ...c, 
+        setSelectedCase({
+            ...c,
             fecha: c.fecha.split('T')[0],
             fecha_derivacion: c.fecha_derivacion ? c.fecha_derivacion.split('T')[0] : ''
         });
@@ -209,7 +184,7 @@ const ViolencePage = () => {
                 await UploadSignedAct(selectedCase.id, base64);
                 toast.success("Informe subido correctamente");
                 setActPreview(base64);
-                setSelectedCase(prev => ({...prev, archivo_acta_path: 'updated'}));
+                setSelectedCase(prev => ({ ...prev, archivo_acta_path: 'updated' }));
             } catch (err) {
                 toast.error("Error al subir archivo: " + err);
             }
@@ -236,8 +211,6 @@ const ViolencePage = () => {
             <Toaster position="top-right" richColors />
 
             <div className="mx-auto w-full flex flex-col gap-6">
-                
-                {/* Header */}
                 <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4 w-full sm:w-auto">
                         <div className="p-3 bg-red-50 rounded-xl border border-red-100 shadow-sm">
@@ -251,7 +224,6 @@ const ViolencePage = () => {
                 </div>
 
                 {!selectedStudent ? (
-                    // Search View
                     <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-sm border border-slate-200 min-h-[60vh]">
                         <div className="w-full max-w-xl space-y-6 px-6">
                             <div className="text-center space-y-2">
@@ -282,7 +254,7 @@ const ViolencePage = () => {
                             {searchResults.length > 0 && (
                                 <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-4">
                                     {searchResults.map(student => (
-                                        <div 
+                                        <div
                                             key={student.id}
                                             onClick={() => selectStudent(student)}
                                             className={`p-4 cursor-pointer border-b border-slate-100 last:border-0 flex items-center justify-between group transition-colors ${student.estado === 'RETIRADO' ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-slate-50'}`}
@@ -312,8 +284,6 @@ const ViolencePage = () => {
                     </div>
                 ) : (
                     <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
-                        
-                        {/* Student Card */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-red-600">
@@ -329,7 +299,7 @@ const ViolencePage = () => {
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <button 
+                                <button
                                     onClick={clearSelection}
                                     className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                     title="Cambiar estudiante"
@@ -340,8 +310,6 @@ const ViolencePage = () => {
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            
-                            {/* Left: List of Cases */}
                             <div className="lg:col-span-1 space-y-4">
                                 <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                                     <h3 className="font-bold text-slate-700 flex items-center gap-2 text-sm">
@@ -349,7 +317,7 @@ const ViolencePage = () => {
                                         Historial
                                         <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs border border-slate-200">{cases.length}</span>
                                     </h3>
-                                    <button 
+                                    <button
                                         onClick={handleCreateNew}
                                         className="text-xs bg-slate-800 text-white px-3 py-1.5 rounded-lg hover:bg-slate-900 transition-colors flex items-center gap-1 font-bold shadow-sm"
                                     >
@@ -357,7 +325,7 @@ const ViolencePage = () => {
                                     </button>
                                 </div>
 
-                                <div className="space-y-3 h-[600px] overflow-y-auto custom-scrollbar pr-1">
+                                <div className="space-y-3 h-150 overflow-y-auto custom-scrollbar pr-1">
                                     {cases.length === 0 ? (
                                         <div className="text-center py-12 bg-white rounded-xl border border-slate-200 border-dashed text-slate-400 text-sm flex flex-col items-center justify-center h-full">
                                             <ShieldAlert className="w-8 h-8 mb-2 opacity-20" />
@@ -365,15 +333,15 @@ const ViolencePage = () => {
                                         </div>
                                     ) : (
                                         cases.map(c => (
-                                            <div 
+                                            <div
                                                 key={c.id}
                                                 onClick={() => handleEdit(c)}
                                                 className={`bg-white p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md group relative ${selectedCase?.id === c.id ? 'border-red-500 ring-1 ring-red-500/20 shadow-md' : 'border-slate-200 hover:border-red-300'}`}
                                             >
                                                 {selectedCase?.id === c.id && <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500 rounded-l-xl"></div>}
-                                                
+
                                                 <div className="flex justify-between items-start mb-2 pl-2">
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-slate-600 uppercase tracking-wide truncate max-w-[120px]">
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-slate-600 uppercase tracking-wide truncate max-w-30">
                                                         {c.subtipo ? c.subtipo.replace('_', ' ') : 'GENERAL'}
                                                     </span>
                                                     <span className="text-xs text-slate-400 font-mono flex items-center gap-1 shrink-0">
@@ -394,7 +362,6 @@ const ViolencePage = () => {
                                 </div>
                             </div>
 
-                            {/* Right: Form */}
                             <div className="lg:col-span-2">
                                 {isEditing && selectedCase ? (
                                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full animate-in fade-in slide-in-from-right-4">
@@ -404,7 +371,7 @@ const ViolencePage = () => {
                                                 {selectedCase.id === 0 ? 'Registrar Nuevo Caso' : 'Editar Expediente'}
                                             </h3>
                                             {selectedCase.id !== 0 && (
-                                                <button 
+                                                <button
                                                     onClick={() => handleDelete(selectedCase.id)}
                                                     className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors border border-transparent hover:border-red-100"
                                                     title="Eliminar caso"
@@ -416,18 +383,17 @@ const ViolencePage = () => {
 
                                         <div className="p-6 overflow-y-auto max-h-[calc(100vh-250px)] custom-scrollbar">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                {/* Columna 1: Detalles del Hecho */}
                                                 <div className="space-y-5">
                                                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                                                         <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                                                             <Info className="w-3 h-3" /> Detalles del Hecho
                                                         </h4>
-                                                        
+
                                                         <div className="grid grid-cols-2 gap-4 mb-4">
                                                             <div>
                                                                 <label className="block text-xs font-bold text-slate-500 mb-1.5">Fecha Detección</label>
-                                                                <input 
-                                                                    type="date" 
+                                                                <input
+                                                                    type="date"
                                                                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                                                                     value={selectedCase.fecha}
                                                                     onChange={(e) => updateField('fecha', e.target.value)}
@@ -435,7 +401,7 @@ const ViolencePage = () => {
                                                             </div>
                                                             <div>
                                                                 <label className="block text-xs font-bold text-slate-500 mb-1.5">Tipo de Violencia</label>
-                                                                <select 
+                                                                <select
                                                                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                                                                     value={selectedCase.subtipo}
                                                                     onChange={(e) => updateField('subtipo', e.target.value)}
@@ -451,7 +417,7 @@ const ViolencePage = () => {
                                                         <div className="space-y-4">
                                                             <div>
                                                                 <label className="block text-xs font-bold text-slate-500 mb-1.5">Descripción de los Hechos</label>
-                                                                <textarea 
+                                                                <textarea
                                                                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm resize-none h-24 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 placeholder:text-slate-300"
                                                                     placeholder="Describa detalladamente lo sucedido..."
                                                                     value={selectedCase.descripcion_motivo}
@@ -461,7 +427,7 @@ const ViolencePage = () => {
 
                                                             <div>
                                                                 <label className="block text-xs font-bold text-slate-500 mb-1.5">Acciones Realizadas / Observaciones</label>
-                                                                <textarea 
+                                                                <textarea
                                                                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm resize-none h-20 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 placeholder:text-slate-300"
                                                                     placeholder="Acciones tomadas por la institución..."
                                                                     value={selectedCase.acciones_realizadas}
@@ -472,18 +438,17 @@ const ViolencePage = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* Columna 2: Gestión y Derivación */}
                                                 <div className="space-y-5">
                                                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 h-full flex flex-col">
                                                         <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                                                             <Building2 className="w-3 h-3" /> Gestión y Derivación
                                                         </h4>
-                                                        
+
                                                         <div className="space-y-4 flex-1">
                                                             <div className="grid grid-cols-2 gap-4">
                                                                 <div>
                                                                     <label className="block text-xs font-bold text-slate-500 mb-1.5">Entidad Derivación</label>
-                                                                    <select 
+                                                                    <select
                                                                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                                                                         value={selectedCase.derivado_a}
                                                                         onChange={(e) => updateField('derivado_a', e.target.value)}
@@ -496,7 +461,7 @@ const ViolencePage = () => {
                                                                 </div>
                                                                 <div>
                                                                     <label className="block text-xs font-bold text-slate-500 mb-1.5">Fecha Derivación</label>
-                                                                    <input 
+                                                                    <input
                                                                         type="date"
                                                                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                                                                         value={selectedCase.fecha_derivacion || ''}
@@ -509,9 +474,9 @@ const ViolencePage = () => {
                                                             <div className="pt-4 border-t border-slate-200">
                                                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Documentación</h4>
                                                                 <div className="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:border-red-400 hover:bg-red-50/10 transition-all group bg-white">
-                                                                    <input 
-                                                                        type="file" 
-                                                                        className="hidden" 
+                                                                    <input
+                                                                        type="file"
+                                                                        className="hidden"
                                                                         id="acta-upload"
                                                                         onChange={handleFileUpload}
                                                                         accept=".pdf,image/*"
@@ -531,8 +496,8 @@ const ViolencePage = () => {
                                                                         <FileCheck className="w-5 h-5 text-emerald-600" />
                                                                         <div className="flex-1 min-w-0">
                                                                             <p className="text-xs font-bold text-emerald-800">Informe cargado</p>
-                                                                            <button 
-                                                                                onClick={() => window.open(actPreview)} 
+                                                                            <button
+                                                                                onClick={() => window.open(actPreview)}
                                                                                 className="text-[10px] text-emerald-600 hover:underline font-medium"
                                                                             >
                                                                                 Ver documento
@@ -550,12 +515,11 @@ const ViolencePage = () => {
                                                 <div className="flex items-center justify-end bg-slate-50 p-3 rounded-lg border border-slate-200">
                                                     <div className="flex items-center gap-2">
                                                         <label className="text-xs font-bold text-slate-500 uppercase">Estado del Caso:</label>
-                                                        <select 
-                                                            className={`px-3 py-1.5 border rounded-lg text-xs font-bold focus:outline-none cursor-pointer ${
-                                                                selectedCase.estado === 'CERRADO' 
-                                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                                        <select
+                                                            className={`px-3 py-1.5 border rounded-lg text-xs font-bold focus:outline-none cursor-pointer ${selectedCase.estado === 'CERRADO'
+                                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                                                 : 'bg-red-50 text-red-700 border-red-200'
-                                                            }`}
+                                                                }`}
                                                             value={selectedCase.estado}
                                                             onChange={(e) => updateField('estado', e.target.value)}
                                                         >
@@ -570,13 +534,13 @@ const ViolencePage = () => {
                                         </div>
 
                                         <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3 sticky bottom-0 z-10">
-                                            <button 
+                                            <button
                                                 onClick={() => setIsEditing(false)}
                                                 className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-sm font-bold transition-colors shadow-sm"
                                             >
                                                 Cancelar
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={handleSave}
                                                 className="px-6 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all text-sm font-bold shadow-md hover:shadow-red-200 active:scale-95 flex items-center gap-2"
                                             >

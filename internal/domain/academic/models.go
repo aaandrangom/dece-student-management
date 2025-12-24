@@ -6,7 +6,7 @@ import (
 
 type AnioLectivo struct {
 	ID          uint   `gorm:"primaryKey"`
-	Nombre      string `gorm:"not null"` // "2025-2026"
+	Nombre      string `gorm:"not null"`
 	FechaInicio time.Time
 	FechaFin    time.Time
 	Activo      bool `gorm:"default:false"`
@@ -25,20 +25,20 @@ type Docente struct {
 
 type Materia struct {
 	ID     uint   `gorm:"primaryKey"`
-	Nombre string `gorm:"not null"` // "Matemáticas"
+	Nombre string `gorm:"not null"`
 	Area   string
 	Activo bool `gorm:"default:true"`
 }
 
 type Curso struct {
 	ID     uint   `gorm:"primaryKey"`
-	Nombre string `gorm:"not null"` // "Octavo EGB"
-	Nivel  int    // 8, 9, 10...
+	Nombre string `gorm:"not null"`
+	Nivel  int
 }
 
 type Paralelo struct {
 	ID     uint   `gorm:"primaryKey"`
-	Nombre string `gorm:"not null"` // "A", "B"
+	Nombre string `gorm:"not null"`
 }
 
 type Aula struct {

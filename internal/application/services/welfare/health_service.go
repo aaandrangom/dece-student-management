@@ -24,12 +24,10 @@ func NewHealthService(db *gorm.DB) *HealthService {
 type HealthDataDTO struct {
 	HistorialID uint `json:"historial_id"`
 
-	// Contexto
 	EstudianteID     uint   `json:"estudiante_id"`
 	NombresCompletos string `json:"nombres_completos"`
 	Genero           string `json:"genero"`
 
-	// Salud
 	Discapacidad              bool   `json:"discapacidad"`
 	PorcentajeDiscapacidad    int    `json:"porcentaje_discapacidad"`
 	TipoDiscapacidad          string `json:"tipo_discapacidad"`
@@ -40,7 +38,6 @@ type HealthDataDTO struct {
 	Cirugias                  string `json:"cirugias"`
 	Enfermedades              string `json:"enfermedades"`
 
-	// Genero
 	SituacionGenero string `json:"situacion_genero"`
 	MesesTiempo     int    `json:"meses_tiempo"`
 	ControlesSalud  bool   `json:"controles_salud"`
@@ -48,13 +45,10 @@ type HealthDataDTO struct {
 	NombrePareja    string `json:"nombre_pareja"`
 	EdadPareja      int    `json:"edad_pareja"`
 
-	// Convivientes
 	Convivientes []welfare.ConvivienteHogar `json:"convivientes"`
 }
 
-// GetHealthData obtiene la ficha de salud y vulnerabilidad
 func (s *HealthService) GetHealthData(estudianteID uint) (*HealthDataDTO, error) {
-	// 1. Buscar Historial Académico más reciente (o activo)
 	var historial student.HistorialAcademico
 	err := s.db.Preload("Aula").
 		Preload("Aula.AnioLectivo").
@@ -67,11 +61,9 @@ func (s *HealthService) GetHealthData(estudianteID uint) (*HealthDataDTO, error)
 		return nil, fmt.Errorf("estudiante sin historial académico")
 	}
 
-	// 2. Buscar o Crear Ficha de Salud
 	var salud welfare.SaludVulnerabilidad
 	if err := s.db.Where("historial_id = ?", historial.ID).First(&salud).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			// Crear ficha vacía si no existe
 			salud = welfare.SaludVulnerabilidad{HistorialID: historial.ID}
 			s.db.Create(&salud)
 		} else {
@@ -79,7 +71,6 @@ func (s *HealthService) GetHealthData(estudianteID uint) (*HealthDataDTO, error)
 		}
 	}
 
-	// 3. Buscar Convivientes
 	var convivientes []welfare.ConvivienteHogar
 	s.db.Where("historial_id = ?", historial.ID).Find(&convivientes)
 
@@ -107,7 +98,6 @@ func (s *HealthService) GetHealthData(estudianteID uint) (*HealthDataDTO, error)
 	}, nil
 }
 
-// SaveHealthData guarda los cambios en la ficha
 func (s *HealthService) SaveHealthData(data HealthDataDTO) error {
 	return s.db.Session(&gorm.Session{SkipDefaultTransaction: true}).Model(&welfare.SaludVulnerabilidad{}).
 		Where("historial_id = ?", data.HistorialID).
@@ -129,7 +119,6 @@ func (s *HealthService) SaveHealthData(data HealthDataDTO) error {
 		}).Error
 }
 
-// AddCohabitant agrega un conviviente
 func (s *HealthService) AddCohabitant(historialID uint, nombre string, parentesco string, edad int) error {
 	conviviente := welfare.ConvivienteHogar{
 		HistorialID:      historialID,
@@ -140,20 +129,18 @@ func (s *HealthService) AddCohabitant(historialID uint, nombre string, parentesc
 	return s.db.Create(&conviviente).Error
 }
 
-// RemoveCohabitant elimina un conviviente
 func (s *HealthService) RemoveCohabitant(id uint) error {
 	return s.db.Delete(&welfare.ConvivienteHogar{}, id).Error
 }
 
-// UploadEvaluationFile sube el archivo de evaluación psicopedagógica
 func (s *HealthService) UploadEvaluationFile(historialID uint, fileBase64 string) error {
 	parts := strings.Split(fileBase64, ",")
 	if len(parts) != 2 {
 		return fmt.Errorf("formato de archivo inválido")
 	}
 
-	header := parts[0] // data:image/png;base64
-	ext := ".pdf"      // default
+	header := parts[0]
+	ext := ".pdf"
 	if strings.Contains(header, "image/jpeg") {
 		ext = ".jpg"
 	} else if strings.Contains(header, "image/png") {
@@ -165,7 +152,6 @@ func (s *HealthService) UploadEvaluationFile(historialID uint, fileBase64 string
 		return fmt.Errorf("error decodificando archivo: %v", err)
 	}
 
-	// Directorio
 	uploadDir := "uploads/evaluations"
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		return err
@@ -185,7 +171,6 @@ func (s *HealthService) UploadEvaluationFile(historialID uint, fileBase64 string
 		Update("archivo_evaluacion_path", absPath).Error
 }
 
-// GetEvaluationFile obtiene el contenido del archivo en base64 para previsualización
 func (s *HealthService) GetEvaluationFile(historialID uint) (string, error) {
 	var salud welfare.SaludVulnerabilidad
 	if err := s.db.Where("historial_id = ?", historialID).First(&salud).Error; err != nil {

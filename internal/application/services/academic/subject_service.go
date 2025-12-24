@@ -22,7 +22,6 @@ func (s *SubjectService) GetMaterias() ([]academic.Materia, error) {
 }
 
 func (s *SubjectService) CreateMateria(nombre string, area string) (academic.Materia, error) {
-	// Validar duplicados
 	var count int64
 	s.db.Model(&academic.Materia{}).Where("nombre = ?", nombre).Count(&count)
 	if count > 0 {
@@ -40,7 +39,6 @@ func (s *SubjectService) CreateMateria(nombre string, area string) (academic.Mat
 }
 
 func (s *SubjectService) UpdateMateria(id uint, nombre string, area string) error {
-	// Validar duplicados (excluyendo el actual)
 	var count int64
 	s.db.Model(&academic.Materia{}).Where("nombre = ? AND id != ?", nombre, id).Count(&count)
 	if count > 0 {

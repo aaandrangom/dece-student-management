@@ -44,15 +44,6 @@ func (s *AgendaService) GetCitasProximas() ([]CitaDTO, error) {
 	var citas []welfare.Cita
 	now := time.Now()
 
-	// Logic:
-	// 1. Appointments in the future (FechaCita >= Now)
-	// 2. AND (
-	//      (FechaCita <= Now + 7 days) -- Coming up this week
-	//      OR
-	//      (date(FechaCita) - NotificarDiasAntes <= date(Now)) -- Alert triggered
-	//    )
-
-	// SQLite specific date function usage
 	err := s.db.Where("fecha_cita >= ? AND (fecha_cita <= ? OR date(fecha_cita, '-' || notificar_dias_antes || ' days') <= date(?))", now, now.AddDate(0, 0, 7), now).
 		Order("fecha_cita asc").
 		Find(&citas).Error

@@ -9,7 +9,6 @@ type SaludVulnerabilidad struct {
 	ID          uint `gorm:"primaryKey"`
 	HistorialID uint `gorm:"unique"`
 
-	// Salud
 	Discapacidad              bool
 	PorcentajeDiscapacidad    int
 	TipoDiscapacidad          string
@@ -20,8 +19,7 @@ type SaludVulnerabilidad struct {
 	Cirugias                  string
 	Enfermedades              string
 
-	// Genero / Maternidad / Paternidad
-	SituacionGenero string // 'EMBARAZO', 'LACTANCIA', 'PATERNIDAD', 'NINGUNO'
+	SituacionGenero string
 	MesesTiempo     int
 	ControlesSalud  bool
 	RiesgoEmbarazo  bool
@@ -45,21 +43,19 @@ type DisciplinaCaso struct {
 	ID                uint `gorm:"primaryKey"`
 	HistorialID       uint
 	Fecha             time.Time
-	Tipo              string // 'DISCIPLINA' o 'VIOLENCIA'
-	Subtipo           string // 'SEXUAL', 'INTRAFAMILIAR', 'NEGLIGENCIA', 'ACOSO'
+	Tipo              string
+	Subtipo           string
 	DescripcionMotivo string
-	Gravedad          string // 'LEVE', 'GRAVE', 'MUY_GRAVE'
+	Gravedad          string
 
-	// Gestión
 	AccionesRealizadas string
-	Resolucion         string // Medida tomada
-	DerivadoA          string // 'Fiscalia', 'Distrito'
+	Resolucion         string
+	DerivadoA          string
 	FechaDerivacion    *time.Time
-	ArchivoAdjuntoPath string // Evidencia general / Informe Derivación
-	ArchivoActaPath    string // Acta de compromiso firmada
-	Estado             string // 'ABIERTO', 'CERRADO', 'EN_SEGUIMIENTO'
+	ArchivoAdjuntoPath string
+	ArchivoActaPath    string
+	Estado             string
 
-	// Representantes
 	NotificoRepresentante bool
 	FirmoActa             bool
 	MotivoNoFirma         string
@@ -76,7 +72,7 @@ type Cita struct {
 	EntidadDestino     string
 	NotificarDiasAntes int
 	Visto              bool
-	Estado             string // 'PENDIENTE', 'REALIZADA', 'CANCELADA'
+	Estado             string
 
 	Historial student.HistorialAcademico `gorm:"foreignKey:HistorialID"`
 }

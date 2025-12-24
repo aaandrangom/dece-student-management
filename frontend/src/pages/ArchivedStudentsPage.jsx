@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-    Search, 
-    Filter, 
-    ChevronLeft, 
-    ChevronRight, 
-    Eye, 
+import {
+    Search,
+    ChevronLeft,
+    ChevronRight,
+    Eye,
     FileDown,
     Archive,
     CalendarOff,
@@ -64,8 +63,7 @@ const ArchivedStudentsPage = () => {
     return (
         <div className="min-h-full w-full bg-slate-50/50 font-sans">
             <div className="w-full flex flex-col gap-6">
-                
-                {/* Header */}
+
                 <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4 w-full sm:w-auto">
                         <div className="p-3 bg-slate-100 rounded-xl border border-slate-200 shadow-sm">
@@ -76,8 +74,8 @@ const ArchivedStudentsPage = () => {
                             <p className="text-sm text-slate-500 font-medium">Estudiantes retirados de la institución</p>
                         </div>
                     </div>
-                    
-                    <button 
+
+                    <button
                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-all text-sm font-semibold shadow-sm hover:shadow-md"
                     >
                         <FileDown className="w-4 h-4" />
@@ -85,17 +83,15 @@ const ArchivedStudentsPage = () => {
                     </button>
                 </div>
 
-                {/* Filtros */}
                 <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                        {/* Buscador */}
                         <div className="md:col-span-3">
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Buscar Estudiante</label>
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Cédula, Nombres o Apellidos..." 
+                                <input
+                                    type="text"
+                                    placeholder="Cédula, Nombres o Apellidos..."
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-500/20 focus:border-slate-500 transition-all placeholder:text-slate-400"
                                     value={search}
                                     onChange={handleSearch}
@@ -103,7 +99,6 @@ const ArchivedStudentsPage = () => {
                             </div>
                         </div>
 
-                        {/* Año Lectivo (Read-only filter info) */}
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Periodo Activo</label>
                             <div className="relative">
@@ -116,7 +111,6 @@ const ArchivedStudentsPage = () => {
                     </div>
                 </div>
 
-                {/* Tabla */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full text-left border-collapse">
@@ -180,12 +174,12 @@ const ArchivedStudentsPage = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <p className="text-sm text-slate-500 max-w-[200px] truncate" title={student.motivo_retiro}>
+                                                <p className="text-sm text-slate-500 max-w-50 truncate" title={student.motivo_retiro}>
                                                     {student.motivo_retiro || 'Sin motivo especificado'}
                                                 </p>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button 
+                                                <button
                                                     onClick={() => navigate(`/students/profile/${student.id}`)}
                                                     className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100 shadow-sm"
                                                     title="Ver Expediente"
@@ -200,21 +194,20 @@ const ArchivedStudentsPage = () => {
                         </table>
                     </div>
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between">
                             <span className="text-xs font-medium text-slate-500">
                                 Página <span className="font-bold text-slate-700">{page}</span> de <span className="font-bold text-slate-700">{totalPages}</span>
                             </span>
                             <div className="flex gap-2">
-                                <button 
+                                <button
                                     onClick={() => setPage(p => Math.max(1, p - 1))}
                                     disabled={page === 1}
                                     className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm text-slate-500"
                                 >
                                     <ChevronLeft size={18} />
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                     disabled={page === totalPages}
                                     className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm text-slate-500"

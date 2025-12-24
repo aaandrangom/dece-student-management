@@ -24,7 +24,6 @@ func NewStudentService(db *gorm.DB) *StudentService {
 	return &StudentService{db: db}
 }
 
-// DTOs
 type FamiliarDTO struct {
 	Cedula           string `json:"cedula"`
 	Nombres          string `json:"nombres"`
@@ -35,7 +34,6 @@ type FamiliarDTO struct {
 }
 
 type EnrollmentDTO struct {
-	// Estudiante
 	Cedula          string `json:"cedula"`
 	Apellidos       string `json:"apellidos"`
 	Nombres         string `json:"nombres"`
@@ -45,18 +43,15 @@ type EnrollmentDTO struct {
 	Direccion       string `json:"direccion"`
 	Telefono        string `json:"telefono"`
 
-	// Academico
 	AulaID                 uint   `json:"aula_id"`
 	EsRepetidor            bool   `json:"es_repetidor"`
 	InstitucionProcedencia string `json:"institucion_procedencia"`
 
-	// Familiares
 	Padre            FamiliarDTO `json:"padre"`
 	Madre            FamiliarDTO `json:"madre"`
 	Representante    FamiliarDTO `json:"representante"`
-	RepresentanteRol string      `json:"representante_rol"` // PADRE, MADRE, OTRO
+	RepresentanteRol string      `json:"representante_rol"`
 
-	// Salud
 	Peso                 float64 `json:"peso"`
 	Talla                float64 `json:"talla"`
 	Discapacidad         bool    `json:"discapacidad"`
@@ -70,7 +65,7 @@ type StudentListDTO struct {
 	Nombres           string `json:"nombres"`
 	Curso             string `json:"curso"`
 	Paralelo          string `json:"paralelo"`
-	AnioLectivo       string `json:"anio_lectivo"` // Para búsquedas globales
+	AnioLectivo       string `json:"anio_lectivo"`
 	TieneDiscapacidad bool   `json:"tiene_discapacidad"`
 	TieneCasoDECE     bool   `json:"tiene_caso_dece"`
 	EsRepetidor       bool   `json:"es_repetidor"`
@@ -86,13 +81,11 @@ type StudentListResponse struct {
 	Page  int              `json:"page"`
 }
 
-// GetStudents obtiene el listado de estudiantes con filtros y paginación
 func (s *StudentService) GetStudents(anioID uint, cursoID uint, paraleloID uint, query string, page int, pageSize int) (*StudentListResponse, error) {
 	var students []StudentListDTO
 	var total int64
 	offset := (page - 1) * pageSize
 
-	// Base query
 	dbQuery := s.db.Table("estudiantes").
 		Select(`
 			estudiantes.id, 
@@ -114,18 +107,12 @@ func (s *StudentService) GetStudents(anioID uint, cursoID uint, paraleloID uint,
 		Joins("LEFT JOIN paralelos ON paralelos.id = aulas.paralelo_id").
 		Joins("LEFT JOIN anio_lectivos ON anio_lectivos.id = aulas.anio_lectivo_id")
 
-	// Lógica de filtrado
 	if query != "" {
-		// Búsqueda Global: Busca por cédula o nombre en TODA la base
-		// Priorizamos mostrar el historial más reciente si hay duplicados por múltiples años
-		// Pero para simplificar en SQL, filtramos por el query
 		search := "%" + strings.ToUpper(query) + "%"
 		dbQuery = dbQuery.Where("estudiantes.cedula LIKE ? OR UPPER(estudiantes.apellidos) LIKE ? OR UPPER(estudiantes.nombres) LIKE ?", search, search, search)
 
-		// Si hay búsqueda global, ordenamos por año lectivo descendente para ver lo más reciente
 		dbQuery = dbQuery.Order("anio_lectivos.id DESC")
 	} else {
-		// Listado Filtrado por Año (Default)
 		if anioID > 0 {
 			dbQuery = dbQuery.Where("aulas.anio_lectivo_id = ?", anioID)
 		}
@@ -138,19 +125,11 @@ func (s *StudentService) GetStudents(anioID uint, cursoID uint, paraleloID uint,
 		dbQuery = dbQuery.Order("estudiantes.apellidos ASC, estudiantes.nombres ASC")
 	}
 
-	// Contar total antes de paginar
-	// Nota: Al hacer joins con historiales, un estudiante puede salir varias veces si buscamos globalmente.
-	// Para el listado del año actual (query vacio), es 1:1.
-	// Para búsqueda global, podríamos agrupar por estudiante.id
 	if query != "" {
 		dbQuery = dbQuery.Group("estudiantes.id")
 	}
 
-	// Ejecutar Count
-	// GORM Count con Group By puede ser tricky, usamos una subquery o count simple si no hay group
 	if query != "" {
-		// Count con group by es complejo en GORM directo, simplificamos contando los resultados
-		// Esto no es eficiente para millones de registros, pero ok para miles.
 		var count int64
 		s.db.Table("(?) as sub", dbQuery).Count(&count)
 		total = count
@@ -158,20 +137,13 @@ func (s *StudentService) GetStudents(anioID uint, cursoID uint, paraleloID uint,
 		dbQuery.Count(&total)
 	}
 
-	// Paginación
 	err := dbQuery.Limit(pageSize).Offset(offset).Scan(&students).Error
 	if err != nil {
 		return nil, err
 	}
 
-	// Enriquecer con indicadores (Discapacidad, Casos DECE)
-	// Esto se hace en memoria para evitar joins complejos y lentos en la query principal
 	for i := range students {
-		// 1. Discapacidad (Buscar en salud_vulnerabilidad vinculado a CUALQUIER historial del estudiante?
-		// O solo el actual? Generalmente es una condición del estudiante.
-		// Buscamos el último registro de salud
 		var salud welfare.SaludVulnerabilidad
-		// Buscamos a través de los historiales del estudiante
 		s.db.Table("salud_vulnerabilidads").
 			Joins("JOIN historial_academicos ON historial_academicos.id = salud_vulnerabilidads.historial_id").
 			Where("historial_academicos.estudiante_id = ?", students[i].ID).
@@ -181,7 +153,6 @@ func (s *StudentService) GetStudents(anioID uint, cursoID uint, paraleloID uint,
 
 		students[i].TieneDiscapacidad = salud.Discapacidad
 
-		// 2. Casos DECE Abiertos
 		var countCasos int64
 		s.db.Table("disciplina_casos").
 			Joins("JOIN historial_academicos ON historial_academicos.id = disciplina_casos.historial_id").
@@ -198,10 +169,8 @@ func (s *StudentService) GetStudents(anioID uint, cursoID uint, paraleloID uint,
 	}, nil
 }
 
-// ExportStudentsToExcel genera un archivo Excel con los estudiantes filtrados
 func (s *StudentService) ExportStudentsToExcel(anioID uint, cursoID uint, paraleloID uint) (string, error) {
-	// Obtener todos los estudiantes sin paginación
-	resp, err := s.GetStudents(anioID, cursoID, paraleloID, "", 1, 10000) // Limit alto
+	resp, err := s.GetStudents(anioID, cursoID, paraleloID, "", 1, 10000)
 	if err != nil {
 		return "", err
 	}
@@ -210,18 +179,15 @@ func (s *StudentService) ExportStudentsToExcel(anioID uint, cursoID uint, parale
 	sheetName := "Estudiantes"
 	f.SetSheetName("Sheet1", sheetName)
 
-	// Encabezados
 	headers := []string{"Cédula", "Apellidos", "Nombres", "Curso", "Paralelo", "Discapacidad", "Caso DECE", "Repetidor"}
 	for i, h := range headers {
 		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
 		f.SetCellValue(sheetName, cell, h)
 	}
 
-	// Estilo Negrita para encabezado
 	style, _ := f.NewStyle(&excelize.Style{Font: &excelize.Font{Bold: true}})
 	f.SetCellStyle(sheetName, "A1", "H1", style)
 
-	// Datos
 	for i, st := range resp.Data {
 		row := i + 2
 		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), st.Cedula)
@@ -249,23 +215,17 @@ func (s *StudentService) ExportStudentsToExcel(anioID uint, cursoID uint, parale
 		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), rep)
 	}
 
-	// Guardar en temporal o devolver base64?
-	// Wails maneja bien base64 para descargas, o guardar en disco.
-	// Vamos a devolver base64 string para que el front lo descargue
 	buffer, err := f.WriteToBuffer()
 	if err != nil {
 		return "", err
 	}
 
-	// Convertir a Base64
 	encoded := base64.StdEncoding.EncodeToString(buffer.Bytes())
 	return encoded, nil
 }
 
-// EnrollNewStudent registra un estudiante nuevo (Caso A)
 func (s *StudentService) EnrollNewStudent(data EnrollmentDTO) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		// 1. Crear Estudiante
 		fechaNac, _ := time.Parse("2006-01-02", data.FechaNacimiento)
 		estudiante := student.Estudiante{
 			Cedula:          data.Cedula,
@@ -280,7 +240,6 @@ func (s *StudentService) EnrollNewStudent(data EnrollmentDTO) error {
 			return fmt.Errorf("error al crear estudiante: %v", err)
 		}
 
-		// 2. Crear Historial Académico
 		historial := student.HistorialAcademico{
 			EstudianteID:           estudiante.ID,
 			AulaID:                 data.AulaID,
@@ -297,8 +256,6 @@ func (s *StudentService) EnrollNewStudent(data EnrollmentDTO) error {
 			return fmt.Errorf("error al crear historial: %v", err)
 		}
 
-		// 3. Crear Familiares
-		// Padre
 		if data.Padre.Nombres != "" {
 			padre := student.Familiar{
 				EstudianteID:     estudiante.ID,
@@ -315,7 +272,6 @@ func (s *StudentService) EnrollNewStudent(data EnrollmentDTO) error {
 			}
 		}
 
-		// Madre
 		if data.Madre.Nombres != "" {
 			madre := student.Familiar{
 				EstudianteID:     estudiante.ID,
@@ -332,18 +288,16 @@ func (s *StudentService) EnrollNewStudent(data EnrollmentDTO) error {
 			}
 		}
 
-		// Representante
-		// Si el rol es PADRE o MADRE, actualizamos el flag en el registro existente
-		// Si es OTRO, creamos uno nuevo
-		if data.RepresentanteRol == "PADRE" {
+		switch data.RepresentanteRol {
+		case "PADRE":
 			if err := tx.Model(&student.Familiar{}).Where("estudiante_id = ? AND rol = 'PADRE'", estudiante.ID).Update("es_representante_legal", true).Error; err != nil {
 				return errors.New("el padre no está registrado para ser representante")
 			}
-		} else if data.RepresentanteRol == "MADRE" {
+		case "MADRE":
 			if err := tx.Model(&student.Familiar{}).Where("estudiante_id = ? AND rol = 'MADRE'", estudiante.ID).Update("es_representante_legal", true).Error; err != nil {
 				return errors.New("la madre no está registrada para ser representante")
 			}
-		} else {
+		default:
 			rep := student.Familiar{
 				EstudianteID:         estudiante.ID,
 				Rol:                  "REPRESENTANTE",
@@ -360,7 +314,6 @@ func (s *StudentService) EnrollNewStudent(data EnrollmentDTO) error {
 			}
 		}
 
-		// 4. Salud Base
 		salud := welfare.SaludVulnerabilidad{
 			HistorialID:          historial.ID,
 			Discapacidad:         data.Discapacidad,
@@ -374,48 +327,40 @@ func (s *StudentService) EnrollNewStudent(data EnrollmentDTO) error {
 	})
 }
 
-// GetStudentByCedula busca un estudiante para re-matriculación
 func (s *StudentService) GetStudentByCedula(cedula string) (*EnrollmentDTO, error) {
 	var est student.Estudiante
 	if err := s.db.Where("cedula = ?", cedula).First(&est).Error; err != nil {
 		return nil, err
 	}
 
-	// Obtener último historial para datos de contacto y salud previos
 	var lastHist student.HistorialAcademico
 	s.db.Where("estudiante_id = ?", est.ID).Order("id desc").First(&lastHist)
 
-	// Obtener familiares
 	var familiares []student.Familiar
 	s.db.Where("estudiante_id = ?", est.ID).Find(&familiares)
 
-	// Obtener salud del último historial
 	var salud welfare.SaludVulnerabilidad
 	if lastHist.ID != 0 {
 		s.db.Where("historial_id = ?", lastHist.ID).First(&salud)
 	}
 
-	// Mapear a DTO
 	dto := &EnrollmentDTO{
-		Cedula:          est.Cedula,
-		Apellidos:       est.Apellidos,
-		Nombres:         est.Nombres,
-		FechaNacimiento: est.FechaNacimiento.Format("2006-01-02"),
-		Genero:          est.Genero,
-		Nacionalidad:    est.Nacionalidad,
-		Direccion:       lastHist.DireccionDomicilio,
-		Telefono:        lastHist.TelefonoContacto,
-		// Academico (Se dejan vacíos o defaults para la nueva matrícula)
-		EsRepetidor:            false, // Por defecto false en nueva matrícula
+		Cedula:                 est.Cedula,
+		Apellidos:              est.Apellidos,
+		Nombres:                est.Nombres,
+		FechaNacimiento:        est.FechaNacimiento.Format("2006-01-02"),
+		Genero:                 est.Genero,
+		Nacionalidad:           est.Nacionalidad,
+		Direccion:              lastHist.DireccionDomicilio,
+		Telefono:               lastHist.TelefonoContacto,
+		EsRepetidor:            false,
 		InstitucionProcedencia: lastHist.InstitucionProcedencia,
-		// Salud
-		Peso:                 lastHist.Peso,
-		Talla:                lastHist.Talla,
-		Discapacidad:         salud.Discapacidad,
-		DetallesDiscapacidad: salud.DetallesDiscapacidad,
+		Peso:                   lastHist.Peso,
+		Talla:                  lastHist.Talla,
+		Discapacidad:           salud.Discapacidad,
+		DetallesDiscapacidad:   salud.DetallesDiscapacidad,
 	}
 
-	// Mapear Familiares
 	for _, f := range familiares {
 		famDTO := FamiliarDTO{
 			Cedula:           f.Cedula,
@@ -426,17 +371,18 @@ func (s *StudentService) GetStudentByCedula(cedula string) (*EnrollmentDTO, erro
 			NivelInstruccion: f.NivelInstruccion,
 		}
 
-		if f.Rol == "PADRE" {
+		switch f.Rol {
+		case "PADRE":
 			dto.Padre = famDTO
 			if f.EsRepresentanteLegal {
 				dto.RepresentanteRol = "PADRE"
 			}
-		} else if f.Rol == "MADRE" {
+		case "MADRE":
 			dto.Madre = famDTO
 			if f.EsRepresentanteLegal {
 				dto.RepresentanteRol = "MADRE"
 			}
-		} else if f.Rol == "REPRESENTANTE" {
+		case "REPRESENTANTE":
 			dto.Representante = famDTO
 			dto.RepresentanteRol = "OTRO"
 		}
@@ -445,10 +391,8 @@ func (s *StudentService) GetStudentByCedula(cedula string) (*EnrollmentDTO, erro
 	return dto, nil
 }
 
-// EnrollExistingStudent matricula un estudiante antiguo (Caso B)
 func (s *StudentService) EnrollExistingStudent(data EnrollmentDTO) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		// 1. Buscar y Actualizar Estudiante
 		var estudiante student.Estudiante
 		if err := tx.Where("cedula = ?", data.Cedula).First(&estudiante).Error; err != nil {
 			return fmt.Errorf("estudiante no encontrado: %v", err)
@@ -465,13 +409,12 @@ func (s *StudentService) EnrollExistingStudent(data EnrollmentDTO) error {
 			return fmt.Errorf("error al actualizar estudiante: %v", err)
 		}
 
-		// 2. Crear NUEVO Historial Académico
 		historial := student.HistorialAcademico{
 			EstudianteID:           estudiante.ID,
 			AulaID:                 data.AulaID,
 			DireccionDomicilio:     data.Direccion,
 			TelefonoContacto:       data.Telefono,
-			EsNuevo:                false, // Es antiguo
+			EsNuevo:                false,
 			InstitucionProcedencia: data.InstitucionProcedencia,
 			HaRepetido:             data.EsRepetidor,
 			Peso:                   data.Peso,
@@ -482,7 +425,6 @@ func (s *StudentService) EnrollExistingStudent(data EnrollmentDTO) error {
 			return fmt.Errorf("error al crear historial: %v", err)
 		}
 
-		// 3. Actualizar o Crear Familiares
 		updateOrCreateFamiliar := func(rol string, famData FamiliarDTO) error {
 			if famData.Nombres == "" {
 				return nil
@@ -492,7 +434,6 @@ func (s *StudentService) EnrollExistingStudent(data EnrollmentDTO) error {
 			err := tx.Where("estudiante_id = ? AND rol = ?", estudiante.ID, rol).First(&fam).Error
 
 			if err == nil {
-				// Actualizar existente
 				fam.Cedula = famData.Cedula
 				fam.NombresCompletos = strings.ToUpper(famData.Nombres)
 				fam.Telefono = famData.Telefono
@@ -501,7 +442,6 @@ func (s *StudentService) EnrollExistingStudent(data EnrollmentDTO) error {
 				fam.NivelInstruccion = famData.NivelInstruccion
 				return tx.Save(&fam).Error
 			} else if errors.Is(err, gorm.ErrRecordNotFound) {
-				// Crear nuevo
 				newFam := student.Familiar{
 					EstudianteID:     estudiante.ID,
 					Rol:              rol,
@@ -525,33 +465,29 @@ func (s *StudentService) EnrollExistingStudent(data EnrollmentDTO) error {
 			return err
 		}
 
-		// Manejo de Representante Legal
-		// Resetear flags anteriores
 		if err := tx.Model(&student.Familiar{}).Where("estudiante_id = ?", estudiante.ID).Update("es_representante_legal", false).Error; err != nil {
 			return err
 		}
 
-		if data.RepresentanteRol == "PADRE" {
+		switch data.RepresentanteRol {
+		case "PADRE":
 			if err := tx.Model(&student.Familiar{}).Where("estudiante_id = ? AND rol = 'PADRE'", estudiante.ID).Update("es_representante_legal", true).Error; err != nil {
 				return errors.New("error asignando representante padre")
 			}
-		} else if data.RepresentanteRol == "MADRE" {
+		case "MADRE":
 			if err := tx.Model(&student.Familiar{}).Where("estudiante_id = ? AND rol = 'MADRE'", estudiante.ID).Update("es_representante_legal", true).Error; err != nil {
 				return errors.New("error asignando representante madre")
 			}
-		} else {
-			// Rol OTRO (REPRESENTANTE)
-			// Buscar si ya existe un rol REPRESENTANTE y actualizarlo, o crear uno nuevo
+		default:
 			if err := updateOrCreateFamiliar("REPRESENTANTE", data.Representante); err != nil {
 				return err
 			}
-			// Setear flag
+
 			if err := tx.Model(&student.Familiar{}).Where("estudiante_id = ? AND rol = 'REPRESENTANTE'", estudiante.ID).Update("es_representante_legal", true).Error; err != nil {
 				return err
 			}
 		}
 
-		// 4. Crear NUEVA Ficha de Salud (vinculada al nuevo historial)
 		salud := welfare.SaludVulnerabilidad{
 			HistorialID:          historial.ID,
 			Discapacidad:         data.Discapacidad,
@@ -565,7 +501,6 @@ func (s *StudentService) EnrollExistingStudent(data EnrollmentDTO) error {
 	})
 }
 
-// DTOs para Perfil
 type AnioLectivoSimpleDTO struct {
 	ID     uint   `json:"id"`
 	Nombre string `json:"nombre"`
@@ -580,21 +515,15 @@ type StudentProfileDTO struct {
 	AniosDisponibles []AnioLectivoSimpleDTO       `json:"anios_disponibles"`
 }
 
-// GetStudentProfile obtiene el perfil completo del estudiante
-// Si anioLectivoID es 0, busca el historial del año activo o el más reciente
 func (s *StudentService) GetStudentProfile(estudianteID uint, anioLectivoID uint) (*StudentProfileDTO, error) {
 	var profile StudentProfileDTO
 
-	// 1. Obtener Estudiante
 	if err := s.db.First(&profile.Estudiante, estudianteID).Error; err != nil {
 		return nil, fmt.Errorf("estudiante no encontrado")
 	}
 
-	// 2. Obtener Familiares (Globales)
 	s.db.Where("estudiante_id = ?", estudianteID).Find(&profile.Familiares)
 
-	// 3. Obtener Años Disponibles (Historiales previos)
-	// Hacemos un join con Aula y AnioLectivo para obtener los nombres de los años
 	type AnioResult struct {
 		ID     uint
 		Nombre string
@@ -617,7 +546,6 @@ func (s *StudentService) GetStudentProfile(estudianteID uint, anioLectivoID uint
 		})
 	}
 
-	// Fallback: Si no hay años disponibles (estudiante nuevo sin historial o error), cargar año activo
 	if len(profile.AniosDisponibles) == 0 {
 		var anioActivo academic.AnioLectivo
 		if err := s.db.Where("activo = ?", true).First(&anioActivo).Error; err == nil {
@@ -629,7 +557,6 @@ func (s *StudentService) GetStudentProfile(estudianteID uint, anioLectivoID uint
 		}
 	}
 
-	// 4. Determinar qué historial cargar
 	var historial student.HistorialAcademico
 	query := s.db.Preload("Aula").
 		Preload("Aula.Curso").
@@ -639,12 +566,9 @@ func (s *StudentService) GetStudentProfile(estudianteID uint, anioLectivoID uint
 		Where("estudiante_id = ?", estudianteID)
 
 	if anioLectivoID != 0 {
-		// Buscar historial específico por año
-		// Necesitamos hacer join para filtrar por año del aula
 		query = query.Joins("JOIN aulas ON historial_academicos.aula_id = aulas.id").
 			Where("aulas.anio_lectivo_id = ?", anioLectivoID)
 	} else {
-		// Buscar el más reciente (ordenado por ID desc, asumiendo ID incremental)
 		query = query.Order("id desc")
 	}
 
@@ -652,7 +576,6 @@ func (s *StudentService) GetStudentProfile(estudianteID uint, anioLectivoID uint
 	if err == nil {
 		profile.HistorialActual = &historial
 
-		// 5. Cargar Salud vinculada a este historial
 		var salud welfare.SaludVulnerabilidad
 		if err := s.db.Where("historial_id = ?", historial.ID).First(&salud).Error; err == nil {
 			profile.Salud = &salud
@@ -662,16 +585,11 @@ func (s *StudentService) GetStudentProfile(estudianteID uint, anioLectivoID uint
 	return &profile, nil
 }
 
-// ==========================================
-// GESTIÓN ADMINISTRATIVA
-// ==========================================
-
 type AulaOptionDTO struct {
 	ID       uint   `json:"id"`
 	Paralelo string `json:"paralelo"`
 }
 
-// GetAlternativeAulas obtiene otros paralelos disponibles para el mismo curso y año
 func (s *StudentService) GetAlternativeAulas(historialID uint) ([]AulaOptionDTO, error) {
 	var historial student.HistorialAcademico
 	if err := s.db.Preload("Aula").First(&historial, historialID).Error; err != nil {
@@ -696,14 +614,12 @@ func (s *StudentService) GetAlternativeAulas(historialID uint) ([]AulaOptionDTO,
 	return options, nil
 }
 
-// ChangeStudentParallel mueve al estudiante a otro paralelo (actualiza el aula en el historial)
 func (s *StudentService) ChangeStudentParallel(historialID uint, targetAulaID uint) error {
 	return s.db.Model(&student.HistorialAcademico{}).
 		Where("id = ?", historialID).
 		Update("aula_id", targetAulaID).Error
 }
 
-// WithdrawStudent marca al estudiante como retirado
 func (s *StudentService) WithdrawStudent(historialID uint, motivo string, fecha time.Time) error {
 	return s.db.Model(&student.HistorialAcademico{}).
 		Where("id = ?", historialID).
@@ -714,9 +630,7 @@ func (s *StudentService) WithdrawStudent(historialID uint, motivo string, fecha 
 		}).Error
 }
 
-// UpdateStudentPhoto actualiza la foto de perfil
 func (s *StudentService) UpdateStudentPhoto(estudianteID uint, photoBase64 string) error {
-	// Decodificar base64
 	parts := strings.Split(photoBase64, ",")
 	if len(parts) != 2 {
 		return fmt.Errorf("formato de imagen inválido")
@@ -727,13 +641,11 @@ func (s *StudentService) UpdateStudentPhoto(estudianteID uint, photoBase64 strin
 		return fmt.Errorf("error al decodificar imagen: %v", err)
 	}
 
-	// Crear directorio si no existe
 	uploadDir := "uploads/photos"
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		return fmt.Errorf("error al crear directorio: %v", err)
 	}
 
-	// Guardar archivo
 	filename := fmt.Sprintf("student_%d_%d.jpg", estudianteID, time.Now().Unix())
 	filePath := filepath.Join(uploadDir, filename)
 
@@ -741,7 +653,6 @@ func (s *StudentService) UpdateStudentPhoto(estudianteID uint, photoBase64 strin
 		return fmt.Errorf("error al guardar archivo: %v", err)
 	}
 
-	// Guardar path absoluto
 	absPath, _ := filepath.Abs(filePath)
 
 	return s.db.Model(&student.Estudiante{}).
@@ -767,13 +678,11 @@ type WithdrawnStudentListResponse struct {
 	Page  int                   `json:"page"`
 }
 
-// GetWithdrawnStudents obtiene el listado de estudiantes retirados
 func (s *StudentService) GetWithdrawnStudents(anioID uint, queryStr string, page int, pageSize int) (*WithdrawnStudentListResponse, error) {
 	var students []WithdrawnStudentDTO
 	var total int64
 	offset := (page - 1) * pageSize
 
-	// Base query
 	dbQuery := s.db.Table("estudiantes").
 		Select(`
 			estudiantes.id, 
@@ -792,23 +701,19 @@ func (s *StudentService) GetWithdrawnStudents(anioID uint, queryStr string, page
 		Joins("JOIN paralelos ON aulas.paralelo_id = paralelos.id").
 		Where("historial_academicos.estado = ?", "RETIRADO")
 
-	// Filtro por año lectivo
 	if anioID != 0 {
 		dbQuery = dbQuery.Where("aulas.anio_lectivo_id = ?", anioID)
 	}
 
-	// Búsqueda por texto
 	if queryStr != "" {
 		term := "%" + queryStr + "%"
 		dbQuery = dbQuery.Where("(estudiantes.cedula LIKE ? OR estudiantes.apellidos LIKE ? OR estudiantes.nombres LIKE ?)", term, term, term)
 	}
 
-	// Contar total
 	if err := dbQuery.Count(&total).Error; err != nil {
 		return nil, err
 	}
 
-	// Obtener datos paginados
 	if err := dbQuery.Order("historial_academicos.fecha_retiro DESC").
 		Limit(pageSize).
 		Offset(offset).

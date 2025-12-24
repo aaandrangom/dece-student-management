@@ -115,7 +115,6 @@ const Header = () => {
               </span>
             </div>
 
-            {/* Avatar */}
             <div className="w-11 h-11 rounded-full bg-linear-to-tr from-purple-600 to-indigo-500 p-0.5 shadow-md shadow-purple-200">
               <div className="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden">
                 <User className="w-6 h-6 text-purple-600" />

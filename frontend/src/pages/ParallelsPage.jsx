@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Plus, Trash2, Split, Loader2, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { confirmAction } from '../utils/alerts';
-import { 
-  GetParalelos, CreateParalelo, DeleteParalelo 
+import {
+  GetParalelos, CreateParalelo, DeleteParalelo
 } from '../../wailsjs/go/academic/ParallelService';
 
 const ParallelsPage = () => {
@@ -71,8 +71,7 @@ const ParallelsPage = () => {
   return (
     <div className="min-h-full w-full bg-slate-50/50 font-sans">
       <div className="max-w-full mx-auto w-full flex flex-col gap-6">
-        
-        {/* Header */}
+
         <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <div className="p-3 bg-pink-50 rounded-xl border border-pink-100 shadow-sm">
@@ -83,7 +82,7 @@ const ParallelsPage = () => {
               <p className="text-sm text-slate-500 font-medium">Catálogo de secciones (A, B, C...)</p>
             </div>
           </div>
-          
+
           <button
             onClick={() => setShowModal(true)}
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-all text-sm font-semibold shadow-md hover:shadow-pink-200"
@@ -93,7 +92,6 @@ const ParallelsPage = () => {
           </button>
         </div>
 
-        {/* Tabla */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
           <div className="overflow-x-auto custom-scrollbar max-h-[60vh] overflow-y-auto">
             <table className="w-full text-left border-collapse">
@@ -117,8 +115,8 @@ const ParallelsPage = () => {
                   <tr>
                     <td colSpan="2" className="px-6 py-20 text-center text-slate-400">
                       <div className="flex flex-col items-center gap-2">
-                         <Split className="w-10 h-10 text-slate-300" />
-                         <p className="font-medium">No hay paralelos registrados</p>
+                        <Split className="w-10 h-10 text-slate-300" />
+                        <p className="font-medium">No hay paralelos registrados</p>
                       </div>
                     </td>
                   </tr>
@@ -132,7 +130,7 @@ const ParallelsPage = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button 
+                          <button
                             onClick={() => handleDelete(parallel)}
                             className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100 shadow-sm"
                             title="Eliminar"
@@ -150,7 +148,6 @@ const ParallelsPage = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all animate-in fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-slate-200 scale-100 transform transition-all">
@@ -159,14 +156,14 @@ const ParallelsPage = () => {
                 <Split className="w-5 h-5 text-pink-600" />
                 Nuevo Paralelo
               </h3>
-              <button 
+              <button
                 onClick={closeModal}
                 className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">
@@ -179,7 +176,7 @@ const ParallelsPage = () => {
                   placeholder="Ej: A, B, C"
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all font-medium uppercase text-center"
                   value={formData.nombre}
-                  onChange={(e) => setFormData({...formData, nombre: e.target.value.toUpperCase()})}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value.toUpperCase() })}
                 />
               </div>
 

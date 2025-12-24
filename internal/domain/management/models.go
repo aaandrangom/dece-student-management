@@ -10,7 +10,7 @@ type Capacitacion struct {
 	AnioLectivoID        uint
 	Tema                 string
 	Fecha                time.Time
-	PublicoObjetivo      string // Docentes, Padres
+	PublicoObjetivo      string
 	AsistentesCount      int
 	ArchivoEvidenciaPath string
 

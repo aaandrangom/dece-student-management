@@ -22,7 +22,6 @@ func (s *ParallelService) GetParalelos() ([]academic.Paralelo, error) {
 }
 
 func (s *ParallelService) CreateParalelo(nombre string) (academic.Paralelo, error) {
-	// Validar duplicados
 	var count int64
 	s.db.Model(&academic.Paralelo{}).Where("nombre = ?", nombre).Count(&count)
 	if count > 0 {
@@ -38,7 +37,6 @@ func (s *ParallelService) CreateParalelo(nombre string) (academic.Paralelo, erro
 }
 
 func (s *ParallelService) DeleteParalelo(id uint) error {
-	// Validar uso en Aulas
 	var count int64
 	s.db.Model(&academic.Aula{}).Where("paralelo_id = ?", id).Count(&count)
 	if count > 0 {

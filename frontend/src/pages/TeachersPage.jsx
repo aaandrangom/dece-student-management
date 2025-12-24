@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Plus, Pencil, Briefcase, Loader2, X, Search, ToggleLeft, ToggleRight, History, User
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { 
-  GetDocentes, CreateDocente, UpdateDocente, ToggleDocenteState, GetDocenteHistory 
+import {
+  GetDocentes, CreateDocente, UpdateDocente, ToggleDocenteState, GetDocenteHistory
 } from '../../wailsjs/go/academic/TeacherService';
 
 const TeachersPage = () => {
@@ -45,24 +45,24 @@ const TeachersPage = () => {
     try {
       if (editingTeacher) {
         await UpdateDocente(
-          editingTeacher.ID, 
-          formData.apellidos, 
-          formData.nombres, 
-          formData.email, 
+          editingTeacher.ID,
+          formData.apellidos,
+          formData.nombres,
+          formData.email,
           formData.telefono
         );
         toast.success('Docente actualizado exitosamente');
       } else {
         await CreateDocente(
-          formData.cedula, 
-          formData.apellidos, 
-          formData.nombres, 
-          formData.email, 
+          formData.cedula,
+          formData.apellidos,
+          formData.nombres,
+          formData.email,
           formData.telefono
         );
         toast.success('Docente registrado exitosamente');
       }
-      
+
       closeModal();
       loadTeachers();
     } catch (error) {
@@ -112,8 +112,7 @@ const TeachersPage = () => {
   return (
     <div className="min-h-full w-full bg-slate-50/50 font-sans">
       <div className="max-w-full mx-auto w-full flex flex-col gap-6">
-        
-        {/* Header */}
+
         <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <div className="p-3 bg-teal-50 rounded-xl border border-teal-100 shadow-sm">
@@ -124,9 +123,8 @@ const TeachersPage = () => {
               <p className="text-sm text-slate-500 font-medium">Gestión de personal académico</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            {/* Search Bar */}
             <div className="relative group w-full sm:w-64">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
@@ -150,7 +148,6 @@ const TeachersPage = () => {
           </div>
         </div>
 
-        {/* Tabla */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
           <div className="overflow-x-auto custom-scrollbar max-h-[60vh] overflow-y-auto">
             <table className="w-full text-left border-collapse">
@@ -176,8 +173,8 @@ const TeachersPage = () => {
                   <tr>
                     <td colSpan="4" className="px-6 py-20 text-center text-slate-400">
                       <div className="flex flex-col items-center gap-2">
-                         <User className="w-10 h-10 text-slate-300" />
-                         <p className="font-medium">No se encontraron docentes</p>
+                        <User className="w-10 h-10 text-slate-300" />
+                        <p className="font-medium">No se encontraron docentes</p>
                       </div>
                     </td>
                   </tr>
@@ -207,14 +204,14 @@ const TeachersPage = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button 
+                          <button
                             onClick={() => handleViewHistory(teacher)}
                             className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all border border-transparent hover:border-purple-100 shadow-sm"
                             title="Ver Historial"
                           >
                             <History className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleEdit(teacher)}
                             className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100 shadow-sm"
                             title="Editar"
@@ -232,7 +229,6 @@ const TeachersPage = () => {
         </div>
       </div>
 
-      {/* Modal Formulario */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all animate-in fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 scale-100 transform transition-all">
@@ -241,14 +237,14 @@ const TeachersPage = () => {
                 <Briefcase className="w-5 h-5 text-teal-600" />
                 {editingTeacher ? 'Editar Docente' : 'Nuevo Docente'}
               </h3>
-              <button 
+              <button
                 onClick={closeModal}
                 className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5 col-span-2 sm:col-span-1">
@@ -261,15 +257,14 @@ const TeachersPage = () => {
                     maxLength="10"
                     disabled={!!editingTeacher}
                     placeholder="10 dígitos"
-                    className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium ${
-                      editingTeacher 
-                      ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed' 
+                    className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium ${editingTeacher
+                      ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
                       : 'bg-white border-slate-200 text-slate-800 placeholder:text-slate-400'
-                    }`}
+                      }`}
                     value={formData.cedula}
                     onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, '');
-                      setFormData({...formData, cedula: val});
+                      setFormData({ ...formData, cedula: val });
                     }}
                   />
                 </div>
@@ -282,7 +277,7 @@ const TeachersPage = () => {
                     placeholder="09..."
                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium"
                     value={formData.telefono}
-                    onChange={(e) => setFormData({...formData, telefono: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                   />
                 </div>
               </div>
@@ -297,7 +292,7 @@ const TeachersPage = () => {
                     required
                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium uppercase"
                     value={formData.nombres}
-                    onChange={(e) => setFormData({...formData, nombres: e.target.value.toUpperCase()})}
+                    onChange={(e) => setFormData({ ...formData, nombres: e.target.value.toUpperCase() })}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -309,7 +304,7 @@ const TeachersPage = () => {
                     required
                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium uppercase"
                     value={formData.apellidos}
-                    onChange={(e) => setFormData({...formData, apellidos: e.target.value.toUpperCase()})}
+                    onChange={(e) => setFormData({ ...formData, apellidos: e.target.value.toUpperCase() })}
                   />
                 </div>
               </div>
@@ -323,7 +318,7 @@ const TeachersPage = () => {
                   placeholder="ejemplo@correo.com"
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
 
@@ -348,7 +343,6 @@ const TeachersPage = () => {
         </div>
       )}
 
-      {/* Modal Historial */}
       {showHistoryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all animate-in fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-slate-200 scale-100 transform transition-all max-h-[80vh] flex flex-col">
@@ -360,14 +354,14 @@ const TeachersPage = () => {
                 </h3>
                 <p className="text-sm text-slate-500">{selectedTeacherName}</p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowHistoryModal(false)}
                 className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto custom-scrollbar">
               {selectedTeacherHistory.length === 0 ? (
                 <div className="text-center py-10 text-slate-400">

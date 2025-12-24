@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Calendar, Plus, Search, Filter, MoreVertical, 
-  CheckCircle2, XCircle, Clock, AlertCircle,
+import {
+  Calendar, Plus, CheckCircle2, Clock,
   Pencil, Lock, Unlock, ToggleLeft, ToggleRight,
   School, Loader2, X, Trash2, Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { confirmAction } from '../utils/alerts';
-import { 
-  GetAniosLectivos, CreateAnioLectivo, 
+import {
+  GetAniosLectivos, CreateAnioLectivo,
   UpdateAnioFechas, ActivateAnioLectivo, CloseAnioLectivo,
   DeleteAnioLectivo, CloneAnioStructure
 } from '../../wailsjs/go/academic/YearService';
@@ -46,7 +45,7 @@ const AcademicYearsPage = () => {
     try {
       const start = new Date(formData.fechaInicio).toISOString();
       const end = new Date(formData.fechaFin).toISOString();
-      
+
       if (editingYear) {
         await UpdateAnioFechas(editingYear.ID, start, end);
         toast.success('Fechas actualizadas exitosamente');
@@ -54,7 +53,7 @@ const AcademicYearsPage = () => {
         await CreateAnioLectivo(formData.nombre, start, end);
         toast.success('Año lectivo creado exitosamente');
       }
-      
+
       closeModal();
       loadYears();
     } catch (error) {
@@ -123,7 +122,7 @@ const AcademicYearsPage = () => {
 
   const handleClone = async (targetYear) => {
     const availableYears = years.filter(y => y.ID !== targetYear.ID);
-    
+
     if (availableYears.length === 0) {
       toast.error('No hay otros años disponibles para clonar');
       return;
@@ -206,8 +205,7 @@ const AcademicYearsPage = () => {
   return (
     <div className="min-h-full w-full bg-slate-50/50 font-sans">
       <div className="max-w-full mx-auto w-full flex flex-col gap-6">
-        
-        {/* Header */}
+
         <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <div className="p-3 bg-purple-50 rounded-xl border border-purple-100 shadow-sm">
@@ -218,7 +216,7 @@ const AcademicYearsPage = () => {
               <p className="text-sm text-slate-500 font-medium">Gestión de períodos académicos</p>
             </div>
           </div>
-          
+
           <button
             onClick={() => setShowModal(true)}
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-semibold shadow-md hover:shadow-purple-200"
@@ -228,7 +226,6 @@ const AcademicYearsPage = () => {
           </button>
         </div>
 
-        {/* Tabla Contenedor */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
           <div className="overflow-x-auto custom-scrollbar-light max-h-[60vh] overflow-y-auto">
             <table className="w-full text-left border-collapse">
@@ -255,8 +252,8 @@ const AcademicYearsPage = () => {
                   <tr>
                     <td colSpan="5" className="px-6 py-20 text-center text-slate-400">
                       <div className="flex flex-col items-center gap-2">
-                         <Calendar className="w-10 h-10 text-slate-300" />
-                         <p className="font-medium">No hay años lectivos registrados</p>
+                        <Calendar className="w-10 h-10 text-slate-300" />
+                        <p className="font-medium">No hay años lectivos registrados</p>
                       </div>
                     </td>
                   </tr>
@@ -277,24 +274,21 @@ const AcademicYearsPage = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {/* Toggle Active */}
                           {!year.Cerrado && (
                             <button
                               onClick={() => handleActivate(year)}
-                              className={`p-2 rounded-lg transition-all border border-transparent shadow-sm ${
-                                year.Activo 
-                                  ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border-emerald-100' 
-                                  : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-100'
-                              }`}
+                              className={`p-2 rounded-lg transition-all border border-transparent shadow-sm ${year.Activo
+                                ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border-emerald-100'
+                                : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-100'
+                                }`}
                               title={year.Activo ? "Año en curso" : "Activar año"}
                             >
                               {year.Activo ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
                             </button>
                           )}
 
-                          {/* Edit Dates */}
                           {!year.Cerrado && (
-                            <button 
+                            <button
                               onClick={() => handleEdit(year)}
                               className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100 shadow-sm"
                               title="Editar fechas"
@@ -303,9 +297,8 @@ const AcademicYearsPage = () => {
                             </button>
                           )}
 
-                          {/* Close Year */}
                           {!year.Cerrado ? (
-                            <button 
+                            <button
                               onClick={() => handleCloseYear(year)}
                               className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100 shadow-sm"
                               title="Cerrar año lectivo"
@@ -313,7 +306,7 @@ const AcademicYearsPage = () => {
                               <Unlock className="w-4 h-4" />
                             </button>
                           ) : (
-                            <button 
+                            <button
                               disabled
                               className="p-2 text-slate-300 bg-slate-50 rounded-lg cursor-not-allowed border border-slate-100"
                               title="Año cerrado"
@@ -322,9 +315,8 @@ const AcademicYearsPage = () => {
                             </button>
                           )}
 
-                          {/* Clone Structure */}
                           {!year.Cerrado && (
-                            <button 
+                            <button
                               onClick={() => handleClone(year)}
                               className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all border border-transparent hover:border-purple-100 shadow-sm"
                               title="Importar estructura (cursos/materias)"
@@ -333,8 +325,7 @@ const AcademicYearsPage = () => {
                             </button>
                           )}
 
-                          {/* Delete Year */}
-                          <button 
+                          <button
                             onClick={() => handleDelete(year)}
                             className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100 shadow-sm"
                             title="Eliminar año"
@@ -352,7 +343,6 @@ const AcademicYearsPage = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all animate-in fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 scale-100 transform transition-all">
@@ -361,14 +351,14 @@ const AcademicYearsPage = () => {
                 <Calendar className="w-5 h-5 text-purple-600" />
                 {editingYear ? 'Editar Fechas' : 'Nuevo Año Lectivo'}
               </h3>
-              <button 
+              <button
                 onClick={closeModal}
                 className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">
@@ -379,13 +369,12 @@ const AcademicYearsPage = () => {
                   required
                   disabled={!!editingYear}
                   placeholder="Ej: 2025-2026"
-                  className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium ${
-                    editingYear 
-                    ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed' 
+                  className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium ${editingYear
+                    ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
                     : 'bg-white border-slate-200 text-slate-800 placeholder:text-slate-400'
-                  }`}
+                    }`}
                   value={formData.nombre}
-                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                 />
               </div>
 
@@ -399,7 +388,7 @@ const AcademicYearsPage = () => {
                     required
                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                     value={formData.fechaInicio}
-                    onChange={(e) => setFormData({...formData, fechaInicio: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, fechaInicio: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -411,7 +400,7 @@ const AcademicYearsPage = () => {
                     required
                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                     value={formData.fechaFin}
-                    onChange={(e) => setFormData({...formData, fechaFin: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, fechaFin: e.target.value })}
                   />
                 </div>
               </div>

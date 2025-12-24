@@ -70,7 +70,6 @@ const LoginScreen = () => {
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md">
           
-          {/* Logo móvil */}
           <div className="lg:hidden flex flex-col items-center mb-8">
             <div 
               className="w-16 h-16 rounded-xl flex items-center justify-center mb-4"
@@ -129,8 +128,6 @@ const LoginScreen = () => {
                 />
               </div>
             </div>
-
-            {/* Error message removed, using toast instead */}
 
             <button
               onClick={handleLogin}

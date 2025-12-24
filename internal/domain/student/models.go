@@ -11,7 +11,7 @@ type Estudiante struct {
 	Apellidos       string `gorm:"not null"`
 	Nombres         string `gorm:"not null"`
 	FechaNacimiento time.Time
-	Genero          string // 'M' o 'F'
+	Genero          string
 	Nacionalidad    string
 	FotoPerfilPath  string
 	FechaRegistro   time.Time `gorm:"autoCreateTime"`
@@ -22,24 +22,20 @@ type HistorialAcademico struct {
 	EstudianteID uint `gorm:"not null;uniqueIndex:idx_historial_estudiante_aula"`
 	AulaID       uint `gorm:"not null;uniqueIndex:idx_historial_estudiante_aula"`
 
-	// Ubicación y Contacto del Año
 	DireccionDomicilio string
 	CroquisPath        string
 	TelefonoContacto   string
 
-	// Datos de Ingreso
 	EsNuevo                bool
 	InstitucionProcedencia string
 	HaRepetido             bool
 
-	// Salud Física del Año
 	Peso          float64
 	Talla         float64
 	EdadCalculada int
 	TipoSangre    string
 
-	// Estado de la Matrícula
-	Estado       string `gorm:"default:'MATRICULADO'"` // MATRICULADO, RETIRADO
+	Estado       string `gorm:"default:'MATRICULADO'"`
 	FechaRetiro  *time.Time
 	MotivoRetiro string
 
@@ -50,7 +46,7 @@ type HistorialAcademico struct {
 type Familiar struct {
 	ID                   uint `gorm:"primaryKey"`
 	EstudianteID         uint
-	Rol                  string // 'PADRE', 'MADRE', 'REPRESENTANTE'
+	Rol                  string
 	Cedula               string
 	NombresCompletos     string
 	Telefono             string

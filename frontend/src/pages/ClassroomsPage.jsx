@@ -1,55 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import Swal from 'sweetalert2';
-import { 
-    School, 
-    Plus, 
-    Trash2, 
-    BookOpen, 
-    User, 
-    Settings, 
-    X,
-    Save,
-    Search,
-    GraduationCap,
-    Loader2,
-    Calendar,
-    Users
+import {
+    School, Plus, Trash2, BookOpen, User, Settings, X,
+    Save, GraduationCap, Loader2, Calendar
 } from 'lucide-react';
 
-// Importar servicios de Wails
-import { 
-    GetAniosLectivos 
-} from '../../wailsjs/go/academic/YearService';
-import { 
-    GetCursos 
-} from '../../wailsjs/go/academic/CourseService';
-import { 
-    GetParalelos 
-} from '../../wailsjs/go/academic/ParallelService';
-import { 
-    GetDocentes 
-} from '../../wailsjs/go/academic/TeacherService';
-import { 
-    GetMaterias 
-} from '../../wailsjs/go/academic/SubjectService';
-import { 
-    GetAulasByAnio, 
-    CreateAula, 
-    DeleteAula, 
-    GetCargaHoraria, 
-    AssignMateria, 
-    RemoveMateria 
+import { GetAniosLectivos } from '../../wailsjs/go/academic/YearService';
+import { GetCursos } from '../../wailsjs/go/academic/CourseService';
+import { GetParalelos } from '../../wailsjs/go/academic/ParallelService';
+import { GetDocentes } from '../../wailsjs/go/academic/TeacherService';
+import { GetMaterias } from '../../wailsjs/go/academic/SubjectService';
+import {
+    GetAulasByAnio, CreateAula, DeleteAula,
+    GetCargaHoraria, AssignMateria, RemoveMateria
 } from '../../wailsjs/go/academic/ClassroomService';
 
 const ClassroomsPage = () => {
-    // Estados Globales
     const [anios, setAnios] = useState([]);
     const [selectedAnio, setSelectedAnio] = useState(null);
     const [aulas, setAulas] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // Estados para Crear Aula
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [cursos, setCursos] = useState([]);
     const [paralelos, setParalelos] = useState([]);
@@ -60,7 +32,6 @@ const ClassroomsPage = () => {
         tutor_id: ''
     });
 
-    // Estados para Configurar Aula (Malla)
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
     const [selectedAula, setSelectedAula] = useState(null);
     const [cargaHoraria, setCargaHoraria] = useState([]);
@@ -70,13 +41,11 @@ const ClassroomsPage = () => {
         docente_id: ''
     });
 
-    // Cargar datos iniciales
     useEffect(() => {
         loadAnios();
         loadCatalogos();
     }, []);
 
-    // Recargar aulas cuando cambia el año seleccionado
     useEffect(() => {
         if (selectedAnio) {
             loadAulas();
@@ -87,7 +56,6 @@ const ClassroomsPage = () => {
         try {
             const data = await GetAniosLectivos();
             setAnios(data);
-            // Seleccionar el activo por defecto
             const activo = data.find(a => a.Activo);
             if (activo) setSelectedAnio(activo.ID);
             else if (data.length > 0) setSelectedAnio(data[0].ID);
@@ -101,13 +69,13 @@ const ClassroomsPage = () => {
             const [c, p, d, m] = await Promise.all([
                 GetCursos(),
                 GetParalelos(),
-                GetDocentes(""), // Traer todos para el select
+                GetDocentes(""),
                 GetMaterias()
             ]);
             setCursos(c);
             setParalelos(p);
             setDocentes(d);
-            setMaterias(m.filter(mat => mat.Activo)); // Solo materias activas
+            setMaterias(m.filter(mat => mat.Activo));
         } catch (error) {
             console.error("Error cargando catálogos", error);
         }
@@ -126,8 +94,6 @@ const ClassroomsPage = () => {
         }
     };
 
-    // --- Gestión de Aulas ---
-
     const handleCreateAula = async (e) => {
         e.preventDefault();
         if (!newAula.curso_id || !newAula.paralelo_id) {
@@ -136,7 +102,6 @@ const ClassroomsPage = () => {
         }
 
         try {
-            // Convertir a enteros
             const cursoId = parseInt(newAula.curso_id);
             const paraleloId = parseInt(newAula.paralelo_id);
             const tutorId = newAula.tutor_id ? parseInt(newAula.tutor_id) : null;
@@ -174,8 +139,6 @@ const ClassroomsPage = () => {
         }
     };
 
-    // --- Gestión de Malla Curricular ---
-
     const openConfigModal = async (aula) => {
         setSelectedAula(aula);
         setIsConfigModalOpen(true);
@@ -199,14 +162,13 @@ const ClassroomsPage = () => {
 
         try {
             await AssignMateria(
-                selectedAula.id, 
-                parseInt(newMateria.materia_id), 
+                selectedAula.id,
+                parseInt(newMateria.materia_id),
                 parseInt(newMateria.docente_id)
             );
             toast.success("Materia asignada/actualizada");
             loadCargaHoraria(selectedAula.id);
-            // Limpiar selección de materia pero mantener docente por comodidad? No, mejor limpiar todo
-            setNewMateria({ ...newMateria, materia_id: '' }); 
+            setNewMateria({ ...newMateria, materia_id: '' });
         } catch (error) {
             toast.error("Error al asignar materia: " + error);
         }
@@ -224,10 +186,7 @@ const ClassroomsPage = () => {
 
     return (
         <div className="min-h-full w-full bg-slate-50/50 font-sans">
-            
             <div className="w-full flex flex-col gap-6">
-                
-                {/* Header */}
                 <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4 w-full sm:w-auto">
                         <div className="p-3 bg-purple-50 rounded-xl border border-purple-100 shadow-sm">
@@ -238,12 +197,11 @@ const ClassroomsPage = () => {
                             <p className="text-sm text-slate-500 font-medium">Configura cursos, paralelos y carga horaria</p>
                         </div>
                     </div>
-                    
+
                     <div className="flex gap-3 w-full sm:w-auto">
-                        {/* Selector de Año */}
                         <div className="relative">
                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                            <select 
+                            <select
                                 value={selectedAnio || ''}
                                 onChange={(e) => setSelectedAnio(parseInt(e.target.value))}
                                 className="pl-9 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 appearance-none cursor-pointer shadow-sm hover:bg-slate-50 transition-colors"
@@ -254,7 +212,7 @@ const ClassroomsPage = () => {
                             </select>
                         </div>
 
-                        <button 
+                        <button
                             onClick={() => setIsCreateModalOpen(true)}
                             disabled={!selectedAnio}
                             className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all text-sm font-semibold shadow-md hover:shadow-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -265,7 +223,6 @@ const ClassroomsPage = () => {
                     </div>
                 </div>
 
-                {/* Tabla de Aulas */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full text-left border-collapse">
@@ -321,14 +278,14 @@ const ClassroomsPage = () => {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <button 
+                                                    <button
                                                         onClick={() => openConfigModal(aula)}
                                                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100 shadow-sm"
                                                         title="Configurar Malla Curricular"
                                                     >
                                                         <Settings size={18} />
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleDeleteAula(aula.id)}
                                                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100 shadow-sm"
                                                         title="Eliminar Aula"
@@ -346,7 +303,6 @@ const ClassroomsPage = () => {
                 </div>
             </div>
 
-            {/* Modal Crear Aula */}
             {isCreateModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all animate-in fade-in">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 scale-100 transform transition-all">
@@ -355,7 +311,7 @@ const ClassroomsPage = () => {
                                 <Plus className="w-5 h-5 text-purple-600" />
                                 Abrir Nueva Aula
                             </h3>
-                            <button 
+                            <button
                                 onClick={() => setIsCreateModalOpen(false)}
                                 className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
                             >
@@ -366,10 +322,10 @@ const ClassroomsPage = () => {
                         <form onSubmit={handleCreateAula} className="p-6 space-y-5">
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Curso</label>
-                                <select 
+                                <select
                                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all appearance-none cursor-pointer"
                                     value={newAula.curso_id}
-                                    onChange={(e) => setNewAula({...newAula, curso_id: e.target.value})}
+                                    onChange={(e) => setNewAula({ ...newAula, curso_id: e.target.value })}
                                     required
                                 >
                                     <option value="">Seleccione un curso...</option>
@@ -381,10 +337,10 @@ const ClassroomsPage = () => {
 
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Paralelo</label>
-                                <select 
+                                <select
                                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all appearance-none cursor-pointer"
                                     value={newAula.paralelo_id}
-                                    onChange={(e) => setNewAula({...newAula, paralelo_id: e.target.value})}
+                                    onChange={(e) => setNewAula({ ...newAula, paralelo_id: e.target.value })}
                                     required
                                 >
                                     <option value="">Seleccione un paralelo...</option>
@@ -396,10 +352,10 @@ const ClassroomsPage = () => {
 
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Tutor (Opcional)</label>
-                                <select 
+                                <select
                                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all appearance-none cursor-pointer"
                                     value={newAula.tutor_id}
-                                    onChange={(e) => setNewAula({...newAula, tutor_id: e.target.value})}
+                                    onChange={(e) => setNewAula({ ...newAula, tutor_id: e.target.value })}
                                 >
                                     <option value="">Sin tutor asignado</option>
                                     {docentes.filter(d => d.Activo).map(d => (
@@ -409,14 +365,14 @@ const ClassroomsPage = () => {
                             </div>
 
                             <div className="pt-2 flex gap-3">
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => setIsCreateModalOpen(false)}
                                     className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors text-sm"
                                 >
                                     Cancelar
                                 </button>
-                                <button 
+                                <button
                                     type="submit"
                                     className="flex-1 px-4 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 shadow-md shadow-purple-200 transition-all text-sm flex items-center justify-center gap-2"
                                 >
@@ -429,12 +385,10 @@ const ClassroomsPage = () => {
                 </div>
             )}
 
-            {/* Modal Configuración (Malla Curricular) */}
             {isConfigModalOpen && selectedAula && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all animate-in fade-in">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[85vh] border border-slate-200 scale-100 transform transition-all flex flex-col overflow-hidden">
-                        
-                        {/* Header Modal */}
+
                         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -453,19 +407,18 @@ const ClassroomsPage = () => {
                         </div>
 
                         <div className="flex flex-1 overflow-hidden">
-                            {/* Panel Izquierdo: Agregar Materia */}
                             <div className="w-80 border-r border-slate-100 bg-slate-50/50 p-6 flex flex-col shrink-0 overflow-y-auto">
                                 <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-5 flex items-center gap-2">
                                     <Plus className="w-4 h-4 text-emerald-600" /> Asignar Materia
                                 </h3>
-                                
+
                                 <div className="space-y-5">
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Materia</label>
-                                        <select 
+                                        <select
                                             className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all appearance-none cursor-pointer"
                                             value={newMateria.materia_id}
-                                            onChange={(e) => setNewMateria({...newMateria, materia_id: e.target.value})}
+                                            onChange={(e) => setNewMateria({ ...newMateria, materia_id: e.target.value })}
                                         >
                                             <option value="">Seleccione materia...</option>
                                             {materias.map(m => (
@@ -476,10 +429,10 @@ const ClassroomsPage = () => {
 
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Docente Encargado</label>
-                                        <select 
+                                        <select
                                             className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all appearance-none cursor-pointer"
                                             value={newMateria.docente_id}
-                                            onChange={(e) => setNewMateria({...newMateria, docente_id: e.target.value})}
+                                            onChange={(e) => setNewMateria({ ...newMateria, docente_id: e.target.value })}
                                         >
                                             <option value="">Seleccione docente...</option>
                                             {docentes.filter(d => d.Activo).map(d => (
@@ -488,7 +441,7 @@ const ClassroomsPage = () => {
                                         </select>
                                     </div>
 
-                                    <button 
+                                    <button
                                         onClick={handleAssignMateria}
                                         className="w-full py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 shadow-md shadow-purple-200 transition-all text-sm flex items-center justify-center gap-2 mt-2 active:scale-[0.98]"
                                     >
@@ -505,7 +458,6 @@ const ClassroomsPage = () => {
                                 </div>
                             </div>
 
-                            {/* Panel Derecho: Lista de Materias */}
                             <div className="flex-1 flex flex-col bg-white overflow-hidden">
                                 <div className="p-6 pb-2 border-b border-slate-50">
                                     <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
@@ -513,7 +465,7 @@ const ClassroomsPage = () => {
                                         <span className="ml-2 bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs border border-slate-200">{cargaHoraria.length}</span>
                                     </h3>
                                 </div>
-                                
+
                                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-2">
                                     {cargaHoraria.length === 0 ? (
                                         <div className="h-full flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl bg-slate-50/50">
@@ -537,8 +489,8 @@ const ClassroomsPage = () => {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    
-                                                    <button 
+
+                                                    <button
                                                         onClick={() => handleRemoveMateria(item.id)}
                                                         className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                                                         title="Quitar materia"

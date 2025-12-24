@@ -1,23 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Toaster, toast } from 'sonner';
-import { 
-    Users, 
-    Search, 
-    Filter, 
-    Download, 
-    AlertTriangle, 
-    AlertCircle, 
-    Repeat,
-    ChevronLeft,
-    ChevronRight,
-    School,
-    GraduationCap,
-    Loader2,
-    Eye
+import { toast } from 'sonner';
+import {
+    Users, Search, Filter, Download, AlertTriangle, AlertCircle, Repeat,
+    ChevronLeft, ChevronRight, School, GraduationCap, Loader2, Eye
 } from 'lucide-react';
 
-// Importar servicios
 import { GetAniosLectivos } from '../../wailsjs/go/academic/YearService';
 import { GetCursos } from '../../wailsjs/go/academic/CourseService';
 import { GetParalelos } from '../../wailsjs/go/academic/ParallelService';
@@ -25,11 +13,11 @@ import { GetStudents, ExportStudentsToExcel } from '../../wailsjs/go/student/Stu
 
 const StudentsPage = () => {
     const navigate = useNavigate();
-    // Filtros
+
     const [anios, setAnios] = useState([]);
     const [cursos, setCursos] = useState([]);
     const [paralelos, setParalelos] = useState([]);
-    
+
     const [filters, setFilters] = useState({
         anio_id: '',
         curso_id: '',
@@ -37,21 +25,17 @@ const StudentsPage = () => {
         query: ''
     });
 
-    // Datos
     const [students, setStudents] = useState([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
     const [pageSize] = useState(10);
     const [loading, setLoading] = useState(false);
 
-    // Carga Inicial
     useEffect(() => {
         loadCatalogos();
     }, []);
 
-    // Recargar cuando cambian filtros o página
     useEffect(() => {
-        // Solo cargar si tenemos al menos un año seleccionado o es búsqueda global
         if (filters.anio_id || filters.query) {
             loadStudents();
         }
@@ -68,7 +52,6 @@ const StudentsPage = () => {
             setCursos(c);
             setParalelos(p);
 
-            // Seleccionar año activo por defecto
             const activo = a.find(y => y.Activo);
             if (activo) {
                 setFilters(prev => ({ ...prev, anio_id: activo.ID }));
@@ -88,14 +71,14 @@ const StudentsPage = () => {
             const paraleloId = filters.paralelo_id ? parseInt(filters.paralelo_id) : 0;
 
             const response = await GetStudents(
-                anioId, 
-                cursoId, 
-                paraleloId, 
-                filters.query, 
-                page, 
+                anioId,
+                cursoId,
+                paraleloId,
+                filters.query,
+                page,
                 pageSize
             );
-            
+
             if (response) {
                 setStudents(response.data || []);
                 setTotal(response.total);
@@ -109,7 +92,7 @@ const StudentsPage = () => {
 
     const handleSearch = (e) => {
         if (e.key === 'Enter') {
-            setPage(1); // Resetear a página 1
+            setPage(1);
             loadStudents();
         }
     };
@@ -121,15 +104,14 @@ const StudentsPage = () => {
             const paraleloId = filters.paralelo_id ? parseInt(filters.paralelo_id) : 0;
 
             const base64 = await ExportStudentsToExcel(anioId, cursoId, paraleloId);
-            
-            // Descargar archivo
+
             const link = document.createElement('a');
             link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`;
             link.download = `Estudiantes_${new Date().toISOString().split('T')[0]}.xlsx`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
+
             toast.success("Exportación completada");
         } catch (error) {
             toast.error("Error al exportar: " + error);
@@ -140,10 +122,7 @@ const StudentsPage = () => {
 
     return (
         <div className="min-h-full w-full bg-slate-50/50 font-sans">
-            <Toaster position="top-right" richColors />
-
             <div className="w-full flex flex-col gap-6">
-                {/* Header */}
                 <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4 w-full sm:w-auto">
                         <div className="p-3 bg-purple-50 rounded-xl border border-purple-100 shadow-sm">
@@ -154,8 +133,8 @@ const StudentsPage = () => {
                             <p className="text-sm text-slate-500 font-medium">Matrículas, listados y seguimiento</p>
                         </div>
                     </div>
-                    
-                    <button 
+
+                    <button
                         onClick={handleExport}
                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all text-sm font-semibold shadow-md hover:shadow-emerald-200"
                     >
@@ -163,35 +142,31 @@ const StudentsPage = () => {
                         Exportar Excel
                     </button>
                 </div>
-
-                {/* Filtros y Búsqueda */}
                 <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                        {/* Buscador Global */}
                         <div className="md:col-span-4 lg:col-span-1">
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Búsqueda Global</label>
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Cédula o Apellidos..." 
+                                <input
+                                    type="text"
+                                    placeholder="Cédula o Apellidos..."
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all placeholder:text-slate-400"
                                     value={filters.query}
-                                    onChange={(e) => setFilters({...filters, query: e.target.value})}
+                                    onChange={(e) => setFilters({ ...filters, query: e.target.value })}
                                     onKeyDown={handleSearch}
                                 />
                             </div>
                         </div>
 
-                        {/* Filtros Dropdown */}
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Año Lectivo</label>
                             <div className="relative">
-                                <select 
+                                <select
                                     className="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 appearance-none cursor-pointer hover:bg-slate-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                                     value={filters.anio_id}
                                     onChange={(e) => {
-                                        setFilters({...filters, anio_id: e.target.value, query: ''});
+                                        setFilters({ ...filters, anio_id: e.target.value, query: '' });
                                         setPage(1);
                                     }}
                                     disabled={!!filters.query}
@@ -209,11 +184,11 @@ const StudentsPage = () => {
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Curso</label>
                             <div className="relative">
-                                <select 
+                                <select
                                     className="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 appearance-none cursor-pointer hover:bg-slate-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                                     value={filters.curso_id}
                                     onChange={(e) => {
-                                        setFilters({...filters, curso_id: e.target.value, query: ''});
+                                        setFilters({ ...filters, curso_id: e.target.value, query: '' });
                                         setPage(1);
                                     }}
                                     disabled={!!filters.query}
@@ -232,11 +207,11 @@ const StudentsPage = () => {
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Paralelo</label>
                             <div className="relative">
-                                <select 
+                                <select
                                     className="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 appearance-none cursor-pointer hover:bg-slate-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                                     value={filters.paralelo_id}
                                     onChange={(e) => {
-                                        setFilters({...filters, paralelo_id: e.target.value, query: ''});
+                                        setFilters({ ...filters, paralelo_id: e.target.value, query: '' });
                                         setPage(1);
                                     }}
                                     disabled={!!filters.query}
@@ -252,7 +227,7 @@ const StudentsPage = () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     {filters.query && (
                         <div className="mt-3 flex items-center gap-2 text-xs text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100 w-fit">
                             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -261,7 +236,6 @@ const StudentsPage = () => {
                     )}
                 </div>
 
-                {/* Tabla de Resultados */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full text-left border-collapse">
@@ -311,7 +285,7 @@ const StudentsPage = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-600 font-mono bg-slate-50/50 w-fit rounded-lg px-2">
+                                            <td className="px-6 py-4 text-sm text-slate-600 font-mono bg-slate-50/50 w-fit rounded-lg">
                                                 {st.cedula}
                                             </td>
                                             <td className="px-6 py-4 text-sm">
@@ -361,7 +335,7 @@ const StudentsPage = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button 
+                                                <button
                                                     onClick={() => navigate(`/students/profile/${st.id}`)}
                                                     className="flex items-center justify-end gap-1 text-blue-600 hover:text-blue-800 hover:underline font-bold text-xs transition-colors ml-auto"
                                                 >
@@ -376,21 +350,20 @@ const StudentsPage = () => {
                         </table>
                     </div>
 
-                    {/* Paginación */}
                     {total > 0 && (
                         <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between">
                             <span className="text-xs font-medium text-slate-500">
                                 Mostrando <span className="font-bold text-slate-700">{((page - 1) * pageSize) + 1}</span> a <span className="font-bold text-slate-700">{Math.min(page * pageSize, total)}</span> de <span className="font-bold text-purple-700">{total}</span> resultados
                             </span>
                             <div className="flex gap-2">
-                                <button 
+                                <button
                                     onClick={() => setPage(p => Math.max(1, p - 1))}
                                     disabled={page === 1}
                                     className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 hover:text-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm text-slate-500"
                                 >
                                     <ChevronLeft size={18} />
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                     disabled={page === totalPages}
                                     className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 hover:text-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm text-slate-500"

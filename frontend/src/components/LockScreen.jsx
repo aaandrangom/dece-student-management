@@ -15,27 +15,22 @@ const LockScreen = ({ onUnlockRequest }) => {
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Subtle background glow */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
 
       <div className="z-10 flex flex-col items-center justify-center text-center">
-        {/* Lock Icon */}
         <div className="mb-8">
           <Lock className="w-24 h-24 text-purple-400" strokeWidth={1.5} />
         </div>
 
-        {/* Main title */}
         <h1 className="text-5xl font-bold text-white mb-3 tracking-tight">
           DECE
         </h1>
 
-        {/* Subtitle */}
         <p className="text-purple-300 text-lg">
           Departamento de Consejería Estudiantil
         </p>
       </div>
 
-      {/* Footer */}
       <div className="absolute bottom-8 text-center">
         <p className="text-slate-500 text-xs">Solo personal autorizado</p>
       </div>

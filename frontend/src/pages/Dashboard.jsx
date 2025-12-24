@@ -21,7 +21,6 @@ const Dashboard = () => {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Card 1 */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-gray-500 font-medium text-sm uppercase tracking-wider">Estudiantes</h2>
@@ -34,8 +33,7 @@ const Dashboard = () => {
           <p className="text-3xl font-bold text-gray-800">0</p>
           <p className="text-xs text-gray-400 mt-2">Registrados en el sistema</p>
         </div>
-
-        {/* Card 2 */}
+        
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-gray-500 font-medium text-sm uppercase tracking-wider">Casos Activos</h2>
@@ -48,8 +46,7 @@ const Dashboard = () => {
           <p className="text-3xl font-bold text-gray-800">0</p>
           <p className="text-xs text-gray-400 mt-2">Requieren atención</p>
         </div>
-
-        {/* Card 3 */}
+        
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-gray-500 font-medium text-sm uppercase tracking-wider">Citas Pendientes</h2>

@@ -22,7 +22,6 @@ func (s *CourseService) GetCursos() ([]academic.Curso, error) {
 }
 
 func (s *CourseService) CreateCurso(nombre string, nivel int) (academic.Curso, error) {
-	// Validar duplicados
 	var count int64
 	s.db.Model(&academic.Curso{}).Where("nombre = ?", nombre).Count(&count)
 	if count > 0 {
@@ -39,7 +38,6 @@ func (s *CourseService) CreateCurso(nombre string, nivel int) (academic.Curso, e
 }
 
 func (s *CourseService) UpdateCurso(id uint, nombre string, nivel int) error {
-	// Validar duplicados (excluyendo el actual)
 	var count int64
 	s.db.Model(&academic.Curso{}).Where("nombre = ? AND id != ?", nombre, id).Count(&count)
 	if count > 0 {
@@ -53,7 +51,6 @@ func (s *CourseService) UpdateCurso(id uint, nombre string, nivel int) error {
 }
 
 func (s *CourseService) DeleteCurso(id uint) error {
-	// Validar uso en Aulas
 	var count int64
 	s.db.Model(&academic.Aula{}).Where("curso_id = ?", id).Count(&count)
 	if count > 0 {

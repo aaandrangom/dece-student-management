@@ -45,18 +45,15 @@ type DisciplineCaseDTO struct {
 	CumplioMedida         bool   `json:"cumplio_medida"`
 }
 
-// GetDisciplineCases obtiene los casos disciplinarios de un estudiante
 func (s *DisciplineService) GetDisciplineCases(estudianteID uint) ([]DisciplineCaseDTO, error) {
 	return s.getCasesByType(estudianteID, "DISCIPLINA")
 }
 
-// GetViolenceCases obtiene los casos de violencia de un estudiante
 func (s *DisciplineService) GetViolenceCases(estudianteID uint) ([]DisciplineCaseDTO, error) {
 	return s.getCasesByType(estudianteID, "VIOLENCIA")
 }
 
 func (s *DisciplineService) getCasesByType(estudianteID uint, tipo string) ([]DisciplineCaseDTO, error) {
-	// 1. Buscar Historial Académico más reciente (o activo)
 	var historial student.HistorialAcademico
 	err := s.db.Where("estudiante_id = ?", estudianteID).
 		Order("id desc").
@@ -99,7 +96,6 @@ func (s *DisciplineService) getCasesByType(estudianteID uint, tipo string) ([]Di
 	return dtos, nil
 }
 
-// SaveDisciplineCase crea o actualiza un caso disciplinario
 func (s *DisciplineService) SaveDisciplineCase(dto DisciplineCaseDTO) error {
 	caso := welfare.DisciplinaCaso{
 		ID:                    dto.ID,
@@ -120,9 +116,7 @@ func (s *DisciplineService) SaveDisciplineCase(dto DisciplineCaseDTO) error {
 		CumplioMedida:         dto.CumplioMedida,
 	}
 
-	// Si ID es 0, crear nuevo. Si no, actualizar.
 	if caso.ID == 0 {
-		// Asegurar que tenemos historial_id si viene vacío pero tenemos estudiante_id
 		if caso.HistorialID == 0 && dto.EstudianteID != 0 {
 			var historial student.HistorialAcademico
 			if err := s.db.Where("estudiante_id = ?", dto.EstudianteID).Order("id desc").First(&historial).Error; err == nil {
@@ -135,12 +129,10 @@ func (s *DisciplineService) SaveDisciplineCase(dto DisciplineCaseDTO) error {
 	return s.db.Session(&gorm.Session{SkipDefaultTransaction: true}).Model(&caso).Updates(caso).Error
 }
 
-// DeleteDisciplineCase elimina un caso
 func (s *DisciplineService) DeleteDisciplineCase(id uint) error {
 	return s.db.Delete(&welfare.DisciplinaCaso{}, id).Error
 }
 
-// UploadSignedAct sube el acta firmada
 func (s *DisciplineService) UploadSignedAct(casoID uint, fileBase64 string) error {
 	parts := strings.Split(fileBase64, ",")
 	if len(parts) != 2 {
@@ -179,7 +171,6 @@ func (s *DisciplineService) UploadSignedAct(casoID uint, fileBase64 string) erro
 		Update("archivo_acta_path", absPath).Error
 }
 
-// GetSignedAct obtiene el acta firmada para previsualización
 func (s *DisciplineService) GetSignedAct(casoID uint) (string, error) {
 	var caso welfare.DisciplinaCaso
 	if err := s.db.First(&caso, casoID).Error; err != nil {

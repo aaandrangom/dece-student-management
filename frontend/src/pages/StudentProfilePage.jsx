@@ -1,38 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Toaster, toast } from 'sonner';
-import { 
-    User, 
-    Calendar, 
-    Phone, 
-    MapPin, 
-    Users, 
-    School, 
-    FileText, 
-    Activity, 
-    Clock,
-    Download,
-    AlertTriangle,
-    CheckCircle2,
-    ArrowLeft,
-    HeartPulse,
-    UserCircle2,
-    GraduationCap,
-    Home,
-    AlertCircle,
-    Camera,
-    ArrowRightLeft,
-    UserX,
-    X
+import { toast } from 'sonner';
+import {
+    User, Calendar, Phone, MapPin, Users, School, FileText, Activity,
+    Clock, Download, AlertTriangle, CheckCircle2, ArrowLeft, HeartPulse,
+    UserCircle2, GraduationCap, AlertCircle, Camera, ArrowRightLeft,
+    UserX, X
 } from 'lucide-react';
 
-// Servicios
-import { 
-    GetStudentProfile, 
-    GetAlternativeAulas, 
-    ChangeStudentParallel, 
-    WithdrawStudent, 
-    UpdateStudentPhoto 
+import {
+    GetStudentProfile, GetAlternativeAulas, ChangeStudentParallel,
+    WithdrawStudent, UpdateStudentPhoto
 } from '../../wailsjs/go/student/StudentService';
 import { GetDisciplineCases } from '../../wailsjs/go/welfare/DisciplineService';
 
@@ -45,7 +23,6 @@ const StudentProfilePage = () => {
     const [activeTab, setActiveTab] = useState('academic');
     const [disciplineCases, setDisciplineCases] = useState([]);
 
-    // Administrative State
     const [showTransferModal, setShowTransferModal] = useState(false);
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
     const [alternativeAulas, setAlternativeAulas] = useState([]);
@@ -64,13 +41,11 @@ const StudentProfilePage = () => {
         try {
             const data = await GetStudentProfile(studentId, yearId);
             setProfile(data);
-            
-            // Si no había año seleccionado, seleccionar el del historial cargado
+
             if (yearId === 0 && data.historial_actual && data.historial_actual.Aula && data.historial_actual.Aula.AnioLectivo) {
                 setSelectedYear(data.historial_actual.Aula.AnioLectivo.ID);
             }
 
-            // Load Discipline Cases
             const cases = await GetDisciplineCases(studentId);
             setDisciplineCases(cases || []);
         } catch (error) {
@@ -83,7 +58,7 @@ const StudentProfilePage = () => {
     const handlePhotoUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
@@ -183,10 +158,9 @@ const StudentProfilePage = () => {
 
             <div className=" mx-auto w-full flex flex-col gap-6">
 
-                {/* Header & Year Selector */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4 w-full sm:w-auto">
-                        <button 
+                        <button
                             onClick={() => navigate(-1)}
                             className="p-2.5 hover:bg-slate-100 rounded-xl transition-colors border border-transparent hover:border-slate-200 text-slate-500"
                             title="Volver"
@@ -205,8 +179,8 @@ const StudentProfilePage = () => {
                     <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 w-full sm:w-auto">
                         <Clock className="text-slate-400 w-4 h-4" />
                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wide whitespace-nowrap">Año Lectivo:</span>
-                        <select 
-                            value={selectedYear} 
+                        <select
+                            value={selectedYear}
                             onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                             className="bg-transparent border-none text-slate-700 text-sm font-bold focus:ring-0 cursor-pointer p-0 pr-8 w-full sm:w-auto"
                         >
@@ -218,16 +192,15 @@ const StudentProfilePage = () => {
                         </select>
                     </div>
 
-                    {/* Admin Actions */}
                     <div className="flex gap-2">
-                        <button 
+                        <button
                             onClick={openTransferModal}
                             className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
                             title="Traslado Interno"
                         >
                             <ArrowRightLeft size={20} />
                         </button>
-                        <button 
+                        <button
                             onClick={() => setShowWithdrawModal(true)}
                             className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
                             title="Dar de Baja"
@@ -237,7 +210,6 @@ const StudentProfilePage = () => {
                     </div>
                 </div>
 
-                {/* Withdrawal Alert */}
                 {historial_actual?.Estado === 'RETIRADO' && (
                     <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-4">
                         <div className="p-2 bg-red-100 rounded-lg">
@@ -258,13 +230,11 @@ const StudentProfilePage = () => {
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    {/* Left Column: Personal Info */}
+
                     <div className="space-y-6">
-                        
-                        {/* Personal Card */}
+
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative h-full flex flex-col">
-                            <div className="h-32 bg-gradient-to-r from-indigo-600 to-blue-500 relative shrink-0">
+                            <div className="h-32 bg-linear-to-r from-indigo-600 to-blue-500 relative shrink-0">
                                 <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 group cursor-pointer z-10">
                                     <div className="w-24 h-24 rounded-full border-4 border-white bg-white shadow-md overflow-hidden flex items-center justify-center relative">
                                         {estudiante.FotoPerfilPath ? (
@@ -278,20 +248,20 @@ const StudentProfilePage = () => {
                                             <Camera className="text-white" size={24} />
                                         </div>
                                     </div>
-                                    <input 
-                                        type="file" 
-                                        accept="image/*" 
+                                    <input
+                                        type="file"
+                                        accept="image/*"
                                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                         onChange={handlePhotoUpload}
                                         title="Cambiar foto de perfil"
                                     />
                                 </div>
                             </div>
-                            
+
                             <div className="pt-16 pb-6 px-6 text-center flex-1 flex flex-col">
                                 <h2 className="text-lg font-bold text-slate-800 uppercase leading-tight">{estudiante.Apellidos} {estudiante.Nombres}</h2>
                                 <p className="text-slate-500 text-sm font-mono mt-1 bg-slate-50 inline-block px-2 py-0.5 rounded border border-slate-100">{estudiante.Cedula}</p>
-                                
+
                                 <div className="flex justify-center gap-3 mt-4">
                                     <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold border border-indigo-100">
                                         {calculateAge(estudiante.FechaNacimiento)} Años
@@ -334,10 +304,8 @@ const StudentProfilePage = () => {
                         </div>
                     </div>
 
-                    {/* Right Column: Tabs & Content (2 cols wide) */}
                     <div className="lg:col-span-2 flex flex-col gap-6 h-full">
-                        
-                        {/* Tabs Navigation */}
+
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-1 flex overflow-x-auto shrink-0">
                             {[
                                 { id: 'academic', label: 'Información Académica', icon: School },
@@ -349,11 +317,10 @@ const StudentProfilePage = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap relative ${
-                                        activeTab === tab.id 
-                                        ? 'bg-indigo-50 text-indigo-700 shadow-sm' 
+                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap relative ${activeTab === tab.id
+                                        ? 'bg-indigo-50 text-indigo-700 shadow-sm'
                                         : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-                                    }`}
+                                        }`}
                                 >
                                     <tab.icon size={16} />
                                     {tab.label}
@@ -366,16 +333,14 @@ const StudentProfilePage = () => {
                             ))}
                         </div>
 
-                        {/* Tab Content Area */}
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex-1 min-h-[400px]">
-                            
-                            {/* ACADEMIC TAB */}
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex-1 min-h-100">
+
                             {activeTab === 'academic' && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                     {historial_actual ? (
                                         <>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="p-5 bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-xl relative overflow-hidden">
+                                                <div className="p-5 bg-linear-to-br from-indigo-50 to-white border border-indigo-100 rounded-xl relative overflow-hidden">
                                                     <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-100 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
                                                     <span className="text-xs font-bold text-indigo-400 uppercase tracking-wide block mb-2">Ubicación Actual</span>
                                                     <div className="flex items-center gap-3 mb-1">
@@ -412,7 +377,7 @@ const StudentProfilePage = () => {
                                                     <GraduationCap className="w-4 h-4 text-amber-500" />
                                                     Estado Académico
                                                 </h4>
-                                                
+
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                                     <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
                                                         <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Condición</span>
@@ -420,7 +385,7 @@ const StudentProfilePage = () => {
                                                             {historial_actual.HaRepetido ? 'REPETIDOR' : 'REGULAR'}
                                                         </span>
                                                     </div>
-                                                    
+
                                                     <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
                                                         <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tipo Ingreso</span>
                                                         <span className={`text-sm font-bold ${historial_actual.EsNuevo ? 'text-blue-600' : 'text-slate-700'}`}>
@@ -446,7 +411,6 @@ const StudentProfilePage = () => {
                                 </div>
                             )}
 
-                            {/* FAMILY TAB */}
                             {activeTab === 'family' && (
                                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -462,10 +426,10 @@ const StudentProfilePage = () => {
                                                 </div>
                                                 <p className="font-bold text-slate-800 text-base uppercase leading-snug mb-1">{fam.NombresCompletos}</p>
                                                 <p className="text-xs text-slate-400 font-mono mb-3">{fam.Cedula}</p>
-                                                
+
                                                 <div className="flex items-center gap-4 pt-3 border-t border-slate-100/50">
                                                     <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-                                                        <Phone size={14} className="text-indigo-400" /> 
+                                                        <Phone size={14} className="text-indigo-400" />
                                                         {fam.Telefono || 'Sin teléfono'}
                                                     </div>
                                                 </div>
@@ -481,13 +445,11 @@ const StudentProfilePage = () => {
                                 </div>
                             )}
 
-                            {/* HEALTH TAB */}
                             {activeTab === 'health' && (
                                 <div className="space-y-6 animate-in fade-in duration-300">
                                     {salud ? (
                                         <>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                                {/* Antropometría */}
                                                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                                                     <h4 className="font-bold text-slate-700 mb-4 text-xs uppercase tracking-wide flex items-center gap-2">
                                                         <Activity className="w-4 h-4 text-blue-500" />
@@ -507,7 +469,6 @@ const StudentProfilePage = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* Discapacidad */}
                                                 <div className={`p-5 rounded-xl border shadow-sm flex flex-col justify-center ${salud.Discapacidad ? 'bg-rose-50 border-rose-100' : 'bg-emerald-50 border-emerald-100'}`}>
                                                     <div className="flex items-center gap-3 mb-2">
                                                         <div className={`p-2 rounded-full ${salud.Discapacidad ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
@@ -522,7 +483,7 @@ const StudentProfilePage = () => {
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {salud.Discapacidad && (
                                                         <div className="mt-3 bg-white/60 p-3 rounded-lg border border-rose-100">
                                                             <p className="text-xs text-rose-800 font-medium leading-relaxed">
@@ -532,8 +493,6 @@ const StudentProfilePage = () => {
                                                     )}
                                                 </div>
                                             </div>
-
-                                            {/* Info Adicional */}
                                             <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
                                                 <h4 className="font-bold text-slate-700 mb-4 text-xs uppercase tracking-wide flex items-center gap-2">
                                                     <HeartPulse className="w-4 h-4 text-rose-500" />
@@ -542,13 +501,13 @@ const StudentProfilePage = () => {
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     <div>
                                                         <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Alergias Conocidas</span>
-                                                        <p className="text-sm font-medium text-slate-700 bg-white p-3 rounded-lg border border-slate-100 min-h-[3rem]">
+                                                        <p className="text-sm font-medium text-slate-700 bg-white p-3 rounded-lg border border-slate-100 min-h-12">
                                                             {salud.Alergias || 'Ninguna registrada'}
                                                         </p>
                                                     </div>
                                                     <div>
                                                         <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Enfermedades Preexistentes</span>
-                                                        <p className="text-sm font-medium text-slate-700 bg-white p-3 rounded-lg border border-slate-100 min-h-[3rem]">
+                                                        <p className="text-sm font-medium text-slate-700 bg-white p-3 rounded-lg border border-slate-100 min-h-12">
                                                             {salud.Enfermedades || 'Ninguna registrada'}
                                                         </p>
                                                     </div>
@@ -564,7 +523,6 @@ const StudentProfilePage = () => {
                                 </div>
                             )}
 
-                            {/* DISCIPLINE TAB */}
                             {activeTab === 'discipline' && (
                                 <div className="animate-in fade-in duration-300 space-y-6">
                                     <div className="flex items-center justify-between">
@@ -572,7 +530,7 @@ const StudentProfilePage = () => {
                                             <AlertTriangle className="w-5 h-5 text-orange-500" />
                                             Historial Disciplinario
                                         </h3>
-                                        <button 
+                                        <button
                                             onClick={() => navigate('/dece/discipline')}
                                             className="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-colors font-bold border border-orange-200"
                                         >
@@ -585,11 +543,10 @@ const StudentProfilePage = () => {
                                             {disciplineCases.map(c => (
                                                 <div key={c.id} className="bg-white p-4 rounded-xl border border-slate-200 hover:border-orange-300 transition-all">
                                                     <div className="flex justify-between items-start mb-2">
-                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wide ${
-                                                            c.gravedad === 'LEVE' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wide ${c.gravedad === 'LEVE' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
                                                             c.gravedad === 'GRAVE' ? 'bg-orange-100 text-orange-700 border-orange-200' :
-                                                            'bg-red-100 text-red-700 border-red-200'
-                                                        }`}>
+                                                                'bg-red-100 text-red-700 border-red-200'
+                                                            }`}>
                                                             {c.gravedad}
                                                         </span>
                                                         <span className="text-xs text-slate-400 font-mono">
@@ -603,7 +560,7 @@ const StudentProfilePage = () => {
                                                             {c.estado}
                                                         </span>
                                                         {c.resolucion && (
-                                                            <span className="truncate max-w-[200px]" title={c.resolucion}>
+                                                            <span className="truncate max-w-50" title={c.resolucion}>
                                                                 Resolución: {c.resolucion}
                                                             </span>
                                                         )}
@@ -621,7 +578,6 @@ const StudentProfilePage = () => {
                                 </div>
                             )}
 
-                            {/* DOCUMENTS TAB */}
                             {activeTab === 'docs' && (
                                 <div className="animate-in fade-in duration-300">
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -643,7 +599,7 @@ const StudentProfilePage = () => {
                                                 </div>
                                                 <h4 className="font-bold text-slate-700 text-sm mb-1">{doc.label}</h4>
                                                 <p className="text-xs text-slate-400">Documento Digital</p>
-                                                
+
                                                 {doc.path && (
                                                     <button className="mt-4 w-full py-2 flex items-center justify-center gap-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
                                                         <Download size={14} /> Descargar
@@ -660,7 +616,6 @@ const StudentProfilePage = () => {
                 </div>
             </div>
 
-            {/* Transfer Modal */}
             {showTransferModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
@@ -678,7 +633,7 @@ const StudentProfilePage = () => {
                         </p>
                         <div className="mb-6">
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nuevo Paralelo</label>
-                            <select 
+                            <select
                                 className="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                                 value={selectedAula}
                                 onChange={(e) => setSelectedAula(e.target.value)}
@@ -696,8 +651,8 @@ const StudentProfilePage = () => {
                         </div>
                         <div className="flex justify-end gap-2">
                             <button onClick={() => setShowTransferModal(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium text-sm">Cancelar</button>
-                            <button 
-                                onClick={handleTransfer} 
+                            <button
+                                onClick={handleTransfer}
                                 disabled={!selectedAula}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -708,7 +663,6 @@ const StudentProfilePage = () => {
                 </div>
             )}
 
-            {/* Withdraw Modal */}
             {showWithdrawModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
@@ -726,8 +680,8 @@ const StudentProfilePage = () => {
                         <div className="space-y-4 mb-6">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha de Retiro</label>
-                                <input 
-                                    type="date" 
+                                <input
+                                    type="date"
                                     className="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
                                     value={withdrawDate}
                                     onChange={(e) => setWithdrawDate(e.target.value)}
@@ -735,7 +689,7 @@ const StudentProfilePage = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Motivo</label>
-                                <textarea 
+                                <textarea
                                     className="w-full p-2.5 border border-slate-200 rounded-lg h-24 resize-none text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
                                     placeholder="Especifique el motivo del retiro..."
                                     value={withdrawReason}
@@ -745,8 +699,8 @@ const StudentProfilePage = () => {
                         </div>
                         <div className="flex justify-end gap-2">
                             <button onClick={() => setShowWithdrawModal(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium text-sm">Cancelar</button>
-                            <button 
-                                onClick={handleWithdraw} 
+                            <button
+                                onClick={handleWithdraw}
                                 disabled={!withdrawReason}
                                 className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                             >

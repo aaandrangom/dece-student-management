@@ -31,12 +31,10 @@ func (s *TeacherService) GetDocentes(query string) ([]academic.Docente, error) {
 }
 
 func (s *TeacherService) CreateDocente(cedula, apellidos, nombres, email, telefono string) (academic.Docente, error) {
-	// Validar Cédula
 	if !validarCedulaEcuador(cedula) {
 		return academic.Docente{}, errors.New("cédula inválida")
 	}
 
-	// Validar duplicados
 	var count int64
 	s.db.Model(&academic.Docente{}).Where("cedula = ?", cedula).Count(&count)
 	if count > 0 {
@@ -74,9 +72,8 @@ func (s *TeacherService) ToggleDocenteState(id uint) error {
 	return s.db.Model(&docente).Update("activo", !docente.Activo).Error
 }
 
-// GetDocenteHistory retorna el historial de materias impartidas por el docente
 func (s *TeacherService) GetDocenteHistory(docenteID uint) ([]map[string]interface{}, error) {
-	var history []map[string]interface{}
+	var history []map[string]any
 
 	rows, err := s.db.Table("carga_horaria").
 		Select("anio_lectivos.nombre as anio, materia.nombre as materia, cursos.nombre as curso, paralelos.nombre as paralelo").
@@ -108,13 +105,11 @@ func (s *TeacherService) GetDocenteHistory(docenteID uint) ([]map[string]interfa
 	return history, nil
 }
 
-// validarCedulaEcuador valida si una cédula ecuatoriana es válida
 func validarCedulaEcuador(cedula string) bool {
 	if len(cedula) != 10 {
 		return false
 	}
 
-	// Verificar que sean solo dígitos
 	if _, err := strconv.Atoi(cedula); err != nil {
 		return false
 	}
@@ -132,7 +127,7 @@ func validarCedulaEcuador(cedula string) bool {
 	coeficientes := []int{2, 1, 2, 1, 2, 1, 2, 1, 2}
 	total := 0
 
-	for i := 0; i < 9; i++ {
+	for i := range 9 {
 		digito, _ := strconv.Atoi(string(cedula[i]))
 		valor := digito * coeficientes[i]
 		if valor >= 10 {

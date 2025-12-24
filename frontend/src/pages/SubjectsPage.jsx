@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
+import {
   Plus, Pencil, BookOpen, Loader2, X, Filter, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { 
-  GetMaterias, CreateMateria, UpdateMateria, ToggleMateriaState 
+import {
+  GetMaterias, CreateMateria, UpdateMateria, ToggleMateriaState
 } from '../../wailsjs/go/academic/SubjectService';
 
 const SubjectsPage = () => {
@@ -54,7 +54,7 @@ const SubjectsPage = () => {
         await CreateMateria(formData.nombre, formData.area);
         toast.success('Materia creada exitosamente');
       }
-      
+
       closeModal();
       loadSubjects();
     } catch (error) {
@@ -90,8 +90,7 @@ const SubjectsPage = () => {
   return (
     <div className="min-h-full w-full bg-slate-50/50 font-sans">
       <div className="max-w-full mx-auto w-full flex flex-col gap-6">
-        
-        {/* Header */}
+
         <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <div className="p-3 bg-orange-50 rounded-xl border border-orange-100 shadow-sm">
@@ -102,13 +101,12 @@ const SubjectsPage = () => {
               <p className="text-sm text-slate-500 font-medium">Catálogo de asignaturas</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            {/* Filter Dropdown */}
             <div className="relative group">
               <div className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 shadow-sm hover:border-slate-300 transition-all cursor-pointer">
                 <Filter className="w-4 h-4 text-slate-400" />
-                <select 
+                <select
                   value={selectedArea}
                   onChange={(e) => setSelectedArea(e.target.value)}
                   className="bg-transparent border-none outline-none cursor-pointer appearance-none pr-4"
@@ -130,7 +128,6 @@ const SubjectsPage = () => {
           </div>
         </div>
 
-        {/* Tabla */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
           <div className="overflow-x-auto custom-scrollbar-light max-h-[60vh] overflow-y-auto">
             <table className="w-full text-left border-collapse">
@@ -156,8 +153,8 @@ const SubjectsPage = () => {
                   <tr>
                     <td colSpan="4" className="px-6 py-20 text-center text-slate-400">
                       <div className="flex flex-col items-center gap-2">
-                         <BookOpen className="w-10 h-10 text-slate-300" />
-                         <p className="font-medium">No hay materias registradas</p>
+                        <BookOpen className="w-10 h-10 text-slate-300" />
+                        <p className="font-medium">No hay materias registradas</p>
                       </div>
                     </td>
                   </tr>
@@ -183,7 +180,7 @@ const SubjectsPage = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button 
+                          <button
                             onClick={() => handleEdit(subject)}
                             className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100 shadow-sm"
                             title="Editar"
@@ -201,7 +198,6 @@ const SubjectsPage = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all animate-in fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 scale-100 transform transition-all">
@@ -210,14 +206,14 @@ const SubjectsPage = () => {
                 <BookOpen className="w-5 h-5 text-orange-600" />
                 {editingSubject ? 'Editar Materia' : 'Nueva Materia'}
               </h3>
-              <button 
+              <button
                 onClick={closeModal}
                 className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">
@@ -229,7 +225,7 @@ const SubjectsPage = () => {
                   placeholder="Ej: Matemáticas, Lengua y Literatura"
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
                   value={formData.nombre}
-                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                 />
               </div>
 
@@ -243,7 +239,7 @@ const SubjectsPage = () => {
                   placeholder="Ej: Ciencias Exactas, Humanidades"
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
                   value={formData.area}
-                  onChange={(e) => setFormData({...formData, area: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                 />
               </div>
 
