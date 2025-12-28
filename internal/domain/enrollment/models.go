@@ -1,0 +1,106 @@
+package enrollment
+
+import (
+	"dece/internal/domain/common"
+	"dece/internal/domain/faculty"
+	"dece/internal/domain/student"
+	"time"
+)
+
+type Antropometria struct {
+	Peso       float64 `json:"peso"`
+	Talla      float64 `json:"talla"`
+	TipoSangre string  `json:"tipo_sangre"`
+}
+
+type HistorialAcademico struct {
+	EsNuevo             bool   `json:"es_nuevo"`
+	InstitucionAnterior string `json:"institucion_anterior"`
+	HaRepetidoAnio      bool   `json:"ha_repetido_anio"`
+	MateriasGustan      string `json:"materias_gustan"`
+}
+
+type DatosSalud struct {
+	TieneDiscapacidad bool   `json:"tiene_discapacidad"`
+	Detalle           string `json:"detalle"`
+	Alergias          string `json:"alergias"`
+	TieneEvalPsico    bool   `json:"tiene_eval_psico"`
+}
+
+type DatosSociales struct {
+	ActividadExtra    string `json:"actividad_extra"`
+	PracticaActividad bool   `json:"practica_actividad"`
+}
+
+type InfoPadresPareja struct {
+	NombresMadre  string `json:"nombres_madre"`
+	TelefonoMadre string `json:"telefono_madre"`
+	NombresPadre  string `json:"nombres_padre"`
+	TelefonoPadre string `json:"telefono_padre"`
+	Direccion     string `json:"direccion,omitempty"` // Opcional
+}
+
+type CondicionGenero struct {
+	// =========================================================
+	// SECCIÓN MUJERES: EMBARAZO
+	// =========================================================
+	EstaEmbarazada       bool   `json:"esta_embarazada"`
+	MesesEmbarazo        int    `json:"meses_embarazo,omitempty"`
+	LlevaControl         bool   `json:"lleva_control,omitempty"`
+	EsAltoRiesgo         bool   `json:"es_alto_riesgo,omitempty"`
+	TipoApoyoInstitucion string `json:"tipo_apoyo_institucion,omitempty"` // Si es riesgo, qué apoyo recibe
+	NombrePadreBebe      string `json:"nombre_padre_bebe,omitempty"`      // Opcional
+	VivenJuntosPadres    bool   `json:"viven_juntos_padres,omitempty"`    // ¿Ella y el padre viven juntos?
+
+	// =========================================================
+	// SECCIÓN MUJERES: LACTANCIA
+	// =========================================================
+	EstaLactando         bool   `json:"esta_lactando"`
+	MesesLactancia       int    `json:"meses_lactancia,omitempty"`
+	GeneroBebe           string `json:"genero_bebe,omitempty"` // "Masculino", "Femenino"
+	DiasNacido           int    `json:"dias_nacido,omitempty"`
+	NombrePadreLactancia string `json:"nombre_padre_lactancia,omitempty"`
+	EdadPadreLactancia   int    `json:"edad_padre_lactancia,omitempty"`
+
+	// =========================================================
+	// SECCIÓN MUJERES: MATERNIDAD
+	// =========================================================
+	TiempoMaternidad string `json:"tiempo_maternidad,omitempty"` // Tiempo que lleva de permiso/maternidad
+
+	// =========================================================
+	// SECCIÓN HOMBRES: PATERNIDAD
+	// =========================================================
+	EsPadre          bool   `json:"es_padre"`
+	TiempoPaternidad string `json:"tiempo_paternidad,omitempty"`
+	NombrePareja     string `json:"nombre_pareja,omitempty"`
+	EdadPareja       int    `json:"edad_pareja,omitempty"`
+	TelefonoPareja   string `json:"telefono_pareja,omitempty"`
+
+	ParejaEsMenorDeEdad bool              `json:"pareja_es_menor_de_edad,omitempty"`
+	DetallePadresPareja *InfoPadresPareja `json:"detalle_padres_pareja,omitempty"`
+}
+
+// --- Modelo Principal ---
+type Matricula struct {
+	ID           uint `gorm:"primaryKey" json:"id"`
+	EstudianteID uint `json:"estudiante_id"`
+	CursoID      uint `json:"curso_id"`
+
+	Estado      string `gorm:"default:'Matriculado'" json:"estado"`
+	EsRepetidor bool   `json:"es_repetidor"`
+
+	// Campos JSON usando el wrapper genérico
+	Antropometria      common.JSONMap[Antropometria]      `gorm:"type:text" json:"antropometria"`
+	HistorialAcademico common.JSONMap[HistorialAcademico] `gorm:"type:text" json:"historial_academico"`
+	DatosSalud         common.JSONMap[DatosSalud]         `gorm:"type:text" json:"datos_salud"`
+	DatosSociales      common.JSONMap[DatosSociales]      `gorm:"type:text" json:"datos_sociales"`
+	CondicionGenero    common.JSONMap[CondicionGenero]    `gorm:"type:text" json:"condicion_genero"`
+
+	DireccionActual string    `json:"direccion_actual"`
+	RutaCroquis     string    `json:"ruta_croquis"`
+	FechaRegistro   time.Time `gorm:"autoCreateTime" json:"fecha_registro"`
+
+	// Relaciones
+	Estudiante student.Estudiante `gorm:"foreignKey:EstudianteID" json:"estudiante,omitempty"`
+	Curso      faculty.Curso      `gorm:"foreignKey:CursoID" json:"curso,omitempty"`
+}

@@ -1,71 +1,47 @@
 package student
 
 import (
-	"dece/internal/domain/academic"
+	"dece/internal/domain/common"
 	"time"
 )
 
-type Estudiante struct {
-	ID              uint   `gorm:"primaryKey"`
-	Cedula          string `gorm:"unique;not null"`
-	Apellidos       string `gorm:"not null"`
-	Nombres         string `gorm:"not null"`
-	FechaNacimiento time.Time
-	Genero          string
-	Nacionalidad    string
-	FotoPerfilPath  string
-	FechaRegistro   time.Time `gorm:"autoCreateTime"`
+type InfoNacionalidad struct {
+	EsExtranjero   bool   `json:"es_extranjero"`
+	PaisOrigen     string `json:"pais_origen"`
+	PasaporteOrDNI string `json:"pasaporte_odni"`
 }
 
-type HistorialAcademico struct {
-	ID           uint `gorm:"primaryKey"`
-	EstudianteID uint `gorm:"not null;uniqueIndex:idx_historial_estudiante_aula"`
-	AulaID       uint `gorm:"not null;uniqueIndex:idx_historial_estudiante_aula"`
+type Estudiante struct {
+	ID               uint      `gorm:"primaryKey" json:"id"`
+	Cedula           string    `gorm:"unique;not null" json:"cedula"`
+	Apellidos        string    `gorm:"not null" json:"apellidos"`
+	Nombres          string    `gorm:"not null" json:"nombres"`
+	FechaNacimiento  time.Time `json:"fecha_nacimiento"`
+	GeneroNacimiento string    `json:"genero_nacimiento"`
 
-	DireccionDomicilio string
-	CroquisPath        string
-	TelefonoContacto   string
+	InfoNacionalidad common.JSONMap[InfoNacionalidad] `gorm:"type:text" json:"info_nacionalidad"`
+	RutaFoto         string                           `json:"ruta_foto"`
 
-	EsNuevo                bool
-	InstitucionProcedencia string
-	HaRepetido             bool
+	FechaCreacion time.Time `gorm:"autoCreateTime" json:"fecha_creacion"`
+}
 
-	Peso          float64
-	Talla         float64
-	EdadCalculada int
-	TipoSangre    string
-
-	Estado       string `gorm:"default:'MATRICULADO'"`
-	FechaRetiro  *time.Time
-	MotivoRetiro string
-
-	Estudiante Estudiante    `gorm:"foreignKey:EstudianteID"`
-	Aula       academic.Aula `gorm:"foreignKey:AulaID"`
+type DatosFamiliar struct {
+	NivelInstruccion string `json:"nivel_instruccion"`
+	Profesion        string `json:"profesion"`
+	LugarTrabajo     string `json:"lugar_trabajo"`
 }
 
 type Familiar struct {
-	ID                   uint `gorm:"primaryKey"`
-	EstudianteID         uint
-	Rol                  string
-	Cedula               string
-	NombresCompletos     string
-	Telefono             string
-	Profesion            string
-	LugarTrabajo         string
-	NivelInstruccion     string
-	EsRepresentanteLegal bool
-	DocumentoLegalPath   string
-	Fallecido            bool `gorm:"default:false"`
+	ID                   uint   `gorm:"primaryKey" json:"id"`
+	EstudianteID         uint   `json:"estudiante_id"`
+	Cedula               string `json:"cedula"`
+	NombresCompletos     string `gorm:"not null" json:"nombres_completos"`
+	Parentesco           string `json:"parentesco"`
+	EsRepresentanteLegal bool   `json:"es_representante_legal"`
+	ViveConEstudiante    bool   `json:"vive_con_estudiante"`
 
-	Estudiante Estudiante `gorm:"foreignKey:EstudianteID"`
-}
+	DatosExtendidos common.JSONMap[DatosFamiliar] `gorm:"type:text" json:"datos_extendidos"`
 
-type ConvivienteHogar struct {
-	ID               uint `gorm:"primaryKey"`
-	HistorialID      uint
-	NombresCompletos string
-	Parentesco       string
-	Edad             int
-
-	Historial HistorialAcademico `gorm:"foreignKey:HistorialID"`
+	TelefonoPersonal string `json:"telefono_personal"`
+	Fallecido        bool   `json:"fallecido"`
 }

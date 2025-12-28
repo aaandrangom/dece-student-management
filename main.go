@@ -1,12 +1,6 @@
 package main
 
 import (
-	"dece/internal/application/services"
-	"dece/internal/application/services/academic"
-	"dece/internal/application/services/institution"
-	"dece/internal/application/services/management"
-	"dece/internal/application/services/student"
-	"dece/internal/application/services/welfare"
 	"dece/internal/infrastructure/database"
 	"embed"
 
@@ -19,33 +13,15 @@ import (
 var assets embed.FS
 
 func main() {
-	// Initialize Database
-	database.InitDB()
-	database.SeedAdminUser()
+	db := database.InitDB()
+	database.SeedAll(db)
 
-	// Initialize Services
-	authService := services.NewAuthService(database.DB)
-	yearService := academic.NewYearService(database.DB)
-	courseService := academic.NewCourseService(database.DB)
-	parallelService := academic.NewParallelService(database.DB)
-	subjectService := academic.NewSubjectService(database.DB)
-	teacherService := academic.NewTeacherService(database.DB)
-	classroomService := academic.NewClassroomService(database.DB)
-	studentService := student.NewStudentService(database.DB)
-	healthService := welfare.NewHealthService(database.DB)
-	disciplineService := welfare.NewDisciplineService(database.DB)
-	agendaService := welfare.NewAgendaService(database.DB)
-	trainingService := management.NewTrainingService(database.DB)
-	institutionService := institution.NewInstitutionService(database.DB)
-
-	// Create an instance of the app structure
 	app := NewApp()
 
-	// Create application with options
 	err := wails.Run(&options.App{
 		Title:            "SIGDECE",
-		Width:            1024,
-		Height:           768,
+		Width:            1280,
+		Height:           720,
 		WindowStartState: options.Maximised,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
@@ -54,19 +30,6 @@ func main() {
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
-			authService,
-			yearService,
-			courseService,
-			parallelService,
-			subjectService,
-			teacherService,
-			classroomService,
-			studentService,
-			healthService,
-			disciplineService,
-			agendaService,
-			trainingService,
-			institutionService,
 		},
 	})
 
