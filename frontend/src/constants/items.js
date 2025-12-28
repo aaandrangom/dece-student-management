@@ -55,7 +55,7 @@ export const menuOptions = [
         icon: "Library",
         subOptions: [
             {
-                title: "Aulas y Paralelos",
+                title: "Aulas",
                 path: "/academic/classrooms",
                 icon: "School"
             },
