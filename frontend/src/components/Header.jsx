@@ -3,7 +3,7 @@ import { Lock, User, Bell, Search, Menu, Settings, LogOut, ChevronDown } from 'l
 import { useScreenLock } from '../context/ScreenLockContext';
 
 const Header = () => {
-  const { user, lockScreen } = useScreenLock();
+  const { user, lockScreen, logout } = useScreenLock();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
@@ -14,15 +14,28 @@ const Header = () => {
     { id: 3, text: 'Reunión programada para mañana', time: 'Hace 3 horas', unread: false }
   ];
 
+  const roleMap = (rolString) => {
+    console.log('Mapping role for:', rolString);
+    switch (rolString) {
+      case 'admin':
+        return 'Administrador';
+      case 'teacher':
+        return 'Profesor';
+      case 'student':
+        return 'Estudiante';
+      default:
+        return 'Invitado';
+    }
+  }
+
   const unreadCount = notifications.filter(n => n.unread).length;
 
   return (
     <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
       <div className="flex items-center gap-8 w-full md:w-auto">
         <div className="relative w-full md:w-96">
-          <div className={`flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-2.5 border-2 transition-all duration-200 ${
-            searchFocus ? 'border-purple-300 bg-white shadow-lg shadow-purple-100' : 'border-transparent'
-          }`}>
+          <div className={`flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-2.5 border-2 transition-all duration-200 ${searchFocus ? 'border-purple-300 bg-white shadow-lg shadow-purple-100' : 'border-transparent'
+            }`}>
             <Search className={`w-4 h-4 transition-colors ${searchFocus ? 'text-purple-600' : 'text-slate-400'}`} />
             <input
               type="text"
@@ -73,9 +86,8 @@ const Header = () => {
                   {notifications.map(notif => (
                     <div
                       key={notif.id}
-                      className={`p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer ${
-                        notif.unread ? 'bg-purple-50/30' : ''
-                      }`}
+                      className={`p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer ${notif.unread ? 'bg-purple-50/30' : ''
+                        }`}
                     >
                       <div className="flex items-start gap-3">
                         {notif.unread && (
@@ -108,10 +120,10 @@ const Header = () => {
           >
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-sm font-bold text-slate-700 leading-none">
-                {user?.nombres_completos || 'Usuario'}
+                {user?.nombre_completo || 'Usuario'}
               </span>
               <span className="text-xs text-slate-500 mt-1">
-                {user?.rol || 'Invitado'}
+                {roleMap(user.rol)}
               </span>
             </div>
 
@@ -128,22 +140,6 @@ const Header = () => {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)}></div>
               <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
-                <div className="p-4 border-b border-slate-100 bg-linear-to-r from-purple-50 to-indigo-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-linear-to-tr from-purple-600 to-indigo-500 p-0.5">
-                      <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-purple-600" />
-                      </div>
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-800">{user?.nombres_completos || 'Usuario'}</p>
-                      <span className="text-xs font-semibold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full border border-purple-200 uppercase tracking-wide">
-                        {user?.rol || 'Invitado'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="p-2">
                   <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-left">
                     <User className="w-4 h-4 text-slate-600" />
@@ -157,7 +153,7 @@ const Header = () => {
 
                 <div className="p-2 border-t border-slate-100">
                   <button
-                    onClick={lockScreen}
+                    onClick={logout}
                     className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-red-50 transition-colors text-left group"
                   >
                     <LogOut className="w-4 h-4 text-slate-600 group-hover:text-red-600" />

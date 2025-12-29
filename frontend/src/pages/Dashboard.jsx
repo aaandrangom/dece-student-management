@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GetCitasProximas } from '../../wailsjs/go/welfare/AgendaService';
+//import { GetCitasProximas } from '../../wailsjs/go/welfare/AgendaService';
 
 const Dashboard = () => {
   const [citasCount, setCitasCount] = useState(0);

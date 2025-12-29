@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { HeartHandshake, User, Lock, AlertCircle, ArrowRight } from 'lucide-react';
+import { HeartHandshake, User, Lock, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useScreenLock } from '../context/ScreenLockContext';
-import { Login } from '../../wailsjs/go/services/AuthService';
 
 const LoginScreen = () => {
   const { login } = useScreenLock();
@@ -12,23 +11,26 @@ const LoginScreen = () => {
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('savedUsername');
+    const savedUser = localStorage.getItem('savedUserData');
     if (savedUser) {
-      setUsername(savedUser);
+      const userData = JSON.parse(savedUser);
+      setUsername(userData.username || '');
     }
   }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      const userData = await Login(username, password);
-      localStorage.setItem('savedUsername', username);
-      toast.success(`Bienvenido, ${userData.nombres_completos}`);
-      login(userData);
+      const userData = await login(username, password);
+      localStorage.setItem('lastUsername', username);
+      toast.success(`Bienvenido, ${userData.nombre_completo || username}`);
     } catch (err) {
-      toast.error(err || 'Usuario o contraseña incorrectos');
+      console.log('Login error:', err);
+      const errorMessage = typeof err === 'string' ? err : 'Usuario o contraseña incorrectos';
+      toast.error(errorMessage);
+      setPassword('');
     } finally {
       setIsLoading(false);
     }
@@ -36,7 +38,7 @@ const LoginScreen = () => {
 
   return (
     <div className="flex h-screen w-full">
-      <div 
+      <div
         className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12"
         style={{
           background: 'linear-gradient(180deg, #5b2c8a 0%, #2e1065 100%)'
@@ -58,7 +60,7 @@ const LoginScreen = () => {
             Sistema DECE
           </h2>
           <p className="text-lg text-indigo-200 max-w-md">
-            Departamento de Consejería Estudiantil. <br/> Gestiona y administra de manera eficiente.
+            Departamento de Consejería Estudiantil. <br /> Gestiona y administra de manera eficiente.
           </p>
         </div>
 
@@ -69,9 +71,9 @@ const LoginScreen = () => {
 
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md">
-          
+
           <div className="lg:hidden flex flex-col items-center mb-8">
-            <div 
+            <div
               className="w-16 h-16 rounded-xl flex items-center justify-center mb-4"
               style={{ background: 'linear-gradient(135deg, #5b2c8a 0%, #7c3aed 100%)' }}
             >
@@ -87,7 +89,7 @@ const LoginScreen = () => {
           </div>
 
           <div className="space-y-5">
-            
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Usuario
@@ -103,6 +105,7 @@ const LoginScreen = () => {
                   onKeyPress={(e) => e.key === 'Enter' && handleLogin(e)}
                   className="block w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-purple-600 focus:bg-white transition-all duration-200"
                   placeholder="Tu usuario"
+                  autoFocus
                   disabled={isLoading}
                 />
               </div>
@@ -117,13 +120,12 @@ const LoginScreen = () => {
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type={ "password"}
+                  type={"password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleLogin(e)}
                   className="block w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-purple-600 focus:bg-white transition-all duration-200"
                   placeholder="••••••••"
-                  autoFocus
                   disabled={isLoading}
                 />
               </div>
@@ -134,8 +136,8 @@ const LoginScreen = () => {
               disabled={isLoading || !username || !password}
               className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-base font-semibold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-purple-500/30"
               style={{
-                background: isLoading || !username || !password 
-                  ? '#9ca3af' 
+                background: isLoading || !username || !password
+                  ? '#9ca3af'
                   : 'linear-gradient(135deg, #5b2c8a 0%, #7c3aed 100%)'
               }}
             >

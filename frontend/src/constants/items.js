@@ -6,6 +6,23 @@ export const menuOptions = [
         subOptions: []
     },
     {
+        title: "Institución",
+        path: "/institucion",
+        icon: "Building",
+        subOptions: [
+            {
+                title: "Configuración General",
+                path: "/institucion/configuracion-general",
+                icon: "Sliders"
+            },
+            {
+                title: "Usuarios del Sistema",
+                path: "/institucion/usuarios-sistema",
+                icon: "UserCog"
+            }
+        ]
+    },
+    {
         title: "Estudiantes",
         path: "/students",
         icon: "GraduationCap",

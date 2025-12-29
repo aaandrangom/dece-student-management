@@ -5,8 +5,8 @@ import { ScreenLockProvider, useScreenLock } from './context/ScreenLockContext';
 import SecurityWrapper from './components/SecurityWrapper';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import Dashboard from './pages/Dashboard';
-import GenericPage from './pages/GenericPage';
+/*import Dashboard from './pages/Dashboard';
+//import GenericPage from './pages/GenericPage';
 import AcademicYearsPage from './pages/AcademicYearsPage';
 import CoursesPage from './pages/CoursesPage';
 import ParallelsPage from './pages/ParallelsPage';
@@ -25,6 +25,7 @@ import TrainingsPage from './pages/TrainingsPage';
 import InstitutionPage from './pages/InstitutionPage';
 import { menuOptions } from './constants/items';
 
+
 const generateRoutes = (items) => {
   let routes = [];
   items.forEach((item) => {
@@ -33,10 +34,10 @@ const generateRoutes = (items) => {
     } else {
       if (item.path !== '/panel-principal' && item.path !== '/settings/school-years' && item.path !== '/settings/courses' && item.path !== '/settings/parallels' && item.path !== '/academic/subjects' && item.path !== '/academic/teachers' && item.path !== '/academic/classrooms' && item.path !== '/students/list' && item.path !== '/students/enrollment' && item.path !== '/students/archived' && item.path !== '/dece/vulnerability' && item.path !== '/dece/discipline' && item.path !== '/dece/violence' && item.path !== '/agenda/appointments' && item.path !== '/agenda/trainings' && item.path !== '/settings/institution') {
         routes.push(
-          <Route 
-            key={item.path} 
-            path={item.path} 
-            element={<GenericPage title={item.title} />} 
+          <Route
+            key={item.path}
+            path={item.path}
+            element={<GenericPage title={item.title} />}
           />
         );
       }
@@ -44,7 +45,7 @@ const generateRoutes = (items) => {
   });
   return routes;
 };
-
+*/
 const MainLayout = () => {
   const { isLocked } = useScreenLock();
 
@@ -55,13 +56,15 @@ const MainLayout = () => {
   return (
     <div className="flex h-screen w-full bg-gray-50">
       <Sidebar />
-      
+
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header />
-        
+
         <div className="flex-1 p-8 overflow-auto">
           <Routes>
             <Route path="/" element={<Navigate to="/panel-principal" replace />} />
+            {/* 
+           
             <Route path="/panel-principal" element={<Dashboard />} />
             <Route path="/settings/school-years" element={<AcademicYearsPage />} />
             <Route path="/settings/courses" element={<CoursesPage />} />
@@ -79,8 +82,12 @@ const MainLayout = () => {
             <Route path="/agenda/appointments" element={<AgendaPage />} />
             <Route path="/agenda/trainings" element={<TrainingsPage />} />
             <Route path="/settings/institution" element={<InstitutionPage />} />
-            {generateRoutes(menuOptions)}
-            <Route path="*" element={<GenericPage title="Página no encontrada" />} />
+           
+             {generateRoutes(menuOptions)}
+              <Route path="*" element={<GenericPage title="Página no encontrada" />} />
+           */}
+
+
           </Routes>
         </div>
       </main>

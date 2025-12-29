@@ -1,0 +1,26 @@
+package dtos
+
+import "time"
+
+type UsuarioResponseDTO struct {
+	ID             uint      `json:"id"`
+	NombreUsuario  string    `json:"nombre_usuario"`
+	NombreCompleto string    `json:"nombre_completo"`
+	Rol            string    `json:"rol"`
+	Activo         bool      `json:"activo"`
+	FechaCreacion  time.Time `json:"fecha_creacion"`
+}
+
+type CrearUsuarioDTO struct {
+	NombreUsuario  string `json:"nombre_usuario"`
+	Clave          string `json:"clave"`
+	NombreCompleto string `json:"nombre_completo"`
+	Rol            string `json:"rol"`
+}
+
+type ActualizarUsuarioDTO struct {
+	ID             uint   `json:"id"`
+	NombreCompleto string `json:"nombre_completo"`
+	Rol            string `json:"rol"`
+	Activo         bool   `json:"activo"`
+}
