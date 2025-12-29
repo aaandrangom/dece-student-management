@@ -2,28 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import {
-    Calendar,
-    Plus,
-    Search,
-    Trash2,
-    X,
-    Loader2,
-    History,
-    Lock,
-    Pencil,
-    Power,
-    School,
-    Archive,
-    AlertCircle 
+    Calendar, Plus, Search, Trash2, X, Loader2, History,
+    Lock, Pencil, Power, School, Archive, AlertCircle
 } from 'lucide-react';
 
 import {
-    ListarPeriodos,
-    CrearPeriodo,
-    ActivarPeriodo,
-    EliminarPeriodo,
-    ActualizarPeriodo,
-    CerrarPeriodo
+    ListarPeriodos, CrearPeriodo, ActivarPeriodo,
+    EliminarPeriodo, ActualizarPeriodo, CerrarPeriodo
 } from '../../../wailsjs/go/academic/YearService';
 
 export default function AcademicYearsPage() {
