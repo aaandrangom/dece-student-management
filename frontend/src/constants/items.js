@@ -33,9 +33,14 @@ export const menuOptions = [
                 icon: "Calendar"
             },
             {
-                title: "Niveles y Materias",
-                path: "/gestion-academica/niveles-materias",
+                title: "Niveles",
+                path: "/gestion-academica/niveles",
                 icon: "Layers"
+            },
+            {
+                title: "Materias",
+                path: "/gestion-academica/materias",
+                icon: "BookOpen"
             },
             {
                 title: "Docentes",
@@ -108,11 +113,6 @@ export const menuOptions = [
                 path: "/academic/teachers",
                 icon: "Briefcase"
             },
-            {
-                title: "Materias",
-                path: "/academic/subjects",
-                icon: "BookOpen"
-            }
         ]
     },
     {

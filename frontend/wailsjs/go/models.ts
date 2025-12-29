@@ -34,6 +34,22 @@ export namespace academic {
 	        this.fecha_fin = source["fecha_fin"];
 	    }
 	}
+	export class MateriaDTO {
+	    id: number;
+	    nombre: string;
+	    area: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MateriaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nombre = source["nombre"];
+	        this.area = source["area"];
+	    }
+	}
 	export class NivelEducativoDTO {
 	    id: number;
 	    nombre: string;

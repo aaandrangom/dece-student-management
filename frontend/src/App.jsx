@@ -11,6 +11,7 @@ import UserSystem from './pages/Institution/UserSystem';
 
 import AcademicYearsPage from './pages/academic/AcademicYears';
 import LevelsPage from './pages/academic/Level';
+import SubjectsPage from './pages/academic/Subjects';
 
 /*import Dashboard from './pages/Dashboard';
 //import GenericPage from './pages/GenericPage';
@@ -74,7 +75,8 @@ const MainLayout = () => {
             <Route path="/institucion/usuarios-sistema" element={<UserSystem />} />
 
             <Route path="/gestion-academica/periodos-lectivos" element={<AcademicYearsPage />} />
-            <Route path="/gestion-academica/niveles-materias" element={<LevelsPage />} />
+            <Route path="/gestion-academica/niveles" element={<LevelsPage />} />
+            <Route path="/gestion-academica/materias" element={<SubjectsPage />} />
 
 
             {/* 
