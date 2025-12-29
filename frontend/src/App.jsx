@@ -5,6 +5,12 @@ import { ScreenLockProvider, useScreenLock } from './context/ScreenLockContext';
 import SecurityWrapper from './components/SecurityWrapper';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+
+import InstitutionSettings from './pages/Institution/InstitutionSettings';
+import UserSystem from './pages/Institution/UserSystem';
+
+import AcademicYearsPage from './pages/academic/AcademicYears';
+
 /*import Dashboard from './pages/Dashboard';
 //import GenericPage from './pages/GenericPage';
 import AcademicYearsPage from './pages/AcademicYearsPage';
@@ -60,9 +66,16 @@ const MainLayout = () => {
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header />
 
-        <div className="flex-1 p-8 overflow-auto">
+        <div className="flex-1 overflow-auto">
           <Routes>
             <Route path="/" element={<Navigate to="/panel-principal" replace />} />
+            <Route path="/institucion/configuracion-general" element={<InstitutionSettings />} />
+            <Route path="/institucion/usuarios-sistema" element={<UserSystem />} />
+
+            <Route path="/gestion-academica/periodos-lectivos" element={<AcademicYearsPage />} />
+
+
+
             {/* 
            
             <Route path="/panel-principal" element={<Dashboard />} />

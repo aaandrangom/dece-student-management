@@ -6,6 +6,7 @@ import (
 	"dece/internal/domain/common"
 	"dece/internal/domain/security"
 	"errors"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -31,12 +32,17 @@ func (s *InstitutionService) ObtenerConfiguracion() (*securityDTO.ConfiguracionI
 		return nil, result.Error
 	}
 
+	fechaStr := ""
+	if !config.FechaActualizacion.IsZero() {
+		fechaStr = config.FechaActualizacion.Format(time.RFC3339)
+	}
+
 	response := &securityDTO.ConfiguracionInstitucionalDTO{
 		Nombre:             config.Nombre,
 		CodigoAMIE:         config.CodigoAMIE,
 		Distrito:           config.Distrito,
 		Circuito:           config.Circuito,
-		FechaActualizacion: config.FechaActualizacion,
+		FechaActualizacion: fechaStr,
 
 		Ubicacion: securityDTO.DetalleUbicacionDTO{
 			Provincia:     config.DetalleUbicacion.Data.Provincia,
@@ -57,7 +63,7 @@ func (s *InstitutionService) ObtenerConfiguracion() (*securityDTO.ConfiguracionI
 }
 
 func (s *InstitutionService) GuardarConfiguracion(input securityDTO.ConfiguracionInstitucionalDTO) error {
-
+	fmt.Println("Input ", input)
 	configModel := security.ConfiguracionInstitucional{
 		ID:                 1,
 		Nombre:             input.Nombre,

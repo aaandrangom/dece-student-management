@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS periodos_lectivos (
     nombre TEXT NOT NULL UNIQUE, 
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
-    es_activo INTEGER DEFAULT 0
+    es_activo INTEGER DEFAULT 0,
+    cerrado BOOLEAN DEFAULT 0
 );
 
 -- Tabla: niveles_educativos

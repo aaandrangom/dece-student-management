@@ -1,14 +1,14 @@
 package dtos
 
-import "time"
+// FechaCreacion como string RFC3339 para bindings
 
 type UsuarioResponseDTO struct {
-	ID             uint      `json:"id"`
-	NombreUsuario  string    `json:"nombre_usuario"`
-	NombreCompleto string    `json:"nombre_completo"`
-	Rol            string    `json:"rol"`
-	Activo         bool      `json:"activo"`
-	FechaCreacion  time.Time `json:"fecha_creacion"`
+	ID             uint   `json:"id"`
+	NombreUsuario  string `json:"nombre_usuario"`
+	NombreCompleto string `json:"nombre_completo"`
+	Rol            string `json:"rol"`
+	Activo         bool   `json:"activo"`
+	FechaCreacion  string `json:"fecha_creacion"`
 }
 
 type CrearUsuarioDTO struct {

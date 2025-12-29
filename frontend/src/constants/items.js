@@ -23,6 +23,33 @@ export const menuOptions = [
         ]
     },
     {
+        title: "Gestión Académica",
+        path: "/gestion-academica",
+        icon: "Book",
+        subOptions: [
+            {
+                title: "Periodos Lectivos",
+                path: "/gestion-academica/periodos-lectivos",
+                icon: "Calendar"
+            },
+            {
+                title: "Niveles y Materias",
+                path: "/gestion-academica/niveles-materias",
+                icon: "Layers"
+            },
+            {
+                title: "Docentes",
+                path: "/gestion-academica/docentes",
+                icon: "ChalkboardTeacher"
+            },
+            {
+                title: "Cursos y Distributivo",
+                path: "/gestion-academica/cursos-distributivo",
+                icon: "ClipboardList"
+            }
+        ]
+    },
+    {
         title: "Estudiantes",
         path: "/students",
         icon: "GraduationCap",

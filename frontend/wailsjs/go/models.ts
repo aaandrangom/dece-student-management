@@ -1,3 +1,66 @@
+export namespace academic {
+	
+	export class ActualizarPeriodoDTO {
+	    id: number;
+	    nombre: string;
+	    fecha_inicio: string;
+	    fecha_fin: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ActualizarPeriodoDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nombre = source["nombre"];
+	        this.fecha_inicio = source["fecha_inicio"];
+	        this.fecha_fin = source["fecha_fin"];
+	    }
+	}
+	export class CrearPeriodoDTO {
+	    nombre: string;
+	    fecha_inicio: string;
+	    fecha_fin: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CrearPeriodoDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.nombre = source["nombre"];
+	        this.fecha_inicio = source["fecha_inicio"];
+	        this.fecha_fin = source["fecha_fin"];
+	    }
+	}
+	export class PeriodoResponseDTO {
+	    id: number;
+	    nombre: string;
+	    fecha_inicio: string;
+	    fecha_fin: string;
+	    es_activo: boolean;
+	    cerrado: boolean;
+	    estado: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PeriodoResponseDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nombre = source["nombre"];
+	        this.fecha_inicio = source["fecha_inicio"];
+	        this.fecha_fin = source["fecha_fin"];
+	        this.es_activo = source["es_activo"];
+	        this.cerrado = source["cerrado"];
+	        this.estado = source["estado"];
+	    }
+	}
+
+}
+
 export namespace dtos {
 	
 	export class AutoridadDTO {
@@ -81,8 +144,7 @@ export namespace dtos {
 	    circuito: string;
 	    detalle_ubicacion: DetalleUbicacionDTO;
 	    autoridades: AutoridadesInstitucionDTO;
-	    // Go type: time
-	    fecha_actualizacion: any;
+	    fecha_actualizacion: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ConfiguracionInstitucionalDTO(source);
@@ -96,7 +158,7 @@ export namespace dtos {
 	        this.circuito = source["circuito"];
 	        this.detalle_ubicacion = this.convertValues(source["detalle_ubicacion"], DetalleUbicacionDTO);
 	        this.autoridades = this.convertValues(source["autoridades"], AutoridadesInstitucionDTO);
-	        this.fecha_actualizacion = this.convertValues(source["fecha_actualizacion"], null);
+	        this.fecha_actualizacion = source["fecha_actualizacion"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -124,8 +186,7 @@ export namespace dtos {
 	    nombre_completo: string;
 	    rol: string;
 	    activo: boolean;
-	    // Go type: time
-	    fecha_creacion: any;
+	    fecha_creacion: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new UsuarioResponseDTO(source);
@@ -138,26 +199,8 @@ export namespace dtos {
 	        this.nombre_completo = source["nombre_completo"];
 	        this.rol = source["rol"];
 	        this.activo = source["activo"];
-	        this.fecha_creacion = this.convertValues(source["fecha_creacion"], null);
+	        this.fecha_creacion = source["fecha_creacion"];
 	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
 	}
 
 }

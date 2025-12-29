@@ -8,6 +8,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 
+	academic "dece/internal/application/services/academic"
 	security "dece/internal/application/services/security"
 )
 
@@ -21,6 +22,7 @@ func main() {
 	authService := security.NewAuthService(db)
 	userService := security.NewUserService(db)
 	institutionService := security.NewInstitutionService(db)
+	yearService := academic.NewYearService(db)
 
 	app := NewApp()
 
@@ -39,6 +41,7 @@ func main() {
 			authService,
 			userService,
 			institutionService,
+			yearService,
 		},
 	})
 

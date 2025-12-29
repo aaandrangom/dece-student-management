@@ -8,6 +8,7 @@ type PeriodoLectivo struct {
 	FechaInicio time.Time `json:"fecha_inicio"`
 	FechaFin    time.Time `json:"fecha_fin"`
 	EsActivo    bool      `gorm:"default:false" json:"es_activo"`
+	Cerrado     bool      `gorm:"default:false" json:"cerrado"`
 }
 
 type NivelEducativo struct {

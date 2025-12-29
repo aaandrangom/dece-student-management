@@ -1,6 +1,6 @@
 package dtos
 
-import "time"
+// FechaActualizacion se expone como string RFC3339 para bindings
 
 type AutoridadDTO struct {
 	Cedula    string `json:"cedula"`
@@ -31,5 +31,5 @@ type ConfiguracionInstitucionalDTO struct {
 	Circuito           string                    `json:"circuito"`
 	Ubicacion          DetalleUbicacionDTO       `json:"detalle_ubicacion"`
 	Autoridades        AutoridadesInstitucionDTO `json:"autoridades"`
-	FechaActualizacion time.Time                 `json:"fecha_actualizacion"`
+	FechaActualizacion string                    `json:"fecha_actualizacion"`
 }
