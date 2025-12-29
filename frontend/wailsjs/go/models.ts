@@ -239,3 +239,50 @@ export namespace dtos {
 
 }
 
+export namespace faculty {
+	
+	export class DocenteDTO {
+	    id: number;
+	    cedula: string;
+	    nombres_completos: string;
+	    telefono: string;
+	    correo: string;
+	    activo: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new DocenteDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.cedula = source["cedula"];
+	        this.nombres_completos = source["nombres_completos"];
+	        this.telefono = source["telefono"];
+	        this.correo = source["correo"];
+	        this.activo = source["activo"];
+	    }
+	}
+	export class GuardarDocenteDTO {
+	    id: number;
+	    cedula: string;
+	    nombres_completos: string;
+	    telefono: string;
+	    correo: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new GuardarDocenteDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.cedula = source["cedula"];
+	        this.nombres_completos = source["nombres_completos"];
+	        this.telefono = source["telefono"];
+	        this.correo = source["correo"];
+	    }
+	}
+
+}
+
