@@ -22,7 +22,9 @@ func main() {
 	authService := security.NewAuthService(db)
 	userService := security.NewUserService(db)
 	institutionService := security.NewInstitutionService(db)
+
 	yearService := academic.NewYearService(db)
+	levelService := academic.NewLevelService(db)
 
 	app := NewApp()
 
@@ -38,10 +40,13 @@ func main() {
 		OnStartup:        app.startup,
 		Bind: []any{
 			app,
+
 			authService,
 			userService,
 			institutionService,
+
 			yearService,
+			levelService,
 		},
 	})
 

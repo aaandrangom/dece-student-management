@@ -34,6 +34,24 @@ export namespace academic {
 	        this.fecha_fin = source["fecha_fin"];
 	    }
 	}
+	export class NivelEducativoDTO {
+	    id: number;
+	    nombre: string;
+	    nombre_completo: string;
+	    orden: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new NivelEducativoDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nombre = source["nombre"];
+	        this.nombre_completo = source["nombre_completo"];
+	        this.orden = source["orden"];
+	    }
+	}
 	export class PeriodoResponseDTO {
 	    id: number;
 	    nombre: string;
