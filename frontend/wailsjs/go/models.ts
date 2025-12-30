@@ -241,6 +241,32 @@ export namespace dtos {
 
 export namespace faculty {
 	
+	export class CursoResponseDTO {
+	    id: number;
+	    nivel_nombre: string;
+	    paralelo: string;
+	    jornada: string;
+	    tutor_nombre: string;
+	    nombre_completo: string;
+	    nivel_id: number;
+	    tutor_id?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new CursoResponseDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nivel_nombre = source["nivel_nombre"];
+	        this.paralelo = source["paralelo"];
+	        this.jornada = source["jornada"];
+	        this.tutor_nombre = source["tutor_nombre"];
+	        this.nombre_completo = source["nombre_completo"];
+	        this.nivel_id = source["nivel_id"];
+	        this.tutor_id = source["tutor_id"];
+	    }
+	}
 	export class DocenteDTO {
 	    id: number;
 	    cedula: string;
@@ -261,6 +287,28 @@ export namespace faculty {
 	        this.telefono = source["telefono"];
 	        this.correo = source["correo"];
 	        this.activo = source["activo"];
+	    }
+	}
+	export class GuardarCursoDTO {
+	    id: number;
+	    periodo_id: number;
+	    nivel_id: number;
+	    paralelo: string;
+	    jornada: string;
+	    tutor_id?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new GuardarCursoDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.periodo_id = source["periodo_id"];
+	        this.nivel_id = source["nivel_id"];
+	        this.paralelo = source["paralelo"];
+	        this.jornada = source["jornada"];
+	        this.tutor_id = source["tutor_id"];
 	    }
 	}
 	export class GuardarDocenteDTO {

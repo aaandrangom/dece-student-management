@@ -14,6 +14,7 @@ import LevelsPage from './pages/academic/Level';
 import SubjectsPage from './pages/academic/Subjects';
 
 import TeachersPage from './pages/faculty/Teachers';
+import CoursesPage from './pages/faculty/Courses';
 
 /*import Dashboard from './pages/Dashboard';
 //import GenericPage from './pages/GenericPage';
@@ -81,6 +82,7 @@ const MainLayout = () => {
             <Route path="/gestion-academica/materias" element={<SubjectsPage />} />
 
             <Route path="/gestion-academica/docentes" element={<TeachersPage />} />
+            <Route path="/gestion-academica/cursos-distributivo" element={<CoursesPage />} />
             {/* 
            
             <Route path="/panel-principal" element={<Dashboard />} />

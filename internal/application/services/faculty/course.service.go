@@ -1,0 +1,167 @@
+package services
+
+import (
+	courseDTO "dece/internal/application/dtos/faculty"
+	"dece/internal/domain/faculty"
+	"errors"
+	"fmt"
+	"strings"
+
+	"gorm.io/gorm"
+)
+
+type CourseService struct {
+	db *gorm.DB
+}
+
+func NewCourseService(db *gorm.DB) *CourseService {
+	return &CourseService{db: db}
+}
+
+func (s *CourseService) ListarCursos(periodoID uint) ([]courseDTO.CursoResponseDTO, error) {
+	var cursos []faculty.Curso
+
+	result := s.db.
+		Preload("Nivel").
+		Preload("Tutor").
+		Joins("JOIN nivel_educativos ON nivel_educativos.id = cursos.nivel_id").
+		Where("cursos.periodo_id = ?", periodoID).
+		Order("nivel_educativos.orden ASC").
+		Order("cursos.paralelo ASC").
+		Find(&cursos)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	response := make([]courseDTO.CursoResponseDTO, len(cursos))
+	for i, c := range cursos {
+		tutorNombre := "Sin Tutor Asignado"
+
+		if c.TutorID != nil {
+			tutorNombre = c.Tutor.NombresCompletos
+		}
+
+		nombreFull := fmt.Sprintf("%s %s - %s", c.Nivel.Nombre, c.Paralelo, c.Jornada)
+
+		response[i] = courseDTO.CursoResponseDTO{
+			ID:             c.ID,
+			NivelNombre:    c.Nivel.Nombre,
+			Paralelo:       c.Paralelo,
+			Jornada:        c.Jornada,
+			TutorNombre:    tutorNombre,
+			NombreCompleto: nombreFull,
+			NivelID:        c.NivelID,
+			TutorID:        c.TutorID,
+		}
+	}
+
+	return response, nil
+}
+
+func (s *CourseService) CrearCurso(input courseDTO.GuardarCursoDTO) error {
+	paralelo := strings.ToUpper(strings.TrimSpace(input.Paralelo))
+
+	var count int64
+	s.db.Model(&faculty.Curso{}).
+		Where("periodo_id = ? AND nivel_id = ? AND paralelo = ? AND jornada = ?",
+			input.PeriodoID, input.NivelID, paralelo, input.Jornada).
+		Count(&count)
+
+	if count > 0 {
+		return fmt.Errorf("ya existe el curso %s de la jornada %s en este periodo", paralelo, input.Jornada)
+	}
+
+	if input.TutorID != nil {
+		var countTutor int64
+		s.db.Model(&faculty.Curso{}).
+			Where("periodo_id = ? AND tutor_id = ?", input.PeriodoID, input.TutorID).
+			Count(&countTutor)
+
+		if countTutor > 0 {
+			return errors.New("el docente seleccionado ya es tutor de otro curso en este periodo lectivo")
+		}
+	}
+	// -------------------------------------------------------------------------
+
+	nuevoCurso := faculty.Curso{
+		PeriodoID: input.PeriodoID,
+		NivelID:   input.NivelID,
+		Paralelo:  paralelo,
+		Jornada:   input.Jornada,
+		TutorID:   input.TutorID,
+	}
+
+	if err := s.db.Create(&nuevoCurso).Error; err != nil {
+		return fmt.Errorf("error al crear el curso: %v", err)
+	}
+
+	return nil
+}
+
+func (s *CourseService) ActualizarCurso(input courseDTO.GuardarCursoDTO) error {
+	var curso faculty.Curso
+
+	if err := s.db.First(&curso, input.ID).Error; err != nil {
+		return errors.New("el curso no existe")
+	}
+
+	paralelo := strings.ToUpper(strings.TrimSpace(input.Paralelo))
+
+	var count int64
+	s.db.Model(&faculty.Curso{}).
+		Where("periodo_id = ? AND nivel_id = ? AND paralelo = ? AND jornada = ? AND id <> ?",
+			curso.PeriodoID, input.NivelID, paralelo, input.Jornada, input.ID).
+		Count(&count)
+
+	if count > 0 {
+		return fmt.Errorf("ya existe otro curso definido como %s - %s", paralelo, input.Jornada)
+	}
+
+	if input.TutorID != nil {
+		var countTutor int64
+		s.db.Model(&faculty.Curso{}).
+			Where("periodo_id = ? AND tutor_id = ? AND id <> ?",
+				curso.PeriodoID, input.TutorID, input.ID).
+			Count(&countTutor)
+
+		if countTutor > 0 {
+			return errors.New("el docente seleccionado ya es tutor de otro curso en este periodo lectivo")
+		}
+	}
+
+	curso.NivelID = input.NivelID
+	curso.Paralelo = paralelo
+	curso.Jornada = input.Jornada
+	curso.TutorID = input.TutorID
+
+	return s.db.Save(&curso).Error
+}
+
+func (s *CourseService) EliminarCurso(id uint) error {
+	var curso faculty.Curso
+
+	if err := s.db.First(&curso, id).Error; err != nil {
+		return errors.New("El curso que intenta eliminar no existe")
+	}
+
+	var totalAlumnos int64
+	s.db.Table("matriculas").Where("curso_id = ?", id).Count(&totalAlumnos)
+
+	if totalAlumnos > 0 {
+		return fmt.Errorf("No se puede eliminar: existen %d estudiantes matriculados en este curso. Debe retirarlos o reubicarlos primero", totalAlumnos)
+	}
+
+	var totalDistributivo int64
+	s.db.Table("distributivo_materias").Where("curso_id = ?", id).Count(&totalDistributivo)
+
+	if totalDistributivo > 0 {
+		return fmt.Errorf("No se puede eliminar: el curso tiene %d materias/docentes asignados en el distributivo. Limpie el distributivo primero", totalDistributivo)
+	}
+
+	if err := s.db.Delete(&curso).Error; err != nil {
+		return fmt.Errorf("Error de base de datos al eliminar el curso: %v", err)
+	}
+
+	return nil
+}

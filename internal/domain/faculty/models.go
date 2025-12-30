@@ -14,17 +14,17 @@ type Docente struct {
 }
 
 type Curso struct {
-	ID        uint `gorm:"primaryKey" json:"id"`
-	PeriodoID uint `json:"periodo_id"`
-	NivelID   uint `json:"nivel_id"`
-	TutorID   uint `json:"tutor_id"`
+	ID        uint  `gorm:"primaryKey" json:"id"`
+	PeriodoID uint  `json:"periodo_id"`
+	NivelID   uint  `json:"nivel_id"`
+	TutorID   *uint `json:"tutor_id"`
 
 	Paralelo string `json:"paralelo"`
 	Jornada  string `json:"jornada"`
 
 	Periodo academic.PeriodoLectivo `gorm:"foreignKey:PeriodoID" json:"periodo,omitempty"`
 	Nivel   academic.NivelEducativo `gorm:"foreignKey:NivelID" json:"nivel,omitempty"`
-	Tutor   Docente                 `gorm:"foreignKey:TutorID" json:"tutor,omitempty"`
+	Tutor   *Docente                `gorm:"foreignKey:TutorID" json:"tutor,omitempty"`
 }
 
 type DistributivoMateria struct {

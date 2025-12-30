@@ -28,6 +28,7 @@ func main() {
 	levelService := academic.NewLevelService(db)
 	subjectService := academic.NewSubjectService(db)
 	teacherService := faculty.NewTeacherService(db)
+	courseService := faculty.NewCourseService(db)
 
 	app := NewApp()
 
@@ -53,6 +54,7 @@ func main() {
 			subjectService,
 
 			teacherService,
+			courseService,
 		},
 	})
 

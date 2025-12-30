@@ -45,7 +45,7 @@ export const menuOptions = [
             {
                 title: "Docentes",
                 path: "/gestion-academica/docentes",
-                icon: "ChalkboardTeacher"
+                icon: "Briefcase"
             },
             {
                 title: "Cursos y Distributivo",
