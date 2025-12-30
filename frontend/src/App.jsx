@@ -16,6 +16,8 @@ import SubjectsPage from './pages/academic/Subjects';
 import TeachersPage from './pages/faculty/Teachers';
 import CoursesPage from './pages/faculty/Courses';
 
+import StudentsPage from './pages/student/Student';
+
 /*import Dashboard from './pages/Dashboard';
 //import GenericPage from './pages/GenericPage';
 import AcademicYearsPage from './pages/AcademicYearsPage';
@@ -83,6 +85,8 @@ const MainLayout = () => {
 
             <Route path="/gestion-academica/docentes" element={<TeachersPage />} />
             <Route path="/gestion-academica/cursos-distributivo" element={<CoursesPage />} />
+
+            <Route path="/estudiantes/listado-general" element={<StudentsPage />} />
             {/* 
            
             <Route path="/panel-principal" element={<Dashboard />} />

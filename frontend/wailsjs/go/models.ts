@@ -95,6 +95,71 @@ export namespace academic {
 
 }
 
+export namespace common {
+	
+	export class JSONMap_dece_internal_domain_student_DatosFamiliar_ {
+	    Data: student.DatosFamiliar;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_student_DatosFamiliar_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], student.DatosFamiliar);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class JSONMap_dece_internal_domain_student_InfoNacionalidad_ {
+	    Data: student.InfoNacionalidad;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_student_InfoNacionalidad_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], student.InfoNacionalidad);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace dtos {
 	
 	export class AutoridadDTO {
@@ -365,6 +430,273 @@ export namespace faculty {
 	        this.area = source["area"];
 	        this.docente_id = source["docente_id"];
 	        this.docente_nombre = source["docente_nombre"];
+	    }
+	}
+
+}
+
+export namespace student {
+	
+	export class DatosFamiliar {
+	    nivel_instruccion: string;
+	    profesion: string;
+	    lugar_trabajo: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatosFamiliar(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.nivel_instruccion = source["nivel_instruccion"];
+	        this.profesion = source["profesion"];
+	        this.lugar_trabajo = source["lugar_trabajo"];
+	    }
+	}
+	export class DatosFamiliarDTO {
+	    nivel_instruccion: string;
+	    profesion: string;
+	    lugar_trabajo: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatosFamiliarDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.nivel_instruccion = source["nivel_instruccion"];
+	        this.profesion = source["profesion"];
+	        this.lugar_trabajo = source["lugar_trabajo"];
+	    }
+	}
+	export class Familiar {
+	    id: number;
+	    estudiante_id: number;
+	    cedula: string;
+	    nombres_completos: string;
+	    parentesco: string;
+	    es_representante_legal: boolean;
+	    vive_con_estudiante: boolean;
+	    datos_extendidos: common.JSONMap_dece_internal_domain_student_DatosFamiliar_;
+	    telefono_personal: string;
+	    fallecido: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new Familiar(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.estudiante_id = source["estudiante_id"];
+	        this.cedula = source["cedula"];
+	        this.nombres_completos = source["nombres_completos"];
+	        this.parentesco = source["parentesco"];
+	        this.es_representante_legal = source["es_representante_legal"];
+	        this.vive_con_estudiante = source["vive_con_estudiante"];
+	        this.datos_extendidos = this.convertValues(source["datos_extendidos"], common.JSONMap_dece_internal_domain_student_DatosFamiliar_);
+	        this.telefono_personal = source["telefono_personal"];
+	        this.fallecido = source["fallecido"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class Estudiante {
+	    id: number;
+	    cedula: string;
+	    apellidos: string;
+	    nombres: string;
+	    fecha_nacimiento: string;
+	    genero_nacimiento: string;
+	    info_nacionalidad: common.JSONMap_dece_internal_domain_student_InfoNacionalidad_;
+	    ruta_foto: string;
+	    familiares: Familiar[];
+	    fecha_creacion: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Estudiante(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.cedula = source["cedula"];
+	        this.apellidos = source["apellidos"];
+	        this.nombres = source["nombres"];
+	        this.fecha_nacimiento = source["fecha_nacimiento"];
+	        this.genero_nacimiento = source["genero_nacimiento"];
+	        this.info_nacionalidad = this.convertValues(source["info_nacionalidad"], common.JSONMap_dece_internal_domain_student_InfoNacionalidad_);
+	        this.ruta_foto = source["ruta_foto"];
+	        this.familiares = this.convertValues(source["familiares"], Familiar);
+	        this.fecha_creacion = source["fecha_creacion"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class EstudianteListaDTO {
+	    id: number;
+	    cedula: string;
+	    apellidos: string;
+	    nombres: string;
+	    ruta_foto: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EstudianteListaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.cedula = source["cedula"];
+	        this.apellidos = source["apellidos"];
+	        this.nombres = source["nombres"];
+	        this.ruta_foto = source["ruta_foto"];
+	    }
+	}
+	
+	export class GuardarFamiliarDTO {
+	    id: number;
+	    cedula: string;
+	    nombres_completos: string;
+	    parentesco: string;
+	    es_representante_legal: boolean;
+	    vive_con_estudiante: boolean;
+	    telefono_personal: string;
+	    fallecido: boolean;
+	    datos_extendidos: DatosFamiliarDTO;
+	
+	    static createFrom(source: any = {}) {
+	        return new GuardarFamiliarDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.cedula = source["cedula"];
+	        this.nombres_completos = source["nombres_completos"];
+	        this.parentesco = source["parentesco"];
+	        this.es_representante_legal = source["es_representante_legal"];
+	        this.vive_con_estudiante = source["vive_con_estudiante"];
+	        this.telefono_personal = source["telefono_personal"];
+	        this.fallecido = source["fallecido"];
+	        this.datos_extendidos = this.convertValues(source["datos_extendidos"], DatosFamiliarDTO);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class GuardarEstudianteDTO {
+	    id: number;
+	    cedula: string;
+	    apellidos: string;
+	    nombres: string;
+	    fecha_nacimiento: string;
+	    genero_nacimiento: string;
+	    ruta_foto: string;
+	    es_extranjero: boolean;
+	    pais_origen: string;
+	    pasaporte_odni: string;
+	    familiares: GuardarFamiliarDTO[];
+	
+	    static createFrom(source: any = {}) {
+	        return new GuardarEstudianteDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.cedula = source["cedula"];
+	        this.apellidos = source["apellidos"];
+	        this.nombres = source["nombres"];
+	        this.fecha_nacimiento = source["fecha_nacimiento"];
+	        this.genero_nacimiento = source["genero_nacimiento"];
+	        this.ruta_foto = source["ruta_foto"];
+	        this.es_extranjero = source["es_extranjero"];
+	        this.pais_origen = source["pais_origen"];
+	        this.pasaporte_odni = source["pasaporte_odni"];
+	        this.familiares = this.convertValues(source["familiares"], GuardarFamiliarDTO);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class InfoNacionalidad {
+	    es_extranjero: boolean;
+	    pais_origen: string;
+	    pasaporte_odni: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new InfoNacionalidad(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.es_extranjero = source["es_extranjero"];
+	        this.pais_origen = source["pais_origen"];
+	        this.pasaporte_odni = source["pasaporte_odni"];
 	    }
 	}
 

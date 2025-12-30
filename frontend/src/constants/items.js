@@ -50,7 +50,29 @@ export const menuOptions = [
             {
                 title: "Cursos y Distributivo",
                 path: "/gestion-academica/cursos-distributivo",
-                icon: "ClipboardList"
+                icon: "School"
+            }
+        ]
+    },
+    {
+        title: "Estudiantes",
+        path: "/estudiantes",
+        icon: "GraduationCap",
+        subOptions: [
+            {
+                title: "Listado General",
+                path: "/estudiantes/listado-general",
+                icon: "Users"
+            },
+            {
+                title: "Ficha DECE",
+                path: "/estudiantes/ficha-dece",
+                icon: "UserPlus"
+            },
+            {
+                title: "Modificaciones",
+                path: "/estudiantes/modificaciones",
+                icon: "Archive"
             }
         ]
     },

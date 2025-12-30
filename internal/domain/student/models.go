@@ -2,7 +2,6 @@ package student
 
 import (
 	"dece/internal/domain/common"
-	"time"
 )
 
 type InfoNacionalidad struct {
@@ -12,17 +11,21 @@ type InfoNacionalidad struct {
 }
 
 type Estudiante struct {
-	ID               uint      `gorm:"primaryKey" json:"id"`
-	Cedula           string    `gorm:"unique;not null" json:"cedula"`
-	Apellidos        string    `gorm:"not null" json:"apellidos"`
-	Nombres          string    `gorm:"not null" json:"nombres"`
-	FechaNacimiento  time.Time `json:"fecha_nacimiento"`
-	GeneroNacimiento string    `json:"genero_nacimiento"`
+	ID        uint   `gorm:"primaryKey" json:"id"`
+	Cedula    string `gorm:"unique;not null" json:"cedula"`
+	Apellidos string `gorm:"not null" json:"apellidos"`
+	Nombres   string `gorm:"not null" json:"nombres"`
+
+	FechaNacimiento string `json:"fecha_nacimiento"`
+
+	GeneroNacimiento string `json:"genero_nacimiento"`
 
 	InfoNacionalidad common.JSONMap[InfoNacionalidad] `gorm:"type:text" json:"info_nacionalidad"`
 	RutaFoto         string                           `json:"ruta_foto"`
 
-	FechaCreacion time.Time `gorm:"autoCreateTime" json:"fecha_creacion"`
+	Familiares []Familiar `gorm:"foreignKey:EstudianteID" json:"familiares"`
+
+	FechaCreacion string `gorm:"default:CURRENT_TIMESTAMP" json:"fecha_creacion"`
 }
 
 type DatosFamiliar struct {

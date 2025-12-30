@@ -11,6 +11,7 @@ import (
 	academic "dece/internal/application/services/academic"
 	faculty "dece/internal/application/services/faculty"
 	security "dece/internal/application/services/security"
+	student "dece/internal/application/services/student"
 )
 
 //go:embed all:frontend/dist
@@ -31,6 +32,8 @@ func main() {
 	teacherService := faculty.NewTeacherService(db)
 	courseService := faculty.NewCourseService(db)
 	teachingLoadService := faculty.NewDistributivoService(db)
+
+	studentService := student.NewStudentService(db)
 
 	app := NewApp()
 
@@ -58,6 +61,8 @@ func main() {
 			teacherService,
 			courseService,
 			teachingLoadService,
+
+			studentService,
 		},
 	})
 
