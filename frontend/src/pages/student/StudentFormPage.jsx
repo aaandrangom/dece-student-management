@@ -401,7 +401,15 @@ export default function StudentFormPage({ studentId, onBack }) {
                                         <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombres</label><input type="text" name="nombres" value={formData.nombres} onChange={handleInputChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" /></div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nacimiento</label><input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleInputChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nacimiento</label>
+                                            <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleInputChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                                            {formData.fecha_nacimiento && (
+                                                <p className="text-xs text-blue-600 font-bold mt-1 text-right">
+                                                    Tiene {calculateAge(formData.fecha_nacimiento)} años
+                                                </p>
+                                            )}
+                                        </div>
                                         <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Género</label><div className="flex bg-white rounded-lg border border-slate-300 overflow-hidden">{['M', 'F'].map(g => (<button key={g} type="button" onClick={() => setFormData(prev => ({ ...prev, genero_nacimiento: g }))} className={`flex-1 py-2.5 text-sm font-medium transition-colors ${formData.genero_nacimiento === g ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}>{g === 'M' ? 'Masculino' : 'Femenino'}</button>))}</div></div>
                                     </div>
                                 </div>
