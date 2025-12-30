@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import {
-    School, Plus, Search, User, Settings,
+    School, Plus, Search, User, BookOpen,
     X, Save, Loader2, GraduationCap, Calendar,
     Trash2,
     ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Edit3
@@ -12,6 +12,7 @@ import { ListarCursos, CrearCurso, ActualizarCurso, EliminarCurso } from '../../
 import { ListarNiveles } from '../../../wailsjs/go/academic/LevelService';
 import { ListarDocentes } from '../../../wailsjs/go/services/TeacherService';
 import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
+import DistributivoView from './TeachingLoad';
 
 export default function CoursesPage() {
     const [courses, setCourses] = useState([]);
@@ -35,6 +36,9 @@ export default function CoursesPage() {
         jornada: 'Matutina',
         tutor_id: ''
     });
+
+    const [viewMode, setViewMode] = useState('list'); // 'list' o 'distributivo'
+    const [selectedCourse, setSelectedCourse] = useState(null);
 
     const jornadas = ['Matutina', 'Vespertina', 'Nocturna'];
     const paralelos = ['A', 'B', 'C', 'D'];
@@ -211,6 +215,23 @@ export default function CoursesPage() {
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+    const handleOpenDistributivo = (course) => {
+        setSelectedCourse(course);
+        setViewMode('distributivo');
+    };
+
+    if (viewMode === 'distributivo' && selectedCourse) {
+        return (
+            <DistributivoView
+                course={selectedCourse}
+                onBack={() => {
+                    setViewMode('list');
+                    setSelectedCourse(null);
+                }}
+            />
+        );
+    }
+
     return (
         <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans">
 
@@ -317,12 +338,12 @@ export default function CoursesPage() {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${course.jornada === 'Matutina' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                                                        course.jornada === 'Vespertina' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
-                                                            'bg-slate-100 text-slate-600 border-slate-200'
+                                                    course.jornada === 'Vespertina' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
+                                                        'bg-slate-100 text-slate-600 border-slate-200'
                                                     }`}>
                                                     <span className={`w-1.5 h-1.5 rounded-full ${course.jornada === 'Matutina' ? 'bg-amber-500' :
-                                                            course.jornada === 'Vespertina' ? 'bg-indigo-500' :
-                                                                'bg-slate-500'
+                                                        course.jornada === 'Vespertina' ? 'bg-indigo-500' :
+                                                            'bg-slate-500'
                                                         }`}></span>
                                                     {course.jornada}
                                                 </span>
@@ -358,6 +379,14 @@ export default function CoursesPage() {
                                                         title="Eliminar Curso"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleOpenDistributivo(course)}
+                                                        className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all ml-1"
+                                                        title="Gestionar Carga Horaria"
+                                                    >
+                                                        <BookOpen className="w-4 h-4" /> {/* Asegúrate de importar BookOpen */}
                                                     </button>
                                                 </div>
                                             </td>
@@ -405,8 +434,8 @@ export default function CoursesPage() {
                                                 key={pageNum}
                                                 onClick={() => paginate(pageNum)}
                                                 className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentPage === pageNum
-                                                        ? 'bg-purple-600 text-white shadow-md shadow-purple-200'
-                                                        : 'bg-white border border-slate-200 text-slate-600 hover:border-purple-300 hover:text-purple-600'
+                                                    ? 'bg-purple-600 text-white shadow-md shadow-purple-200'
+                                                    : 'bg-white border border-slate-200 text-slate-600 hover:border-purple-300 hover:text-purple-600'
                                                     }`}
                                             >
                                                 {pageNum}

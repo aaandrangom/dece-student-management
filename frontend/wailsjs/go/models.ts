@@ -241,6 +241,22 @@ export namespace dtos {
 
 export namespace faculty {
 	
+	export class AsignarDocenteDTO {
+	    curso_id: number;
+	    materia_id: number;
+	    docente_id: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new AsignarDocenteDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.curso_id = source["curso_id"];
+	        this.materia_id = source["materia_id"];
+	        this.docente_id = source["docente_id"];
+	    }
+	}
 	export class CursoResponseDTO {
 	    id: number;
 	    nivel_nombre: string;
@@ -329,6 +345,26 @@ export namespace faculty {
 	        this.nombres_completos = source["nombres_completos"];
 	        this.telefono = source["telefono"];
 	        this.correo = source["correo"];
+	    }
+	}
+	export class ItemDistributivoDTO {
+	    materia_id: number;
+	    materia_nombre: string;
+	    area: string;
+	    docente_id?: number;
+	    docente_nombre: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ItemDistributivoDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.materia_id = source["materia_id"];
+	        this.materia_nombre = source["materia_nombre"];
+	        this.area = source["area"];
+	        this.docente_id = source["docente_id"];
+	        this.docente_nombre = source["docente_nombre"];
 	    }
 	}
 
