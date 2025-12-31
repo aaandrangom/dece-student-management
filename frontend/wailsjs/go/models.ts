@@ -50,6 +50,24 @@ export namespace academic {
 	        this.area = source["area"];
 	    }
 	}
+	export class NivelEducativo {
+	    id: number;
+	    nombre: string;
+	    nombre_completo: string;
+	    orden: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new NivelEducativo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nombre = source["nombre"];
+	        this.nombre_completo = source["nombre_completo"];
+	        this.orden = source["orden"];
+	    }
+	}
 	export class NivelEducativoDTO {
 	    id: number;
 	    nombre: string;
@@ -66,6 +84,28 @@ export namespace academic {
 	        this.nombre = source["nombre"];
 	        this.nombre_completo = source["nombre_completo"];
 	        this.orden = source["orden"];
+	    }
+	}
+	export class PeriodoLectivo {
+	    id: number;
+	    nombre: string;
+	    fecha_inicio: string;
+	    fecha_fin: string;
+	    es_activo: boolean;
+	    cerrado: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new PeriodoLectivo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nombre = source["nombre"];
+	        this.fecha_inicio = source["fecha_inicio"];
+	        this.fecha_fin = source["fecha_fin"];
+	        this.es_activo = source["es_activo"];
+	        this.cerrado = source["cerrado"];
 	    }
 	}
 	export class PeriodoResponseDTO {
@@ -97,6 +137,156 @@ export namespace academic {
 
 export namespace common {
 	
+	export class JSONMap_dece_internal_domain_enrollment_Antropometria_ {
+	    Data: enrollment.Antropometria;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_enrollment_Antropometria_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], enrollment.Antropometria);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class JSONMap_dece_internal_domain_enrollment_CondicionGenero_ {
+	    Data: enrollment.CondicionGenero;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_enrollment_CondicionGenero_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], enrollment.CondicionGenero);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class JSONMap_dece_internal_domain_enrollment_DatosSalud_ {
+	    Data: enrollment.DatosSalud;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_enrollment_DatosSalud_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], enrollment.DatosSalud);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class JSONMap_dece_internal_domain_enrollment_DatosSociales_ {
+	    Data: enrollment.DatosSociales;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_enrollment_DatosSociales_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], enrollment.DatosSociales);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class JSONMap_dece_internal_domain_enrollment_HistorialAcademico_ {
+	    Data: enrollment.HistorialAcademico;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_enrollment_HistorialAcademico_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], enrollment.HistorialAcademico);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class JSONMap_dece_internal_domain_student_DatosFamiliar_ {
 	    Data: student.DatosFamiliar;
 	
@@ -304,6 +494,412 @@ export namespace dtos {
 
 }
 
+export namespace enrollment {
+	
+	export class Antropometria {
+	    peso: number;
+	    talla: number;
+	    tipo_sangre: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Antropometria(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.peso = source["peso"];
+	        this.talla = source["talla"];
+	        this.tipo_sangre = source["tipo_sangre"];
+	    }
+	}
+	export class InfoPadresPareja {
+	    nombres: string;
+	    apellidos: string;
+	    cedula: string;
+	    telefono: string;
+	    parentesco: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new InfoPadresPareja(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.nombres = source["nombres"];
+	        this.apellidos = source["apellidos"];
+	        this.cedula = source["cedula"];
+	        this.telefono = source["telefono"];
+	        this.parentesco = source["parentesco"];
+	    }
+	}
+	export class CondicionGenero {
+	    esta_embarazada: boolean;
+	    meses_embarazo?: number;
+	    lleva_control?: boolean;
+	    es_alto_riesgo?: boolean;
+	    tipo_apoyo_institucion?: string;
+	    nombre_padre_bebe?: string;
+	    viven_juntos_padres?: boolean;
+	    esta_lactando: boolean;
+	    meses_lactancia?: number;
+	    genero_bebe?: string;
+	    dias_nacido?: number;
+	    nombre_padre_lactancia?: string;
+	    edad_padre_lactancia?: number;
+	    es_maternidad: boolean;
+	    tiempo_maternidad?: string;
+	    es_padre: boolean;
+	    tiempo_paternidad?: string;
+	    pareja_es_estudiante: boolean;
+	    pareja_id?: number;
+	    nombre_pareja?: string;
+	    edad_pareja?: number;
+	    telefono_pareja?: string;
+	    pareja_es_menor_de_edad?: boolean;
+	    detalle_padres_pareja?: InfoPadresPareja;
+	
+	    static createFrom(source: any = {}) {
+	        return new CondicionGenero(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.esta_embarazada = source["esta_embarazada"];
+	        this.meses_embarazo = source["meses_embarazo"];
+	        this.lleva_control = source["lleva_control"];
+	        this.es_alto_riesgo = source["es_alto_riesgo"];
+	        this.tipo_apoyo_institucion = source["tipo_apoyo_institucion"];
+	        this.nombre_padre_bebe = source["nombre_padre_bebe"];
+	        this.viven_juntos_padres = source["viven_juntos_padres"];
+	        this.esta_lactando = source["esta_lactando"];
+	        this.meses_lactancia = source["meses_lactancia"];
+	        this.genero_bebe = source["genero_bebe"];
+	        this.dias_nacido = source["dias_nacido"];
+	        this.nombre_padre_lactancia = source["nombre_padre_lactancia"];
+	        this.edad_padre_lactancia = source["edad_padre_lactancia"];
+	        this.es_maternidad = source["es_maternidad"];
+	        this.tiempo_maternidad = source["tiempo_maternidad"];
+	        this.es_padre = source["es_padre"];
+	        this.tiempo_paternidad = source["tiempo_paternidad"];
+	        this.pareja_es_estudiante = source["pareja_es_estudiante"];
+	        this.pareja_id = source["pareja_id"];
+	        this.nombre_pareja = source["nombre_pareja"];
+	        this.edad_pareja = source["edad_pareja"];
+	        this.telefono_pareja = source["telefono_pareja"];
+	        this.pareja_es_menor_de_edad = source["pareja_es_menor_de_edad"];
+	        this.detalle_padres_pareja = this.convertValues(source["detalle_padres_pareja"], InfoPadresPareja);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class DatosSalud {
+	    tiene_eval_psicopedagogica: boolean;
+	    ruta_eval_psicopedagogica: string;
+	    tiene_discapacidad: boolean;
+	    detalle_discapacidad: string;
+	    ha_sufrido_accidente: boolean;
+	    detalle_accidente: string;
+	    tiene_alergias: boolean;
+	    detalle_alergia: string;
+	    tiene_cirugias: boolean;
+	    detalle_cirugia: string;
+	    tiene_enfermedad: boolean;
+	    detalle_enfermedad: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatosSalud(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tiene_eval_psicopedagogica = source["tiene_eval_psicopedagogica"];
+	        this.ruta_eval_psicopedagogica = source["ruta_eval_psicopedagogica"];
+	        this.tiene_discapacidad = source["tiene_discapacidad"];
+	        this.detalle_discapacidad = source["detalle_discapacidad"];
+	        this.ha_sufrido_accidente = source["ha_sufrido_accidente"];
+	        this.detalle_accidente = source["detalle_accidente"];
+	        this.tiene_alergias = source["tiene_alergias"];
+	        this.detalle_alergia = source["detalle_alergia"];
+	        this.tiene_cirugias = source["tiene_cirugias"];
+	        this.detalle_cirugia = source["detalle_cirugia"];
+	        this.tiene_enfermedad = source["tiene_enfermedad"];
+	        this.detalle_enfermedad = source["detalle_enfermedad"];
+	    }
+	}
+	export class DatosSociales {
+	    actividades: string[];
+	    practica_actividad: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatosSociales(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.actividades = source["actividades"];
+	        this.practica_actividad = source["practica_actividad"];
+	    }
+	}
+	export class MateriaReferencia {
+	    id: number;
+	    nombre: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MateriaReferencia(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nombre = source["nombre"];
+	    }
+	}
+	export class HistorialAcademico {
+	    es_nuevo_estudiante: boolean;
+	    institucion_anterior: string;
+	    provincia_anterior: string;
+	    canton_anterior: string;
+	    ha_repetido_anio: boolean;
+	    detalle_anio_repetido: string;
+	    materias_favoritas: MateriaReferencia[];
+	    materias_menos_gustan: MateriaReferencia[];
+	
+	    static createFrom(source: any = {}) {
+	        return new HistorialAcademico(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.es_nuevo_estudiante = source["es_nuevo_estudiante"];
+	        this.institucion_anterior = source["institucion_anterior"];
+	        this.provincia_anterior = source["provincia_anterior"];
+	        this.canton_anterior = source["canton_anterior"];
+	        this.ha_repetido_anio = source["ha_repetido_anio"];
+	        this.detalle_anio_repetido = source["detalle_anio_repetido"];
+	        this.materias_favoritas = this.convertValues(source["materias_favoritas"], MateriaReferencia);
+	        this.materias_menos_gustan = this.convertValues(source["materias_menos_gustan"], MateriaReferencia);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class GuardarMatriculaDTO {
+	    id: number;
+	    estudiante_id: number;
+	    curso_id: number;
+	    es_repetidor: boolean;
+	    antropometria: Antropometria;
+	    historial_academico: HistorialAcademico;
+	    datos_salud: DatosSalud;
+	    datos_sociales: DatosSociales;
+	    condicion_genero: CondicionGenero;
+	    direccion_actual: string;
+	    ruta_croquis: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new GuardarMatriculaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.estudiante_id = source["estudiante_id"];
+	        this.curso_id = source["curso_id"];
+	        this.es_repetidor = source["es_repetidor"];
+	        this.antropometria = this.convertValues(source["antropometria"], Antropometria);
+	        this.historial_academico = this.convertValues(source["historial_academico"], HistorialAcademico);
+	        this.datos_salud = this.convertValues(source["datos_salud"], DatosSalud);
+	        this.datos_sociales = this.convertValues(source["datos_sociales"], DatosSociales);
+	        this.condicion_genero = this.convertValues(source["condicion_genero"], CondicionGenero);
+	        this.direccion_actual = source["direccion_actual"];
+	        this.ruta_croquis = source["ruta_croquis"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class HistorialMatriculaDTO {
+	    id: number;
+	    periodo_lectivo: string;
+	    curso_nombre: string;
+	    estado: string;
+	    fecha: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new HistorialMatriculaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.periodo_lectivo = source["periodo_lectivo"];
+	        this.curso_nombre = source["curso_nombre"];
+	        this.estado = source["estado"];
+	        this.fecha = source["fecha"];
+	    }
+	}
+	
+	
+	export class Matricula {
+	    id: number;
+	    estudiante_id: number;
+	    curso_id: number;
+	    estado: string;
+	    es_repetidor: boolean;
+	    antropometria: common.JSONMap_dece_internal_domain_enrollment_Antropometria_;
+	    historial_academico: common.JSONMap_dece_internal_domain_enrollment_HistorialAcademico_;
+	    datos_salud: common.JSONMap_dece_internal_domain_enrollment_DatosSalud_;
+	    datos_sociales: common.JSONMap_dece_internal_domain_enrollment_DatosSociales_;
+	    condicion_genero: common.JSONMap_dece_internal_domain_enrollment_CondicionGenero_;
+	    direccion_actual: string;
+	    ruta_croquis: string;
+	    fecha_registro: string;
+	    estudiante?: student.Estudiante;
+	    curso?: faculty.Curso;
+	
+	    static createFrom(source: any = {}) {
+	        return new Matricula(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.estudiante_id = source["estudiante_id"];
+	        this.curso_id = source["curso_id"];
+	        this.estado = source["estado"];
+	        this.es_repetidor = source["es_repetidor"];
+	        this.antropometria = this.convertValues(source["antropometria"], common.JSONMap_dece_internal_domain_enrollment_Antropometria_);
+	        this.historial_academico = this.convertValues(source["historial_academico"], common.JSONMap_dece_internal_domain_enrollment_HistorialAcademico_);
+	        this.datos_salud = this.convertValues(source["datos_salud"], common.JSONMap_dece_internal_domain_enrollment_DatosSalud_);
+	        this.datos_sociales = this.convertValues(source["datos_sociales"], common.JSONMap_dece_internal_domain_enrollment_DatosSociales_);
+	        this.condicion_genero = this.convertValues(source["condicion_genero"], common.JSONMap_dece_internal_domain_enrollment_CondicionGenero_);
+	        this.direccion_actual = source["direccion_actual"];
+	        this.ruta_croquis = source["ruta_croquis"];
+	        this.fecha_registro = source["fecha_registro"];
+	        this.estudiante = this.convertValues(source["estudiante"], student.Estudiante);
+	        this.curso = this.convertValues(source["curso"], faculty.Curso);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class MatriculaResponseDTO {
+	    id: number;
+	    estudiante_id: number;
+	    curso_id: number;
+	    es_repetidor: boolean;
+	    antropometria: Antropometria;
+	    historial_academico: HistorialAcademico;
+	    datos_salud: DatosSalud;
+	    datos_sociales: DatosSociales;
+	    condicion_genero: CondicionGenero;
+	    direccion_actual: string;
+	    ruta_croquis: string;
+	    estado: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MatriculaResponseDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.estudiante_id = source["estudiante_id"];
+	        this.curso_id = source["curso_id"];
+	        this.es_repetidor = source["es_repetidor"];
+	        this.antropometria = this.convertValues(source["antropometria"], Antropometria);
+	        this.historial_academico = this.convertValues(source["historial_academico"], HistorialAcademico);
+	        this.datos_salud = this.convertValues(source["datos_salud"], DatosSalud);
+	        this.datos_sociales = this.convertValues(source["datos_sociales"], DatosSociales);
+	        this.condicion_genero = this.convertValues(source["condicion_genero"], CondicionGenero);
+	        this.direccion_actual = source["direccion_actual"];
+	        this.ruta_croquis = source["ruta_croquis"];
+	        this.estado = source["estado"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace faculty {
 	
 	export class AsignarDocenteDTO {
@@ -321,6 +917,74 @@ export namespace faculty {
 	        this.materia_id = source["materia_id"];
 	        this.docente_id = source["docente_id"];
 	    }
+	}
+	export class Docente {
+	    id: number;
+	    cedula: string;
+	    nombres_completos: string;
+	    telefono: string;
+	    correo: string;
+	    activo: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new Docente(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.cedula = source["cedula"];
+	        this.nombres_completos = source["nombres_completos"];
+	        this.telefono = source["telefono"];
+	        this.correo = source["correo"];
+	        this.activo = source["activo"];
+	    }
+	}
+	export class Curso {
+	    id: number;
+	    periodo_id: number;
+	    nivel_id: number;
+	    tutor_id?: number;
+	    paralelo: string;
+	    jornada: string;
+	    periodo?: academic.PeriodoLectivo;
+	    nivel?: academic.NivelEducativo;
+	    tutor?: Docente;
+	
+	    static createFrom(source: any = {}) {
+	        return new Curso(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.periodo_id = source["periodo_id"];
+	        this.nivel_id = source["nivel_id"];
+	        this.tutor_id = source["tutor_id"];
+	        this.paralelo = source["paralelo"];
+	        this.jornada = source["jornada"];
+	        this.periodo = this.convertValues(source["periodo"], academic.PeriodoLectivo);
+	        this.nivel = this.convertValues(source["nivel"], academic.NivelEducativo);
+	        this.tutor = this.convertValues(source["tutor"], Docente);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class CursoResponseDTO {
 	    id: number;
@@ -348,6 +1012,7 @@ export namespace faculty {
 	        this.tutor_id = source["tutor_id"];
 	    }
 	}
+	
 	export class DocenteDTO {
 	    id: number;
 	    cedula: string;
@@ -571,6 +1236,8 @@ export namespace student {
 	    apellidos: string;
 	    nombres: string;
 	    ruta_foto: string;
+	    fecha_nacimiento: string;
+	    edad: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new EstudianteListaDTO(source);
@@ -583,6 +1250,8 @@ export namespace student {
 	        this.apellidos = source["apellidos"];
 	        this.nombres = source["nombres"];
 	        this.ruta_foto = source["ruta_foto"];
+	        this.fecha_nacimiento = source["fecha_nacimiento"];
+	        this.edad = source["edad"];
 	    }
 	}
 	

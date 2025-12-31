@@ -26,14 +26,13 @@ type HistorialAcademico struct {
 	HaRepetidoAnio      bool   `json:"ha_repetido_anio"`
 	DetalleAnioRepetido string `json:"detalle_anio_repetido"`
 
-	// Listas de objetos {id, nombre}
 	MateriasFavoritas   []MateriaReferencia `json:"materias_favoritas"`
 	MateriasMenosGustan []MateriaReferencia `json:"materias_menos_gustan"`
 }
 
 type DatosSalud struct {
 	TieneEvalPsicopedagogica bool   `json:"tiene_eval_psicopedagogica"`
-	RutaEvalPsicopedagogica  string `json:"ruta_eval_psicopedagogica"` // Path al PDF
+	RutaEvalPsicopedagogica  string `json:"ruta_eval_psicopedagogica"`
 
 	TieneDiscapacidad   bool   `json:"tiene_discapacidad"`
 	DetalleDiscapacidad string `json:"detalle_discapacidad"`
@@ -52,59 +51,51 @@ type DatosSalud struct {
 }
 
 type DatosSociales struct {
-	ActividadExtra    string `json:"actividad_extra"`
-	PracticaActividad bool   `json:"practica_actividad"`
+	Actividades       []string `json:"actividades"`
+	PracticaActividad bool     `json:"practica_actividad"`
 }
 
 type InfoPadresPareja struct {
-	NombresMadre  string `json:"nombres_madre"`
-	TelefonoMadre string `json:"telefono_madre"`
-	NombresPadre  string `json:"nombres_padre"`
-	TelefonoPadre string `json:"telefono_padre"`
-	Direccion     string `json:"direccion,omitempty"` // Opcional
+	Nombres    string `json:"nombres"`
+	Apellidos  string `json:"apellidos"`
+	Cedula     string `json:"cedula"`
+	Telefono   string `json:"telefono"`
+	Parentesco string `json:"parentesco"`
 }
 
 type CondicionGenero struct {
-	// =========================================================
-	// SECCIÓN MUJERES: EMBARAZO
-	// =========================================================
 	EstaEmbarazada       bool   `json:"esta_embarazada"`
 	MesesEmbarazo        int    `json:"meses_embarazo,omitempty"`
 	LlevaControl         bool   `json:"lleva_control,omitempty"`
 	EsAltoRiesgo         bool   `json:"es_alto_riesgo,omitempty"`
-	TipoApoyoInstitucion string `json:"tipo_apoyo_institucion,omitempty"` // Si es riesgo, qué apoyo recibe
-	NombrePadreBebe      string `json:"nombre_padre_bebe,omitempty"`      // Opcional
-	VivenJuntosPadres    bool   `json:"viven_juntos_padres,omitempty"`    // ¿Ella y el padre viven juntos?
+	TipoApoyoInstitucion string `json:"tipo_apoyo_institucion,omitempty"`
+	NombrePadreBebe      string `json:"nombre_padre_bebe,omitempty"`
+	VivenJuntosPadres    bool   `json:"viven_juntos_padres,omitempty"`
 
-	// =========================================================
-	// SECCIÓN MUJERES: LACTANCIA
-	// =========================================================
 	EstaLactando         bool   `json:"esta_lactando"`
 	MesesLactancia       int    `json:"meses_lactancia,omitempty"`
-	GeneroBebe           string `json:"genero_bebe,omitempty"` // "Masculino", "Femenino"
+	GeneroBebe           string `json:"genero_bebe,omitempty"`
 	DiasNacido           int    `json:"dias_nacido,omitempty"`
 	NombrePadreLactancia string `json:"nombre_padre_lactancia,omitempty"`
 	EdadPadreLactancia   int    `json:"edad_padre_lactancia,omitempty"`
 
-	// =========================================================
-	// SECCIÓN MUJERES: MATERNIDAD
-	// =========================================================
-	TiempoMaternidad string `json:"tiempo_maternidad,omitempty"` // Tiempo que lleva de permiso/maternidad
+	EsMaternidad     bool   `json:"es_maternidad"`
+	TiempoMaternidad string `json:"tiempo_maternidad,omitempty"`
 
-	// =========================================================
-	// SECCIÓN HOMBRES: PATERNIDAD
-	// =========================================================
 	EsPadre          bool   `json:"es_padre"`
 	TiempoPaternidad string `json:"tiempo_paternidad,omitempty"`
-	NombrePareja     string `json:"nombre_pareja,omitempty"`
-	EdadPareja       int    `json:"edad_pareja,omitempty"`
-	TelefonoPareja   string `json:"telefono_pareja,omitempty"`
+
+	ParejaEsEstudiante bool `json:"pareja_es_estudiante"`
+	ParejaID           uint `json:"pareja_id,omitempty"`
+
+	NombrePareja   string `json:"nombre_pareja,omitempty"`
+	EdadPareja     int    `json:"edad_pareja,omitempty"`
+	TelefonoPareja string `json:"telefono_pareja,omitempty"`
 
 	ParejaEsMenorDeEdad bool              `json:"pareja_es_menor_de_edad,omitempty"`
 	DetallePadresPareja *InfoPadresPareja `json:"detalle_padres_pareja,omitempty"`
 }
 
-// --- Modelo Principal ---
 type Matricula struct {
 	ID           uint `gorm:"primaryKey" json:"id"`
 	EstudianteID uint `json:"estudiante_id"`
@@ -113,7 +104,6 @@ type Matricula struct {
 	Estado      string `gorm:"default:'Matriculado'" json:"estado"`
 	EsRepetidor bool   `json:"es_repetidor"`
 
-	// Campos JSON usando el wrapper genérico
 	Antropometria      common.JSONMap[Antropometria]      `gorm:"type:text" json:"antropometria"`
 	HistorialAcademico common.JSONMap[HistorialAcademico] `gorm:"type:text" json:"historial_academico"`
 	DatosSalud         common.JSONMap[DatosSalud]         `gorm:"type:text" json:"datos_salud"`
@@ -123,7 +113,7 @@ type Matricula struct {
 	DireccionActual string `json:"direccion_actual"`
 	RutaCroquis     string `json:"ruta_croquis"`
 	FechaRegistro   string `json:"fecha_registro"`
-	// Relaciones
+
 	Estudiante student.Estudiante `gorm:"foreignKey:EstudianteID" json:"estudiante,omitempty"`
 	Curso      faculty.Curso      `gorm:"foreignKey:CursoID" json:"curso,omitempty"`
 }

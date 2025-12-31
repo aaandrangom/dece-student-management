@@ -25,6 +25,27 @@ func NewStudentService(db *gorm.DB) *StudentService {
 	return &StudentService{db: db}
 }
 
+func CaclularEdad(fechaNacimiento string) int {
+	if fechaNacimiento == "" {
+		return 0
+	}
+
+	nacimiento, err := time.Parse("2006-01-02", fechaNacimiento)
+	if err != nil {
+		return 0
+	}
+
+	hoy := time.Now()
+	edad := hoy.Year() - nacimiento.Year()
+
+	if hoy.Month() < nacimiento.Month() ||
+		(hoy.Month() == nacimiento.Month() && hoy.Day() < nacimiento.Day()) {
+		edad--
+	}
+
+	return edad
+}
+
 func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.EstudianteListaDTO, error) {
 	var estudiantes []student.Estudiante
 	query = strings.TrimSpace(query)
@@ -42,15 +63,20 @@ func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.Estudiant
 	}
 
 	response := make([]studentDTO.EstudianteListaDTO, len(estudiantes))
+	print(estudiantes)
 	for i, e := range estudiantes {
 		response[i] = studentDTO.EstudianteListaDTO{
-			ID:        e.ID,
-			Cedula:    e.Cedula,
-			Apellidos: e.Apellidos,
-			Nombres:   e.Nombres,
-			RutaFoto:  e.RutaFoto,
+			ID:              e.ID,
+			Cedula:          e.Cedula,
+			Apellidos:       e.Apellidos,
+			Nombres:         e.Nombres,
+			RutaFoto:        e.RutaFoto,
+			FechaNacimiento: e.FechaNacimiento,
+			Edad:            CaclularEdad(e.FechaNacimiento),
 		}
 	}
+	print(response)
+
 	return response, nil
 }
 

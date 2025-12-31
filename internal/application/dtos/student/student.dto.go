@@ -1,11 +1,13 @@
 package student
 
 type EstudianteListaDTO struct {
-	ID        uint   `json:"id"`
-	Cedula    string `json:"cedula"`
-	Apellidos string `json:"apellidos"`
-	Nombres   string `json:"nombres"`
-	RutaFoto  string `json:"ruta_foto"`
+	ID              uint   `json:"id"`
+	Cedula          string `json:"cedula"`
+	Apellidos       string `json:"apellidos"`
+	Nombres         string `json:"nombres"`
+	RutaFoto        string `json:"ruta_foto"`
+	FechaNacimiento string `json:"fecha_nacimiento"`
+	Edad            int    `json:"edad"`
 }
 
 type DatosFamiliarDTO struct {

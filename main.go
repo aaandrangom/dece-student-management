@@ -9,6 +9,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 
 	academic "dece/internal/application/services/academic"
+	enrollment "dece/internal/application/services/enrollment"
 	faculty "dece/internal/application/services/faculty"
 	security "dece/internal/application/services/security"
 	student "dece/internal/application/services/student"
@@ -35,7 +36,9 @@ func main() {
 
 	studentService := student.NewStudentService(db)
 
-	app := NewApp()
+	enrollmentService := enrollment.NewEnrollmentService(db)
+
+	app := NewApp(enrollmentService)
 
 	err := wails.Run(&options.App{
 		Title:            "SIGDECE",
@@ -63,6 +66,8 @@ func main() {
 			teachingLoadService,
 
 			studentService,
+
+			enrollmentService,
 		},
 	})
 
