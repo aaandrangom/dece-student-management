@@ -4,7 +4,6 @@ import (
 	usuarioDTO "dece/internal/application/dtos/security"
 	"dece/internal/domain/security"
 	"errors"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -56,17 +55,12 @@ func (s *AuthService) ObtenerUsuarioSesion() (*usuarioDTO.UsuarioResponseDTO, er
 }
 
 func (s *AuthService) mapToDTO(u *security.Usuario) *usuarioDTO.UsuarioResponseDTO {
-	fechaStr := ""
-	if !u.FechaCreacion.IsZero() {
-		fechaStr = u.FechaCreacion.Format(time.RFC3339)
-	}
-
 	return &usuarioDTO.UsuarioResponseDTO{
 		ID:             u.ID,
 		NombreUsuario:  u.NombreUsuario,
 		NombreCompleto: u.NombreCompleto,
 		Rol:            u.Rol,
 		Activo:         u.Activo,
-		FechaCreacion:  fechaStr,
+		FechaCreacion:  u.FechaCreacion,
 	}
 }

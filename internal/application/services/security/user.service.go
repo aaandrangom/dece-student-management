@@ -5,7 +5,6 @@ import (
 	"dece/internal/domain/security"
 	"errors"
 	"fmt"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -30,18 +29,13 @@ func (s *UserService) ListarUsuarios() ([]usuarioDTO.UsuarioResponseDTO, error) 
 	response := make([]usuarioDTO.UsuarioResponseDTO, len(usuarios))
 
 	for i, user := range usuarios {
-		fechaStr := ""
-		if !user.FechaCreacion.IsZero() {
-			fechaStr = user.FechaCreacion.Format(time.RFC3339)
-		}
-
 		response[i] = usuarioDTO.UsuarioResponseDTO{
 			ID:             user.ID,
 			NombreUsuario:  user.NombreUsuario,
 			NombreCompleto: user.NombreCompleto,
 			Rol:            user.Rol,
 			Activo:         user.Activo,
-			FechaCreacion:  fechaStr,
+			FechaCreacion:  user.FechaCreacion,
 		}
 	}
 

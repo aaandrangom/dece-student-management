@@ -32,17 +32,12 @@ func (s *InstitutionService) ObtenerConfiguracion() (*securityDTO.ConfiguracionI
 		return nil, result.Error
 	}
 
-	fechaStr := ""
-	if !config.FechaActualizacion.IsZero() {
-		fechaStr = config.FechaActualizacion.Format(time.RFC3339)
-	}
-
 	response := &securityDTO.ConfiguracionInstitucionalDTO{
 		Nombre:             config.Nombre,
 		CodigoAMIE:         config.CodigoAMIE,
 		Distrito:           config.Distrito,
 		Circuito:           config.Circuito,
-		FechaActualizacion: fechaStr,
+		FechaActualizacion: config.FechaActualizacion, // Directo
 
 		Ubicacion: securityDTO.DetalleUbicacionDTO{
 			Provincia:     config.DetalleUbicacion.Data.Provincia,
@@ -64,13 +59,14 @@ func (s *InstitutionService) ObtenerConfiguracion() (*securityDTO.ConfiguracionI
 
 func (s *InstitutionService) GuardarConfiguracion(input securityDTO.ConfiguracionInstitucionalDTO) error {
 	fmt.Println("Input ", input)
+
 	configModel := security.ConfiguracionInstitucional{
 		ID:                 1,
 		Nombre:             input.Nombre,
 		CodigoAMIE:         input.CodigoAMIE,
 		Distrito:           input.Distrito,
 		Circuito:           input.Circuito,
-		FechaActualizacion: time.Now(),
+		FechaActualizacion: time.Now().Format("2006-01-02 15:04:05"),
 	}
 
 	configModel.DetalleUbicacion = common.JSONMap[security.DetalleUbicacion]{

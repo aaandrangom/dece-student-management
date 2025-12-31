@@ -2,17 +2,17 @@ package security
 
 import (
 	"dece/internal/domain/common"
-	"time"
 )
 
 type Usuario struct {
-	ID             uint      `gorm:"primaryKey" json:"id"`
-	NombreUsuario  string    `gorm:"unique;not null" json:"nombre_usuario"`
-	ClaveHash      string    `gorm:"not null" json:"-"`
-	NombreCompleto string    `gorm:"not null" json:"nombre_completo"`
-	Rol            string    `gorm:"default:dece" json:"rol"`
-	Activo         bool      `gorm:"default:true" json:"activo"`
-	FechaCreacion  time.Time `gorm:"autoCreateTime" json:"fecha_creacion"`
+	ID             uint   `gorm:"primaryKey" json:"id"`
+	NombreUsuario  string `gorm:"unique;not null" json:"nombre_usuario"`
+	ClaveHash      string `gorm:"not null" json:"-"`
+	NombreCompleto string `gorm:"not null" json:"nombre_completo"`
+	Rol            string `gorm:"default:dece" json:"rol"`
+	Activo         bool   `gorm:"default:true" json:"activo"`
+
+	FechaCreacion string `json:"fecha_creacion"`
 }
 
 type DetalleUbicacion struct {
@@ -47,5 +47,5 @@ type ConfiguracionInstitucional struct {
 	DetalleUbicacion common.JSONMap[DetalleUbicacion]       `gorm:"type:text" json:"detalle_ubicacion"`
 	Autoridades      common.JSONMap[AutoridadesInstitucion] `gorm:"type:text" json:"autoridades"`
 
-	FechaActualizacion time.Time `gorm:"autoUpdateTime" json:"fecha_actualizacion"`
+	FechaActualizacion string `json:"fecha_actualizacion"`
 }

@@ -4,8 +4,12 @@ import (
 	"dece/internal/domain/common"
 	"dece/internal/domain/faculty"
 	"dece/internal/domain/student"
-	"time"
 )
+
+type MateriaReferencia struct {
+	ID     uint   `json:"id"`
+	Nombre string `json:"nombre"`
+}
 
 type Antropometria struct {
 	Peso       float64 `json:"peso"`
@@ -14,17 +18,37 @@ type Antropometria struct {
 }
 
 type HistorialAcademico struct {
-	EsNuevo             bool   `json:"es_nuevo"`
+	EsNuevoEstudiante   bool   `json:"es_nuevo_estudiante"`
 	InstitucionAnterior string `json:"institucion_anterior"`
+	ProvinciaAnterior   string `json:"provincia_anterior"`
+	CantonAnterior      string `json:"canton_anterior"`
+
 	HaRepetidoAnio      bool   `json:"ha_repetido_anio"`
-	MateriasGustan      string `json:"materias_gustan"`
+	DetalleAnioRepetido string `json:"detalle_anio_repetido"`
+
+	// Listas de objetos {id, nombre}
+	MateriasFavoritas   []MateriaReferencia `json:"materias_favoritas"`
+	MateriasMenosGustan []MateriaReferencia `json:"materias_menos_gustan"`
 }
 
 type DatosSalud struct {
-	TieneDiscapacidad bool   `json:"tiene_discapacidad"`
-	Detalle           string `json:"detalle"`
-	Alergias          string `json:"alergias"`
-	TieneEvalPsico    bool   `json:"tiene_eval_psico"`
+	TieneEvalPsicopedagogica bool   `json:"tiene_eval_psicopedagogica"`
+	RutaEvalPsicopedagogica  string `json:"ruta_eval_psicopedagogica"` // Path al PDF
+
+	TieneDiscapacidad   bool   `json:"tiene_discapacidad"`
+	DetalleDiscapacidad string `json:"detalle_discapacidad"`
+
+	HaSufridoAccidente bool   `json:"ha_sufrido_accidente"`
+	DetalleAccidente   string `json:"detalle_accidente"`
+
+	TieneAlergias  bool   `json:"tiene_alergias"`
+	DetalleAlergia string `json:"detalle_alergia"`
+
+	TieneCirugias  bool   `json:"tiene_cirugias"`
+	DetalleCirugia string `json:"detalle_cirugia"`
+
+	TieneEnfermedad   bool   `json:"tiene_enfermedad"`
+	DetalleEnfermedad string `json:"detalle_enfermedad"`
 }
 
 type DatosSociales struct {
@@ -96,10 +120,9 @@ type Matricula struct {
 	DatosSociales      common.JSONMap[DatosSociales]      `gorm:"type:text" json:"datos_sociales"`
 	CondicionGenero    common.JSONMap[CondicionGenero]    `gorm:"type:text" json:"condicion_genero"`
 
-	DireccionActual string    `json:"direccion_actual"`
-	RutaCroquis     string    `json:"ruta_croquis"`
-	FechaRegistro   time.Time `gorm:"autoCreateTime" json:"fecha_registro"`
-
+	DireccionActual string `json:"direccion_actual"`
+	RutaCroquis     string `json:"ruta_croquis"`
+	FechaRegistro   string `json:"fecha_registro"`
 	// Relaciones
 	Estudiante student.Estudiante `gorm:"foreignKey:EstudianteID" json:"estudiante,omitempty"`
 	Curso      faculty.Curso      `gorm:"foreignKey:CursoID" json:"curso,omitempty"`

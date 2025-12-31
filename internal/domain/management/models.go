@@ -4,16 +4,15 @@ import (
 	"dece/internal/domain/academic"
 	"dece/internal/domain/common"
 	"dece/internal/domain/enrollment"
-	"time"
 )
 
 type Convocatoria struct {
-	ID             uint      `gorm:"primaryKey" json:"id"`
-	MatriculaID    uint      `json:"matricula_id"`
-	Entidad        string    `json:"entidad"`
-	FechaCita      time.Time `json:"fecha_cita"`
-	DiasAlerta     int       `json:"dias_alerta"`
-	CitaCompletada bool      `json:"cita_completada"`
+	ID             uint   `gorm:"primaryKey" json:"id"`
+	MatriculaID    uint   `json:"matricula_id"`
+	Entidad        string `json:"entidad"`
+	FechaCita      string `json:"fecha_cita"`
+	DiasAlerta     int    `json:"dias_alerta"`
+	CitaCompletada bool   `json:"cita_completada"`
 
 	Matricula enrollment.Matricula `gorm:"foreignKey:MatriculaID" json:"matricula"`
 }
@@ -25,10 +24,10 @@ type AudienciaCapacitacion struct {
 }
 
 type Capacitacion struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	PeriodoID uint      `json:"periodo_id"`
-	Tema      string    `json:"tema"`
-	Fecha     time.Time `json:"fecha"`
+	ID        uint   `gorm:"primaryKey" json:"id"`
+	PeriodoID uint   `json:"periodo_id"`
+	Tema      string `json:"tema"`
+	Fecha     string `json:"fecha"`
 
 	DetalleAudiencia common.JSONMap[AudienciaCapacitacion] `gorm:"type:text" json:"detalle_audiencia"`
 	RutaEvidencia    string                                `json:"ruta_evidencia"`
