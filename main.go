@@ -13,6 +13,7 @@ import (
 	faculty "dece/internal/application/services/faculty"
 	security "dece/internal/application/services/security"
 	student "dece/internal/application/services/student"
+	tracking "dece/internal/application/services/tracking"
 )
 
 //go:embed all:frontend/dist
@@ -38,7 +39,9 @@ func main() {
 
 	enrollmentService := enrollment.NewEnrollmentService(db)
 
-	app := NewApp(enrollmentService)
+	trackingService := tracking.NewTrackingService(db)
+
+	app := NewApp(enrollmentService, trackingService)
 
 	err := wails.Run(&options.App{
 		Title:            "SIGDECE",
@@ -68,6 +71,8 @@ func main() {
 			studentService,
 
 			enrollmentService,
+
+			trackingService,
 		},
 	})
 

@@ -347,6 +347,36 @@ export namespace common {
 		    return a;
 		}
 	}
+	export class JSONMap_dece_internal_domain_tracking_DetalleSancion_ {
+	    Data: tracking.DetalleSancion;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_tracking_DetalleSancion_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], tracking.DetalleSancion);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 
 }
 
@@ -1366,6 +1396,155 @@ export namespace student {
 	        this.es_extranjero = source["es_extranjero"];
 	        this.pais_origen = source["pais_origen"];
 	        this.pasaporte_odni = source["pasaporte_odni"];
+	    }
+	}
+
+}
+
+export namespace tracking {
+	
+	export class DetalleSancion {
+	    medida_disciplinaria: string;
+	    ruta_resolucion: string;
+	    cumplio_medida: boolean;
+	    motivo_incumplimiento: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DetalleSancion(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.medida_disciplinaria = source["medida_disciplinaria"];
+	        this.ruta_resolucion = source["ruta_resolucion"];
+	        this.cumplio_medida = source["cumplio_medida"];
+	        this.motivo_incumplimiento = source["motivo_incumplimiento"];
+	    }
+	}
+	export class EstudianteDisciplinaDTO {
+	    id: number;
+	    cedula: string;
+	    nombres: string;
+	    apellidos: string;
+	    ruta_foto: string;
+	    matricula_id: number;
+	    curso: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EstudianteDisciplinaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.cedula = source["cedula"];
+	        this.nombres = source["nombres"];
+	        this.apellidos = source["apellidos"];
+	        this.ruta_foto = source["ruta_foto"];
+	        this.matricula_id = source["matricula_id"];
+	        this.curso = source["curso"];
+	    }
+	}
+	export class GuardarLlamadoDTO {
+	    id: number;
+	    matricula_id: number;
+	    fecha: string;
+	    motivo: string;
+	    representante_notificado: boolean;
+	    representante_firmo: boolean;
+	    motivo_no_firma: string;
+	    medida_disciplinaria: string;
+	    cumplio_medida: boolean;
+	    motivo_incumplimiento: string;
+	    ruta_acta: string;
+	    ruta_resolucion: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new GuardarLlamadoDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.matricula_id = source["matricula_id"];
+	        this.fecha = source["fecha"];
+	        this.motivo = source["motivo"];
+	        this.representante_notificado = source["representante_notificado"];
+	        this.representante_firmo = source["representante_firmo"];
+	        this.motivo_no_firma = source["motivo_no_firma"];
+	        this.medida_disciplinaria = source["medida_disciplinaria"];
+	        this.cumplio_medida = source["cumplio_medida"];
+	        this.motivo_incumplimiento = source["motivo_incumplimiento"];
+	        this.ruta_acta = source["ruta_acta"];
+	        this.ruta_resolucion = source["ruta_resolucion"];
+	    }
+	}
+	export class LlamadoAtencion {
+	    id: number;
+	    matricula_id: number;
+	    fecha: string;
+	    motivo: string;
+	    representante_notificado: boolean;
+	    representante_firmo: boolean;
+	    ruta_acta: string;
+	    motivo_no_firma: string;
+	    detalle_sancion: common.JSONMap_dece_internal_domain_tracking_DetalleSancion_;
+	    matricula?: enrollment.Matricula;
+	
+	    static createFrom(source: any = {}) {
+	        return new LlamadoAtencion(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.matricula_id = source["matricula_id"];
+	        this.fecha = source["fecha"];
+	        this.motivo = source["motivo"];
+	        this.representante_notificado = source["representante_notificado"];
+	        this.representante_firmo = source["representante_firmo"];
+	        this.ruta_acta = source["ruta_acta"];
+	        this.motivo_no_firma = source["motivo_no_firma"];
+	        this.detalle_sancion = this.convertValues(source["detalle_sancion"], common.JSONMap_dece_internal_domain_tracking_DetalleSancion_);
+	        this.matricula = this.convertValues(source["matricula"], enrollment.Matricula);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class LlamadoResumenDTO {
+	    id: number;
+	    fecha: string;
+	    motivo: string;
+	    medida: string;
+	    estado: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LlamadoResumenDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.fecha = source["fecha"];
+	        this.motivo = source["motivo"];
+	        this.medida = source["medida"];
+	        this.estado = source["estado"];
 	    }
 	}
 

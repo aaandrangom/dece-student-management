@@ -5,20 +5,21 @@ import (
 	"dece/internal/domain/common"
 	"dece/internal/domain/enrollment"
 	"dece/internal/domain/student"
-	"time"
 )
 
 type DetalleSancion struct {
-	Medida         string `json:"medida"`
-	RutaResolucion string `json:"ruta_resolucion"`
-	Cumplio        bool   `json:"cumplio"`
+	MedidaDisciplinaria  string `json:"medida_disciplinaria"`
+	RutaResolucion       string `json:"ruta_resolucion"`
+	CumplioMedida        bool   `json:"cumplio_medida"`
+	MotivoIncumplimiento string `json:"motivo_incumplimiento"`
 }
 
 type LlamadoAtencion struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	MatriculaID uint      `json:"matricula_id"`
-	Fecha       time.Time `json:"fecha"`
-	Motivo      string    `json:"motivo"`
+	ID          uint `gorm:"primaryKey" json:"id"`
+	MatriculaID uint `json:"matricula_id"`
+
+	Fecha  string `json:"fecha"`
+	Motivo string `json:"motivo"`
 
 	RepresentanteNotificado bool   `json:"representante_notificado"`
 	RepresentanteFirmo      bool   `json:"representante_firmo"`
@@ -35,11 +36,11 @@ type CasoSensible struct {
 	EstudianteID uint `json:"estudiante_id"`
 	PeriodoID    uint `json:"periodo_id"`
 
-	CodigoCaso        string    `json:"codigo_caso"`
-	FechaDeteccion    time.Time `json:"fecha_deteccion"`
-	EntidadDerivacion string    `json:"entidad_derivacion"`
-	Descripcion       string    `json:"descripcion"`
-	Estado            string    `json:"estado"`
+	CodigoCaso        string `json:"codigo_caso"`
+	FechaDeteccion    string `json:"fecha_deteccion"`
+	EntidadDerivacion string `json:"entidad_derivacion"`
+	Descripcion       string `json:"descripcion"`
+	Estado            string `json:"estado"`
 
 	RutasDocumentos common.JSONMap[[]string] `gorm:"type:text" json:"rutas_documentos"`
 

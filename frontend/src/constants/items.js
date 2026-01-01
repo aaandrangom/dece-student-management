@@ -77,6 +77,28 @@ export const menuOptions = [
         ]
     },
     {
+        title: "Seguimiento DECE",
+        path: "/dece",
+        icon: "HeartHandshake",
+        /*  subOptions: [
+              {
+                  title: "Violencia y Derivaciones",
+                  path: "/dece/violence",
+                  icon: "ShieldAlert"
+              },
+              {
+                  title: "Disciplina y Conducta",
+                  path: "/dece/discipline",
+                  icon: "FileWarning"
+              },
+              {
+                  title: "Vulnerabilidad y Salud",
+                  path: "/dece/vulnerability",
+                  icon: "Activity"
+              }
+          ]*/
+    },
+    {
         title: "Estudiantes",
         path: "/students",
         icon: "GraduationCap",
