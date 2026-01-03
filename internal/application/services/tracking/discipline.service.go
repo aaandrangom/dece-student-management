@@ -188,11 +188,12 @@ func (s *TrackingService) SubirDocumentoDisciplina(llamadoID uint, tipoDoc strin
 	// 5. ACTUALIZAR BASE DE DATOS SEGÚN EL TIPO
 	var rutaAnterior string
 
-	if tipoDoc == "acta" {
+	switch tipoDoc {
+	case "acta":
 		// A. Caso Acta (Campo en raíz)
 		rutaAnterior = llamado.RutaActa
 		llamado.RutaActa = rutaDestinoCompleta
-	} else if tipoDoc == "resolucion" {
+	case "resolucion":
 		// B. Caso Resolución (Campo dentro del JSON)
 		rutaAnterior = llamado.DetalleSancion.Data.RutaResolucion
 
@@ -202,7 +203,7 @@ func (s *TrackingService) SubirDocumentoDisciplina(llamadoID uint, tipoDoc strin
 
 		// Reasignamos al wrapper para que GORM detecte el cambio y lo guarde
 		llamado.DetalleSancion.Data = datosSancion
-	} else {
+	default:
 		return "", errors.New("tipo de documento inválido (use 'acta' o 'resolucion')")
 	}
 
