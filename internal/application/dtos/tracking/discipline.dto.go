@@ -22,7 +22,6 @@ type GuardarLlamadoDTO struct {
 	CumplioMedida        bool   `json:"cumplio_medida"`
 	MotivoIncumplimiento string `json:"motivo_incumplimiento"`
 
-	// --- NUEVOS CAMPOS (Solo lectura para el frontend) ---
 	RutaActa       string `json:"ruta_acta"`
 	RutaResolucion string `json:"ruta_resolucion"`
 }

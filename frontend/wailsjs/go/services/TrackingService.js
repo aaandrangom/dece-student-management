@@ -6,16 +6,32 @@ export function BuscarEstudiantesActivos(arg1) {
   return window['go']['services']['TrackingService']['BuscarEstudiantesActivos'](arg1);
 }
 
+export function CrearCaso(arg1) {
+  return window['go']['services']['TrackingService']['CrearCaso'](arg1);
+}
+
 export function CrearLlamado(arg1) {
   return window['go']['services']['TrackingService']['CrearLlamado'](arg1);
+}
+
+export function EliminarEvidenciaCaso(arg1, arg2) {
+  return window['go']['services']['TrackingService']['EliminarEvidenciaCaso'](arg1, arg2);
 }
 
 export function LeerArchivoParaVista(arg1) {
   return window['go']['services']['TrackingService']['LeerArchivoParaVista'](arg1);
 }
 
+export function ListarCasos(arg1) {
+  return window['go']['services']['TrackingService']['ListarCasos'](arg1);
+}
+
 export function ListarLlamados(arg1) {
   return window['go']['services']['TrackingService']['ListarLlamados'](arg1);
+}
+
+export function ObtenerCaso(arg1) {
+  return window['go']['services']['TrackingService']['ObtenerCaso'](arg1);
 }
 
 export function ObtenerLlamado(arg1) {
@@ -32,4 +48,8 @@ export function SetContext(arg1) {
 
 export function SubirDocumentoDisciplina(arg1, arg2, arg3) {
   return window['go']['services']['TrackingService']['SubirDocumentoDisciplina'](arg1, arg2, arg3);
+}
+
+export function SubirEvidenciaCaso(arg1, arg2) {
+  return window['go']['services']['TrackingService']['SubirEvidenciaCaso'](arg1, arg2);
 }

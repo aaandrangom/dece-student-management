@@ -5,11 +5,19 @@ import {context} from '../models';
 
 export function BuscarEstudiantesActivos(arg1:string):Promise<Array<tracking.EstudianteDisciplinaDTO>>;
 
+export function CrearCaso(arg1:tracking.GuardarCasoDTO):Promise<tracking.CasoSensible>;
+
 export function CrearLlamado(arg1:tracking.GuardarLlamadoDTO):Promise<tracking.LlamadoAtencion>;
+
+export function EliminarEvidenciaCaso(arg1:number,arg2:string):Promise<void>;
 
 export function LeerArchivoParaVista(arg1:string):Promise<string>;
 
+export function ListarCasos(arg1:number):Promise<Array<tracking.CasoResumenDTO>>;
+
 export function ListarLlamados(arg1:number):Promise<Array<tracking.LlamadoResumenDTO>>;
+
+export function ObtenerCaso(arg1:number):Promise<tracking.GuardarCasoDTO>;
 
 export function ObtenerLlamado(arg1:number):Promise<tracking.GuardarLlamadoDTO>;
 
@@ -18,3 +26,5 @@ export function SeleccionarArchivo(arg1:string):Promise<string>;
 export function SetContext(arg1:context.Context):Promise<void>;
 
 export function SubirDocumentoDisciplina(arg1:number,arg2:string,arg3:string):Promise<string>;
+
+export function SubirEvidenciaCaso(arg1:number,arg2:string):Promise<string>;

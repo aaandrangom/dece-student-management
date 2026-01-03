@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	dto "dece/internal/application/dtos/tracking"
+	"dece/internal/domain/academic"
 	"dece/internal/domain/common"
 	"dece/internal/domain/tracking"
 	"encoding/base64"
@@ -30,11 +31,6 @@ func (s *TrackingService) SetContext(ctx context.Context) {
 	s.ctx = ctx
 }
 
-// =============================================================================
-// MÉTODOS DE NEGOCIO: GESTIÓN DE DATOS (CRUD)
-// =============================================================================
-
-// ListarLlamados obtiene el historial disciplinario de una matrícula específica.
 func (s *TrackingService) ListarLlamados(matriculaID uint) ([]dto.LlamadoResumenDTO, error) {
 	var llamados []tracking.LlamadoAtencion
 
@@ -67,7 +63,6 @@ func (s *TrackingService) ListarLlamados(matriculaID uint) ([]dto.LlamadoResumen
 	return response, nil
 }
 
-// ObtenerLlamado devuelve todos los detalles para llenar el formulario de edición.
 func (s *TrackingService) ObtenerLlamado(id uint) (*dto.GuardarLlamadoDTO, error) {
 	var l tracking.LlamadoAtencion
 
@@ -98,7 +93,6 @@ func (s *TrackingService) ObtenerLlamado(id uint) (*dto.GuardarLlamadoDTO, error
 	return datos, nil
 }
 
-// CrearLlamado guarda o actualiza un registro, preservando archivos existentes.
 func (s *TrackingService) CrearLlamado(input dto.GuardarLlamadoDTO) (*tracking.LlamadoAtencion, error) {
 	var llamado tracking.LlamadoAtencion
 	var rutaResolucionPrevia string
@@ -146,11 +140,6 @@ func (s *TrackingService) CrearLlamado(input dto.GuardarLlamadoDTO) (*tracking.L
 	return &llamado, nil
 }
 
-// =============================================================================
-// MÉTODOS DE GESTIÓN DE ARCHIVOS (SUBIDAS)
-// =============================================================================
-
-// SubirActa copia el PDF seleccionado a la carpeta segura del sistema.
 func (s *TrackingService) SubirDocumentoDisciplina(llamadoID uint, tipoDoc string, rutaOrigen string) (string, error) {
 	var llamado tracking.LlamadoAtencion
 
@@ -232,11 +221,6 @@ func (s *TrackingService) SubirDocumentoDisciplina(llamadoID uint, tipoDoc strin
 	return rutaDestinoCompleta, nil
 }
 
-// =============================================================================
-// MÉTODOS DE INTERFAZ WAILS (SELECCIÓN Y VISTA PREVIA)
-// =============================================================================
-
-// SeleccionarArchivo abre el diálogo nativo del SO y retorna la ruta del archivo elegido.
 func (s *TrackingService) SeleccionarArchivo(tipo string) (string, error) {
 	var filters []runtime.FileFilter
 
@@ -266,8 +250,6 @@ func (s *TrackingService) SeleccionarArchivo(tipo string) (string, error) {
 	return selection, nil
 }
 
-// LeerArchivoParaVista lee un archivo local y retorna su contenido en Base64
-// para poder mostrarlo en el Frontend (<img> o <embed>).
 func (s *TrackingService) LeerArchivoParaVista(ruta string) (string, error) {
 	if ruta == "" {
 		return "", nil
@@ -327,4 +309,216 @@ func (s *TrackingService) BuscarEstudiantesActivos(query string) ([]dto.Estudian
 	}
 
 	return resultados, nil
+}
+
+func (s *TrackingService) ListarCasos(estudianteID uint) ([]dto.CasoResumenDTO, error) {
+	var casos []tracking.CasoSensible
+
+	// Buscamos por EstudianteID (Historial completo, no solo del año actual)
+	result := s.db.Where("estudiante_id = ?", estudianteID).
+		Order("fecha_deteccion DESC").
+		Find(&casos)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	response := make([]dto.CasoResumenDTO, len(casos))
+	for i, c := range casos {
+		// Contamos cuántos archivos hay en el array
+		evidencias := c.RutasDocumentos.Data
+		if evidencias == nil {
+			evidencias = []string{}
+		}
+
+		response[i] = dto.CasoResumenDTO{
+			ID:                c.ID,
+			CodigoCaso:        c.CodigoCaso,
+			FechaDeteccion:    c.FechaDeteccion,
+			EntidadDerivacion: c.EntidadDerivacion,
+			Estado:            c.Estado,
+			TotalEvidencias:   len(evidencias),
+			RutasEvidencias:   evidencias,
+		}
+	}
+
+	return response, nil
+}
+
+func (s *TrackingService) ObtenerCaso(id uint) (*dto.GuardarCasoDTO, error) {
+	var c tracking.CasoSensible
+	if err := s.db.First(&c, id).Error; err != nil {
+		return nil, errors.New("caso no encontrado")
+	}
+
+	return &dto.GuardarCasoDTO{
+		ID:                c.ID,
+		EstudianteID:      c.EstudianteID,
+		FechaDeteccion:    c.FechaDeteccion,
+		EntidadDerivacion: c.EntidadDerivacion,
+		Descripcion:       c.Descripcion,
+		Estado:            c.Estado,
+	}, nil
+}
+
+func (s *TrackingService) CrearCaso(input dto.GuardarCasoDTO) (*tracking.CasoSensible, error) {
+	// 1. Validaciones previas
+	if input.ID == 0 {
+		// Si es nuevo, necesitamos el Periodo Activo
+		var periodoActivo academic.PeriodoLectivo
+		if err := s.db.Where("es_activo = ?", true).First(&periodoActivo).Error; err != nil {
+			return nil, errors.New("no hay un periodo lectivo activo para registrar el caso")
+		}
+
+		// 2. Generar Código: CASO-{AÑO}-{SECUENCIAL}
+		year := time.Now().Year()
+		var count int64
+		// Contamos casos de este año para el secuencial
+		likeStr := fmt.Sprintf("CASO-%d-%%", year)
+		s.db.Model(&tracking.CasoSensible{}).Where("codigo_caso LIKE ?", likeStr).Count(&count)
+
+		input.Estado = "Abierto" // Estado inicial por defecto
+
+		// Ejemplo: CASO-2025-001
+		codigoGenerado := fmt.Sprintf("CASO-%d-%03d", year, count+1)
+
+		caso := tracking.CasoSensible{
+			EstudianteID:      input.EstudianteID,
+			PeriodoID:         periodoActivo.ID,
+			CodigoCaso:        codigoGenerado,
+			FechaDeteccion:    input.FechaDeteccion,
+			EntidadDerivacion: input.EntidadDerivacion,
+			Descripcion:       input.Descripcion,
+			Estado:            input.Estado,
+			// Inicializamos el array vacío para evitar null pointers
+			RutasDocumentos: common.JSONMap[[]string]{Data: []string{}},
+		}
+
+		if err := s.db.Create(&caso).Error; err != nil {
+			return nil, err
+		}
+		return &caso, nil
+
+	} else {
+		// 3. Edición (No cambiamos código ni periodo)
+		var caso tracking.CasoSensible
+		if err := s.db.First(&caso, input.ID).Error; err != nil {
+			return nil, errors.New("caso no encontrado")
+		}
+
+		caso.FechaDeteccion = input.FechaDeteccion
+		caso.EntidadDerivacion = input.EntidadDerivacion
+		caso.Descripcion = input.Descripcion
+		caso.Estado = input.Estado
+
+		if err := s.db.Save(&caso).Error; err != nil {
+			return nil, err
+		}
+		return &caso, nil
+	}
+}
+
+func (s *TrackingService) SubirEvidenciaCaso(casoID uint, rutaOrigen string) (string, error) {
+	var caso tracking.CasoSensible
+
+	// 1. Buscar Caso
+	if err := s.db.First(&caso, casoID).Error; err != nil {
+		return "", errors.New("caso sensible no encontrado")
+	}
+
+	// 2. Definir Directorio SEGURO (Sensitive)
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", errors.New("error de sistema de archivos")
+	}
+	// Carpeta separada "Sensitive"
+	destinoDir := filepath.Join(homeDir, "Documents", "SistemaDECE", "Sensitive", caso.CodigoCaso)
+	if err := os.MkdirAll(destinoDir, 0755); err != nil {
+		return "", fmt.Errorf("error al crear carpeta segura: %v", err)
+	}
+
+	// 3. Generar nombre de archivo
+	ext := filepath.Ext(rutaOrigen)
+	if ext == "" {
+		ext = ".pdf"
+	}
+	// EVID_{TIMESTAMP}.pdf
+	nuevoNombre := fmt.Sprintf("EVID_%d%s", time.Now().UnixMilli(), ext)
+	rutaDestinoCompleta := filepath.Join(destinoDir, nuevoNombre)
+
+	// 4. Copiar Archivo
+	src, err := os.Open(rutaOrigen)
+	if err != nil {
+		return "", err
+	}
+	defer src.Close()
+
+	dst, err := os.Create(rutaDestinoCompleta)
+	if err != nil {
+		return "", err
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, src); err != nil {
+		return "", err
+	}
+
+	// 5. ACTUALIZAR LISTA JSON EN BASE DE DATOS
+	// Obtenemos la lista actual
+	listaActual := caso.RutasDocumentos.Data
+	if listaActual == nil {
+		listaActual = []string{}
+	}
+
+	// Agregamos la nueva ruta
+	listaActual = append(listaActual, rutaDestinoCompleta)
+
+	// Guardamos de vuelta
+	caso.RutasDocumentos = common.JSONMap[[]string]{Data: listaActual}
+
+	if err := s.db.Save(&caso).Error; err != nil {
+		return "", fmt.Errorf("evidencia guardada pero error al actualizar BD: %v", err)
+	}
+
+	return rutaDestinoCompleta, nil
+}
+
+// EliminarEvidenciaCaso elimina un archivo de evidencia del caso y actualiza la lista en BD
+func (s *TrackingService) EliminarEvidenciaCaso(casoID uint, ruta string) error {
+	var caso tracking.CasoSensible
+
+	// 1. Buscar Caso
+	if err := s.db.First(&caso, casoID).Error; err != nil {
+		return errors.New("caso sensible no encontrado")
+	}
+
+	// 2. Eliminar archivo físico si existe
+	if ruta != "" {
+		if _, err := os.Stat(ruta); err == nil {
+			if err := os.Remove(ruta); err != nil {
+				return fmt.Errorf("no se pudo eliminar el archivo: %v", err)
+			}
+		}
+	}
+
+	// 3. Actualizar lista de rutas en la entidad (filtrar la ruta eliminada)
+	listaActual := caso.RutasDocumentos.Data
+	if listaActual == nil {
+		listaActual = []string{}
+	}
+
+	nuevaLista := make([]string, 0, len(listaActual))
+	for _, r := range listaActual {
+		if r != ruta {
+			nuevaLista = append(nuevaLista, r)
+		}
+	}
+
+	caso.RutasDocumentos = common.JSONMap[[]string]{Data: nuevaLista}
+
+	if err := s.db.Save(&caso).Error; err != nil {
+		return fmt.Errorf("error al actualizar BD: %v", err)
+	}
+
+	return nil
 }
