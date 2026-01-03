@@ -21,6 +21,9 @@ import StudentsPage from './pages/student/Student';
 import EnrollmentManager from './pages/Enrollment/EnrollmentManager';
 
 import DisciplineManagerPage from './pages/Tracking/DisciplineManagerPage';
+
+import MeetingManager from './pages/Management/MeetingManager';
+
 /*import Dashboard from './pages/Dashboard';
 //import GenericPage from './pages/GenericPage';
 import AcademicYearsPage from './pages/AcademicYearsPage';
@@ -93,6 +96,8 @@ const MainLayout = () => {
             <Route path="/estudiantes/ficha-dece" element={<EnrollmentManager />} />
 
             <Route path="/dece" element={<DisciplineManagerPage />} />
+
+            <Route path="/agenda/convocatorias" element={<MeetingManager />} />
             {/* 
            
             <Route path="/panel-principal" element={<Dashboard />} />

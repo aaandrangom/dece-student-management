@@ -1142,6 +1142,169 @@ export namespace faculty {
 
 }
 
+export namespace management {
+	
+	export class ActualizarCitaDTO {
+	    id: number;
+	    matricula_id: number;
+	    entidad: string;
+	    motivo: string;
+	    fecha_cita: string;
+	    dias_alerta: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ActualizarCitaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.matricula_id = source["matricula_id"];
+	        this.entidad = source["entidad"];
+	        this.motivo = source["motivo"];
+	        this.fecha_cita = source["fecha_cita"];
+	        this.dias_alerta = source["dias_alerta"];
+	    }
+	}
+	export class AgendarCitaDTO {
+	    matricula_id: number;
+	    entidad: string;
+	    motivo: string;
+	    fecha_cita: string;
+	    dias_alerta: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new AgendarCitaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.matricula_id = source["matricula_id"];
+	        this.entidad = source["entidad"];
+	        this.motivo = source["motivo"];
+	        this.fecha_cita = source["fecha_cita"];
+	        this.dias_alerta = source["dias_alerta"];
+	    }
+	}
+	export class CitaDetalleDTO {
+	    id: number;
+	    matricula_id: number;
+	    entidad: string;
+	    motivo: string;
+	    fecha_cita: string;
+	    dias_alerta: number;
+	    completada: boolean;
+	    curso: string;
+	    nombres: string;
+	    apellidos: string;
+	    nombre_completo: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CitaDetalleDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.matricula_id = source["matricula_id"];
+	        this.entidad = source["entidad"];
+	        this.motivo = source["motivo"];
+	        this.fecha_cita = source["fecha_cita"];
+	        this.dias_alerta = source["dias_alerta"];
+	        this.completada = source["completada"];
+	        this.curso = source["curso"];
+	        this.nombres = source["nombres"];
+	        this.apellidos = source["apellidos"];
+	        this.nombre_completo = source["nombre_completo"];
+	    }
+	}
+	export class CitaResumenDTO {
+	    id: number;
+	    fecha_hora: string;
+	    entidad: string;
+	    motivo: string;
+	    estudiante_nombre: string;
+	    curso: string;
+	    completada: boolean;
+	    alerta: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new CitaResumenDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.fecha_hora = source["fecha_hora"];
+	        this.entidad = source["entidad"];
+	        this.motivo = source["motivo"];
+	        this.estudiante_nombre = source["estudiante_nombre"];
+	        this.curso = source["curso"];
+	        this.completada = source["completada"];
+	        this.alerta = source["alerta"];
+	    }
+	}
+	export class Convocatoria {
+	    id: number;
+	    matricula_id: number;
+	    entidad: string;
+	    motivo: string;
+	    fecha_cita: string;
+	    dias_alerta: number;
+	    cita_completada: boolean;
+	    matricula: enrollment.Matricula;
+	
+	    static createFrom(source: any = {}) {
+	        return new Convocatoria(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.matricula_id = source["matricula_id"];
+	        this.entidad = source["entidad"];
+	        this.motivo = source["motivo"];
+	        this.fecha_cita = source["fecha_cita"];
+	        this.dias_alerta = source["dias_alerta"];
+	        this.cita_completada = source["cita_completada"];
+	        this.matricula = this.convertValues(source["matricula"], enrollment.Matricula);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class FiltroCitasDTO {
+	    tipo: string;
+	    fecha_solo: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FiltroCitasDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tipo = source["tipo"];
+	        this.fecha_solo = source["fecha_solo"];
+	    }
+	}
+
+}
+
 export namespace student {
 	
 	export class DatosFamiliar {

@@ -7,9 +7,12 @@ import (
 )
 
 type Convocatoria struct {
-	ID             uint   `gorm:"primaryKey" json:"id"`
-	MatriculaID    uint   `json:"matricula_id"`
-	Entidad        string `json:"entidad"`
+	ID          uint   `gorm:"primaryKey" json:"id"`
+	MatriculaID uint   `json:"matricula_id"`
+	Entidad     string `json:"entidad"`
+
+	Motivo string `json:"motivo"`
+
 	FechaCita      string `json:"fecha_cita"`
 	DiasAlerta     int    `json:"dias_alerta"`
 	CitaCompletada bool   `json:"cita_completada"`
@@ -18,9 +21,11 @@ type Convocatoria struct {
 }
 
 type AudienciaCapacitacion struct {
-	GrupoObjetivo string `json:"grupo_objetivo"`
-	Grado         string `json:"grado,omitempty"`
-	Asistentes    int    `json:"asistentes,omitempty"`
+	GrupoObjetivo         string `json:"grupo_objetivo"`
+	JornadaDocentes       string `json:"jornada_docentes"`
+	GradoEspecifico       string `json:"grado_especifico"`
+	ParaleloEspecifico    string `json:"paralelo_especifico"`
+	CantidadBeneficiarios int    `json:"cantidad_beneficiarios"`
 }
 
 type Capacitacion struct {
@@ -31,6 +36,5 @@ type Capacitacion struct {
 
 	DetalleAudiencia common.JSONMap[AudienciaCapacitacion] `gorm:"type:text" json:"detalle_audiencia"`
 	RutaEvidencia    string                                `json:"ruta_evidencia"`
-
-	Periodo academic.PeriodoLectivo `gorm:"foreignKey:PeriodoID" json:"periodo"`
+	Periodo          academic.PeriodoLectivo               `gorm:"foreignKey:PeriodoID" json:"periodo"`
 }

@@ -79,85 +79,7 @@ export const menuOptions = [
     {
         title: "Seguimiento DECE",
         path: "/dece",
-        icon: "HeartHandshake",
-        /*  subOptions: [
-              {
-                  title: "Violencia y Derivaciones",
-                  path: "/dece/violence",
-                  icon: "ShieldAlert"
-              },
-              {
-                  title: "Disciplina y Conducta",
-                  path: "/dece/discipline",
-                  icon: "FileWarning"
-              },
-              {
-                  title: "Vulnerabilidad y Salud",
-                  path: "/dece/vulnerability",
-                  icon: "Activity"
-              }
-          ]*/
-    },
-    {
-        title: "Estudiantes",
-        path: "/students",
-        icon: "GraduationCap",
-        subOptions: [
-            {
-                title: "Directorio General",
-                path: "/students/list",
-                icon: "Users"
-            },
-            {
-                title: "Matriculación",
-                path: "/students/enrollment",
-                icon: "UserPlus"
-            },
-            {
-                title: "Historial de Bajas",
-                path: "/students/archived",
-                icon: "Archive"
-            }
-        ]
-    },
-    {
-        title: "Gestión DECE",
-        path: "/dece",
-        icon: "HeartHandshake",
-        subOptions: [
-            {
-                title: "Violencia y Derivaciones",
-                path: "/dece/violence",
-                icon: "ShieldAlert"
-            },
-            {
-                title: "Disciplina y Conducta",
-                path: "/dece/discipline",
-                icon: "FileWarning"
-            },
-            {
-                title: "Vulnerabilidad y Salud",
-                path: "/dece/vulnerability",
-                icon: "Activity"
-            }
-        ]
-    },
-    {
-        title: "Académico",
-        path: "/academic",
-        icon: "Library",
-        subOptions: [
-            {
-                title: "Aulas",
-                path: "/academic/classrooms",
-                icon: "School"
-            },
-            {
-                title: "Docentes",
-                path: "/academic/teachers",
-                icon: "Briefcase"
-            },
-        ]
+        icon: "HeartHandshake"
     },
     {
         title: "Agenda y Citas",
@@ -166,16 +88,38 @@ export const menuOptions = [
         subOptions: [
             {
                 title: "Convocatorias",
-                path: "/agenda/appointments",
+                path: "/agenda/convocatorias",
                 icon: "BellRing"
             },
             {
                 title: "Capacitaciones",
-                path: "/agenda/trainings",
+                path: "/agenda/capacitaciones",
                 icon: "Presentation"
             }
         ]
     },
+    /* {
+         title: "Estudiantes",
+         path: "/students",
+         icon: "GraduationCap",
+         subOptions: [
+             {
+                 title: "Directorio General",
+                 path: "/students/list",
+                 icon: "Users"
+             },
+             {
+                 title: "Matriculación",
+                 path: "/students/enrollment",
+                 icon: "UserPlus"
+             },
+             {
+                 title: "Historial de Bajas",
+                 path: "/students/archived",
+                 icon: "Archive"
+             }
+         ]
+     },   */  
     {
         title: "Configuración",
         path: "/settings",

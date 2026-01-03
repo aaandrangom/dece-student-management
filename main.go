@@ -11,6 +11,7 @@ import (
 	academic "dece/internal/application/services/academic"
 	enrollment "dece/internal/application/services/enrollment"
 	faculty "dece/internal/application/services/faculty"
+	management "dece/internal/application/services/management"
 	security "dece/internal/application/services/security"
 	student "dece/internal/application/services/student"
 	tracking "dece/internal/application/services/tracking"
@@ -40,6 +41,8 @@ func main() {
 	enrollmentService := enrollment.NewEnrollmentService(db)
 
 	trackingService := tracking.NewTrackingService(db)
+
+	managementService := management.NewManagementService(db)
 
 	app := NewApp(enrollmentService, trackingService)
 
@@ -73,6 +76,8 @@ func main() {
 			enrollmentService,
 
 			trackingService,
+
+			managementService,
 		},
 	})
 
