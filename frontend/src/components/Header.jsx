@@ -34,7 +34,6 @@ const Header = () => {
     try {
       await markAsRead(id);
     } catch {
-      // ignore
     }
     setShowNotifications(false);
     navigate(`/notificaciones?open=${id}`);

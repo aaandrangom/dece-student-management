@@ -10,15 +10,14 @@ import { ObtenerDistributivo, AsignarDocenteMateria, EliminarAsignacion } from '
 import { ListarDocentes } from '../../../wailsjs/go/services/TeacherService';
 
 export default function DistributivoView({ course, onBack }) {
-    const [allMaterias, setAllMaterias] = useState([]); // Todo el catálogo (asignadas y no asignadas)
+    const [allMaterias, setAllMaterias] = useState([]);
     const [teachers, setTeachers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Estados para el Modal de Agregar
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedMateria, setSelectedMateria] = useState(null); // Materia seleccionada en el modal
-    const [selectedTeacherId, setSelectedTeacherId] = useState(""); // Docente seleccionado en el modal
+    const [selectedMateria, setSelectedMateria] = useState(null);
+    const [selectedTeacherId, setSelectedTeacherId] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -42,23 +41,16 @@ export default function DistributivoView({ course, onBack }) {
         }
     };
 
-    // --- LÓGICA DE FILTRADO ---
-
-    // 1. Materias que YA tiene el curso (para la tabla principal)
     const assignedMaterias = useMemo(() => {
         return allMaterias.filter(m => m.docente_id && m.docente_id !== 0);
     }, [allMaterias]);
 
-    // 2. Materias DISPONIBLES para agregar (para el buscador del modal)
     const availableMaterias = useMemo(() => {
         return allMaterias.filter(m =>
-            (!m.docente_id || m.docente_id === 0) && // Que no tenga docente
-            m.materia_nombre.toLowerCase().includes(searchTerm.toLowerCase()) // Filtro de búsqueda
+            (!m.docente_id || m.docente_id === 0) &&
+            m.materia_nombre.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [allMaterias, searchTerm]);
-
-
-    // --- ACCIONES ---
 
     const handleSaveAssignment = async () => {
         if (!selectedMateria || !selectedTeacherId) {
@@ -76,7 +68,6 @@ export default function DistributivoView({ course, onBack }) {
 
             await AsignarDocenteMateria(payload);
 
-            // Actualizar estado local
             const teacherObj = teachers.find(t => t.id == selectedTeacherId);
             setAllMaterias(prev => prev.map(m => {
                 if (m.materia_id === selectedMateria.materia_id) {
@@ -114,7 +105,6 @@ export default function DistributivoView({ course, onBack }) {
         if (!result.isConfirmed) return;
 
         try {
-            // Llamada directa al método importado del backend
             await EliminarAsignacion(parseInt(course.id), parseInt(materia.materia_id));
 
             setAllMaterias(prev => prev.map(m => {
@@ -148,7 +138,6 @@ export default function DistributivoView({ course, onBack }) {
 
             <div className="w-full flex flex-col gap-6">
 
-                {/* HEADER */}
                 <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4 w-full sm:w-auto">
                         <button
@@ -178,7 +167,6 @@ export default function DistributivoView({ course, onBack }) {
                     </button>
                 </div>
 
-                {/* TABLA PRINCIPAL: SOLO MATERIAS ASIGNADAS */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -224,7 +212,6 @@ export default function DistributivoView({ course, onBack }) {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                {/* Aquí podrías poner un botón de Editar Docente si quisieras */}
                                                 <button
                                                     onClick={() => handleRemoveAssignment(item)}
                                                     className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
@@ -242,12 +229,10 @@ export default function DistributivoView({ course, onBack }) {
                 </div>
             </div>
 
-            {/* --- MODAL PARA AGREGAR MATERIA --- */}
             {isAddModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
 
-                        {/* Modal Header */}
                         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                             <div>
                                 <h3 className="font-bold text-lg text-slate-800">Agregar Materia al Curso</h3>
@@ -258,10 +243,8 @@ export default function DistributivoView({ course, onBack }) {
                             </button>
                         </div>
 
-                        {/* Modal Body */}
                         <div className="p-6 flex flex-col gap-6 overflow-hidden">
 
-                            {/* PASO 1: Selección de Materia */}
                             <div className="flex flex-col gap-3 flex-1 min-h-0">
                                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">1. Buscar Materia</label>
                                 <div className="relative">
@@ -272,7 +255,7 @@ export default function DistributivoView({ course, onBack }) {
                                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        disabled={!!selectedMateria} // Deshabilitar si ya seleccionó
+                                        disabled={!!selectedMateria}
                                     />
                                     {selectedMateria && (
                                         <button
@@ -284,7 +267,6 @@ export default function DistributivoView({ course, onBack }) {
                                     )}
                                 </div>
 
-                                {/* Lista de resultados (Catálogo) */}
                                 {!selectedMateria && (
                                     <div className="border border-slate-200 rounded-xl overflow-y-auto h-48 bg-slate-50/30">
                                         {availableMaterias.length === 0 ? (
@@ -311,7 +293,6 @@ export default function DistributivoView({ course, onBack }) {
                                 )}
                             </div>
 
-                            {/* PASO 2: Selección de Docente (Solo aparece si se eligió materia) */}
                             {selectedMateria && (
                                 <div className="flex flex-col gap-3 animate-in slide-in-from-bottom-2 fade-in">
                                     <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg flex items-center gap-3">
@@ -338,7 +319,6 @@ export default function DistributivoView({ course, onBack }) {
 
                         </div>
 
-                        {/* Modal Footer */}
                         <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
                             <button
                                 onClick={closeModal}

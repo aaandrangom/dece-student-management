@@ -23,7 +23,6 @@ export default function CoursesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Estados para Paginación
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -37,7 +36,7 @@ export default function CoursesPage() {
         tutor_id: ''
     });
 
-    const [viewMode, setViewMode] = useState('list'); // 'list' o 'distributivo'
+    const [viewMode, setViewMode] = useState('list');
     const [selectedCourse, setSelectedCourse] = useState(null);
 
     const jornadas = ['Matutina', 'Vespertina', 'Nocturna'];
@@ -47,7 +46,6 @@ export default function CoursesPage() {
         loadInitialData();
     }, []);
 
-    // Resetear a la página 1 cuando se busca
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm]);
@@ -120,7 +118,7 @@ export default function CoursesPage() {
         setIsCreateModalOpen(true);
     };
 
-    const handleDelete = async (course, e) => { // Implemented handleDelete function
+    const handleDelete = async (course, e) => {
         if (e) e.stopPropagation();
 
         const result = await Swal.fire({
@@ -160,11 +158,9 @@ export default function CoursesPage() {
             return;
         }
 
-        // --- VALIDACIÓN DE TUTOR DUPLICADO ---
         if (formData.tutor_id) {
             const tutorIdInt = parseInt(formData.tutor_id);
 
-            // Buscar si ya existe un curso con este tutor (excluyendo el curso actual si estamos editando)
             const cursoConTutor = courses.find(c =>
                 c.tutor_id === tutorIdInt &&
                 (!isEditMode || c.id !== editingId)
@@ -172,10 +168,9 @@ export default function CoursesPage() {
 
             if (cursoConTutor) {
                 toast.warning(`El docente seleccionado ya es tutor del curso ${cursoConTutor.nivel_nombre} "${cursoConTutor.paralelo}"`);
-                return; // Detener el guardado
+                return;
             }
         }
-        // -------------------------------------
 
         try {
             const payload = {
@@ -201,13 +196,11 @@ export default function CoursesPage() {
         }
     };
 
-    // Lógica de Filtrado
     const filteredCourses = courses.filter(c =>
         c.nombre_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.tutor_nombre.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Lógica de Paginación
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredCourses.slice(indexOfFirstItem, indexOfLastItem);
@@ -237,7 +230,6 @@ export default function CoursesPage() {
 
             <div className="w-full flex flex-col gap-6">
 
-                {/* Header */}
                 <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4 w-full sm:w-auto">
                         <div className="p-3 bg-purple-50 rounded-xl border border-purple-100 shadow-sm">
@@ -269,7 +261,6 @@ export default function CoursesPage() {
                     </button>
                 </div>
 
-                {/* Controles de Tabla (Búsqueda y Selector de Filas) */}
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="relative w-full sm:w-96">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -301,7 +292,6 @@ export default function CoursesPage() {
                     </div>
                 </div>
 
-                {/* Tabla de Resultados */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -397,7 +387,6 @@ export default function CoursesPage() {
                         </div>
                     )}
 
-                    {/* Footer de Paginación */}
                     {!isLoading && filteredCourses.length > 0 && (
                         <div className="px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50">
                             <span className="text-sm text-slate-500">
@@ -422,7 +411,6 @@ export default function CoursesPage() {
 
                                 <div className="flex items-center gap-1 mx-2">
                                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                        // Lógica simple para mostrar páginas cercanas (se puede mejorar para muchas páginas)
                                         let pageNum = i + 1;
                                         if (totalPages > 5 && currentPage > 3) {
                                             pageNum = currentPage - 2 + i;
@@ -464,7 +452,6 @@ export default function CoursesPage() {
                 </div>
             </div>
 
-            {/* Modal de Creación/Edición (Se mantiene igual pero lo incluyo completo) */}
             {isCreateModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all animate-in fade-in">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 scale-100 transform transition-all">
@@ -482,7 +469,6 @@ export default function CoursesPage() {
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                            {/* ... (Formulario interno se mantiene igual, solo lógica de submit cambió) ... */}
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Nivel Educativo</label>
                                 <select

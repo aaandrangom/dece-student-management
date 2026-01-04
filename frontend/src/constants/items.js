@@ -97,29 +97,7 @@ export const menuOptions = [
                 icon: "Presentation"
             }
         ]
-    },
-    /* {
-         title: "Estudiantes",
-         path: "/students",
-         icon: "GraduationCap",
-         subOptions: [
-             {
-                 title: "Directorio General",
-                 path: "/students/list",
-                 icon: "Users"
-             },
-             {
-                 title: "Matriculación",
-                 path: "/students/enrollment",
-                 icon: "UserPlus"
-             },
-             {
-                 title: "Historial de Bajas",
-                 path: "/students/archived",
-                 icon: "Archive"
-             }
-         ]
-     },   */  
+    }, 
     {
         title: "Configuración",
         path: "/settings",

@@ -40,7 +40,6 @@ const Sidebar = () => {
       }}
       onMouseLeave={() => setHoveredItem(null)}
     >
-      {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-white/10 h-20 overflow-hidden shrink-0">
         <div className="shrink-0 w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shadow-md ring-1 ring-white/10">
           <HeartHandshake className="w-6 h-6 text-white" />
@@ -60,7 +59,6 @@ const Sidebar = () => {
         <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 space-y-1 custom-scrollbar">
         {menuOptions.map((item, index) => (
           <MemoizedSidebarItem
@@ -73,7 +71,6 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* Footer */}
       <div className="p-4 border-t border-white/10 shrink-0">
         <Link
           to="/"
@@ -87,7 +84,6 @@ const Sidebar = () => {
         </Link>
       </div>
 
-      {/* Menú Flotante (Tooltip/Submenú para modo colapsado) */}
       {isCollapsed && hoveredItem && hoveredItem.subOptions && (
         <div
           className="fixed z-9999 bg-[#3d1866] rounded-xl shadow-2xl border border-white/20 w-56 py-2 backdrop-blur-xl bg-opacity-95"

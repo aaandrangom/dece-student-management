@@ -232,7 +232,7 @@ export default function MeetingManager() {
         }
 
         const rect = anchorEl.getBoundingClientRect();
-        const menuEstimatedHeight = 132; // ~3 items
+        const menuEstimatedHeight = 132;
         const openUp = rect.bottom + menuEstimatedHeight > window.innerHeight - 8;
 
         setOpenActions({ id: citaId, rect, openUp });

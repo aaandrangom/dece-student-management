@@ -7,17 +7,17 @@ import SecurityWrapper from './components/SecurityWrapper';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 
-import Dashboard from './pages/Dashboard';
-import NotificationsPage from './pages/NotificationsPage';
+import Dashboard from './pages/Common/Dashboard';
+import NotificationsPage from './pages/Common/NotificationsPage';
 
 import InstitutionSettings from './pages/Institution/InstitutionSettings';
 import UserSystem from './pages/Institution/UserSystem';
 
 import AcademicYearsPage from './pages/academic/AcademicYears';
-import LevelsPage from './pages/academic/Level';
-import SubjectsPage from './pages/academic/Subjects';
+import LevelsPage from './pages/Academic/Level';
+import SubjectsPage from './pages/Academic/Subjects';
 
-import TeachersPage from './pages/faculty/Teachers';
+import TeachersPage from './pages/Faculty/Teachers';
 import CoursesPage from './pages/faculty/Courses';
 
 import StudentsPage from './pages/student/Student';

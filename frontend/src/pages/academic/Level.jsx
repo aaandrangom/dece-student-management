@@ -36,17 +36,14 @@ export default function LevelsPage() {
         orden: ''
     });
 
-    // --- EFECTOS ---
     useEffect(() => {
         loadLevels();
     }, []);
 
-    // --- FUNCIONES DE CARGA ---
     const loadLevels = async () => {
         setIsLoading(true);
         try {
             const data = await ListarNiveles();
-            // Aseguramos que data sea un array, aunque venga null
             setLevels(data || []);
         } catch (error) {
             console.error(error);
@@ -56,7 +53,6 @@ export default function LevelsPage() {
         }
     };
 
-    // --- HANDLERS ---
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         const finalValue = name === 'orden' ? (value === '' ? '' : parseInt(value)) : value;
@@ -130,8 +126,8 @@ export default function LevelsPage() {
             text: `Vas a eliminar "${level.nombre}". Esta acción no se puede deshacer y solo es posible si no hay cursos asociados.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ef4444', // Red
-            cancelButtonColor: '#64748b', // Slate
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
             confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar',
             reverseButtons: true,
@@ -153,7 +149,6 @@ export default function LevelsPage() {
         }
     };
 
-    // Filtrado local
     const filteredLevels = levels.filter(l =>
         l.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         l.nombre_completo.toLowerCase().includes(searchTerm.toLowerCase())

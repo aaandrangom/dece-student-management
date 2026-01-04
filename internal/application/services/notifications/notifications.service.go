@@ -22,7 +22,7 @@ const (
 // DEBUG: Descomenta la siguiente línea para agregar una hora de prueba personalizada.
 // Formato: "HH:mm" (ej: "20:30", "15:45")
 // Comenta o deja vacío ("") para desactivar en producción.
-const testSlot = "21:48" // ← Cambia esta hora para tus pruebas
+const testSlot = "08:05" // ← Cambia esta hora para tus pruebas
 
 type NotificationsService struct {
 	db  *gorm.DB

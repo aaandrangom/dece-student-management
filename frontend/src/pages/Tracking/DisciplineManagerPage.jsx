@@ -93,8 +93,8 @@ export default function DisciplineManagerPage() {
 
     const [selectedMatriculaId, setSelectedMatriculaId] = useState(null);
     const [selectedStudentId, setSelectedStudentId] = useState(null);
-    const [selectedStudentName, setSelectedStudentName] = useState(''); // Para el título
-    const [activeView, setActiveView] = useState(null); // 'discipline', 'sensitive' or null
+    const [selectedStudentName, setSelectedStudentName] = useState('');
+    const [activeView, setActiveView] = useState(null);
 
     const hasActiveSearch = query.trim().length > 0;
 

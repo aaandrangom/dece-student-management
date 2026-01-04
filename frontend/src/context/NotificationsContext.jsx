@@ -34,11 +34,9 @@ function tryPlayNotificationSound() {
             try {
                 ctx.close();
             } catch {
-                // ignore
             }
         };
     } catch {
-        // Algunos entornos bloquean autoplay de audio; ignoramos.
     }
 }
 
@@ -56,12 +54,9 @@ export function NotificationsProvider({ children, pollMs = DEFAULT_POLL_MS }) {
     const hasFetchedOnceRef = useRef(false);
 
     useEffect(() => {
-        // Preparamos un audio real (mp3) para que el sonido sea consistente.
         audioRef.current = new Audio(notificationMp3);
         audioRef.current.preload = 'auto';
 
-        // Muchos navegadores/browsers embebidos bloquean audio hasta que haya interacción del usuario.
-        // Lo “desbloqueamos” con el primer click/tap.
         const unlock = async () => {
             if (!audioRef.current || audioUnlockedRef.current) return;
             try {
@@ -72,7 +67,6 @@ export function NotificationsProvider({ children, pollMs = DEFAULT_POLL_MS }) {
                 audioRef.current.muted = false;
                 audioUnlockedRef.current = true;
             } catch {
-                // Si falla, igual dejamos fallback (beep) y reintentaremos luego.
             }
         };
 
@@ -97,7 +91,6 @@ export function NotificationsProvider({ children, pollMs = DEFAULT_POLL_MS }) {
         prevIdsRef.current = nextIds;
 
         if (playSoundOnNew && hasFetchedOnceRef.current && newOnes.length > 0) {
-            // 1) Intentar MP3
             try {
                 if (audioRef.current) {
                     audioRef.current.currentTime = 0;
@@ -106,7 +99,6 @@ export function NotificationsProvider({ children, pollMs = DEFAULT_POLL_MS }) {
                     throw new Error('no-audio');
                 }
             } catch {
-                // 2) Fallback: beep
                 tryPlayNotificationSound();
             }
         }
@@ -118,7 +110,7 @@ export function NotificationsProvider({ children, pollMs = DEFAULT_POLL_MS }) {
         refresh({ playSoundOnNew: false });
         const id = setInterval(() => refresh({ playSoundOnNew: true }), pollMs);
         return () => clearInterval(id);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [pollMs, role]);
 
     const markAsRead = async (id) => {
