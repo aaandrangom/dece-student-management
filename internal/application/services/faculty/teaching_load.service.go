@@ -59,7 +59,7 @@ func (s *DistributivoService) AsignarDocenteMateria(input teachingLoadDTO.Asigna
 				DocenteID: input.DocenteID,
 			}
 			if err := s.db.Create(&nuevaAsignacion).Error; err != nil {
-				return fmt.Errorf("error al crear asignación: %v", err)
+				return fmt.Errorf("Error al crear asignación: %v", err)
 			}
 		} else {
 			return result.Error
@@ -67,7 +67,7 @@ func (s *DistributivoService) AsignarDocenteMateria(input teachingLoadDTO.Asigna
 	} else {
 		asignacion.DocenteID = input.DocenteID
 		if err := s.db.Save(&asignacion).Error; err != nil {
-			return fmt.Errorf("error al actualizar asignación: %v", err)
+			return fmt.Errorf("Error al actualizar asignación: %v", err)
 		}
 	}
 
@@ -80,11 +80,11 @@ func (s *DistributivoService) EliminarAsignacion(cursoID uint, materiaID uint) e
 		Delete(&faculty.DistributivoMateria{})
 
 	if result.Error != nil {
-		return fmt.Errorf("error al eliminar la asignación: %v", result.Error)
+		return fmt.Errorf("Error al eliminar la asignación: %v", result.Error)
 	}
 
 	if result.RowsAffected == 0 {
-		return errors.New("no existe asignación para eliminar en esta materia")
+		return errors.New("No existe asignación para eliminar en esta materia")
 	}
 
 	return nil

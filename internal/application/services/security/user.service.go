@@ -46,16 +46,16 @@ func (s *UserService) CambiarMiClave(id uint, claveActual string, claveNueva str
 	var user security.Usuario
 
 	if err := s.db.First(&user, id).Error; err != nil {
-		return errors.New("usuario no encontrado")
+		return errors.New("Usuario no encontrado")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.ClaveHash), []byte(claveActual)); err != nil {
-		return errors.New("la contraseña actual es incorrecta")
+		return errors.New("La contraseña actual es incorrecta")
 	}
 
 	nuevoHash, err := bcrypt.GenerateFromPassword([]byte(claveNueva), bcrypt.DefaultCost)
 	if err != nil {
-		return fmt.Errorf("error de encriptación: %v", err)
+		return fmt.Errorf("Error de encriptación: %v", err)
 	}
 
 	return s.db.Model(&user).Update("clave_hash", string(nuevoHash)).Error

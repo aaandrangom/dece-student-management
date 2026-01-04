@@ -66,7 +66,7 @@ func (s *EnrollmentService) LeerArchivoParaVista(ruta string) (string, error) {
 				}
 			}
 		}
-		return "", fmt.Errorf("no se pudo leer el archivo: %v", err)
+		return "", fmt.Errorf("No se pudo leer el archivo: %v", err)
 	}
 
 	mimeType := http.DetectContentType(data)
@@ -102,13 +102,13 @@ func (s *EnrollmentService) guardarArchivo(rutaOrigen string, subCarpeta string,
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return "", errors.New("no se pudo obtener carpeta de usuario")
+		return "", errors.New("No se pudo obtener carpeta de usuario")
 	}
 
 	destinoDir := filepath.Join(homeDir, "Documents", "SistemaDECE", subCarpeta)
 
 	if err := os.MkdirAll(destinoDir, 0755); err != nil {
-		return "", fmt.Errorf("error creando carpeta %s: %v", subCarpeta, err)
+		return "", fmt.Errorf("Error creando carpeta %s: %v", subCarpeta, err)
 	}
 
 	ext := filepath.Ext(rutaOrigen)
@@ -121,18 +121,18 @@ func (s *EnrollmentService) guardarArchivo(rutaOrigen string, subCarpeta string,
 
 	srcFile, err := os.Open(rutaOrigen)
 	if err != nil {
-		return "", fmt.Errorf("no se pudo leer el archivo original: %v", err)
+		return "", fmt.Errorf("No se pudo leer el archivo original: %v", err)
 	}
 	defer srcFile.Close()
 
 	dstFile, err := os.Create(rutaDestino)
 	if err != nil {
-		return "", fmt.Errorf("no se pudo crear el archivo destino: %v", err)
+		return "", fmt.Errorf("No se pudo crear el archivo destino: %v", err)
 	}
 	defer dstFile.Close()
 
 	if _, err := io.Copy(dstFile, srcFile); err != nil {
-		return "", fmt.Errorf("error copiando datos: %v", err)
+		return "", fmt.Errorf("Error copiando datos: %v", err)
 	}
 
 	return rutaDestino, nil
@@ -178,7 +178,7 @@ func (s *EnrollmentService) GuardarMatricula(input enrollmentDTO.GuardarMatricul
 
 	var est student.Estudiante
 	if err := s.db.Select("cedula").First(&est, input.EstudianteID).Error; err != nil {
-		return nil, errors.New("estudiante no encontrado para procesar archivos")
+		return nil, errors.New("Estudiante no encontrado para procesar archivos")
 	}
 
 	if input.DatosSalud.TieneEvalPsicopedagogica && input.DatosSalud.RutaEvalPsicopedagogica != "" {
@@ -212,7 +212,7 @@ func (s *EnrollmentService) GuardarMatricula(input enrollmentDTO.GuardarMatricul
 	if input.ID == 0 {
 		var curso faculty.Curso
 		if err := s.db.First(&curso, input.CursoID).Error; err != nil {
-			return nil, errors.New("el curso seleccionado no existe")
+			return nil, errors.New("El curso seleccionado no existe")
 		}
 
 		var count int64
@@ -222,7 +222,7 @@ func (s *EnrollmentService) GuardarMatricula(input enrollmentDTO.GuardarMatricul
 			Count(&count)
 
 		if count > 0 {
-			return nil, errors.New("el estudiante ya se encuentra matriculado en este periodo lectivo")
+			return nil, errors.New("El estudiante ya se encuentra matriculado en este periodo lectivo")
 		}
 	}
 
@@ -255,7 +255,7 @@ func (s *EnrollmentService) GuardarMatricula(input enrollmentDTO.GuardarMatricul
 	}
 
 	if err := s.db.Save(&mat).Error; err != nil {
-		return nil, fmt.Errorf("error al procesar la matrícula: %v", err)
+		return nil, fmt.Errorf("Error al procesar la matrícula: %v", err)
 	}
 
 	return &mat, nil
@@ -299,11 +299,11 @@ func (s *EnrollmentService) ObtenerHistorial(estudianteID uint) ([]enrollmentDTO
 func (s *EnrollmentService) RetirarEstudiante(matriculaID uint, motivo string) error {
 	var matricula domain.Matricula
 	if err := s.db.First(&matricula, matriculaID).Error; err != nil {
-		return errors.New("matrícula no encontrada")
+		return errors.New("Matrícula no encontrada")
 	}
 	matricula.Estado = "Retirado"
 	if err := s.db.Save(&matricula).Error; err != nil {
-		return fmt.Errorf("error al retirar estudiante: %v", err)
+		return fmt.Errorf("Error al retirar estudiante: %v", err)
 	}
 	return nil
 }

@@ -84,7 +84,7 @@ func (s *StudentService) ObtenerEstudiante(id uint) (*student.Estudiante, error)
 	var est student.Estudiante
 	err := s.db.Preload("Familiares").First(&est, id).Error
 	if err != nil {
-		return nil, errors.New("estudiante no encontrado")
+		return nil, errors.New("Estudiante no encontrado")
 	}
 	return &est, nil
 }
@@ -102,7 +102,7 @@ func (s *StudentService) GuardarEstudiante(input studentDTO.GuardarEstudianteDTO
 		query.Count(&count)
 
 		if count > 0 {
-			return fmt.Errorf("la cédula %s ya pertenece a otro estudiante", input.Cedula)
+			return fmt.Errorf("La cédula %s ya pertenece a otro estudiante", input.Cedula)
 		}
 
 		est := student.Estudiante{
@@ -150,7 +150,7 @@ func (s *StudentService) GuardarEstudiante(input studentDTO.GuardarEstudianteDTO
 		est.Familiares = listaFamiliares
 
 		if err := tx.Save(&est).Error; err != nil {
-			return fmt.Errorf("error al guardar ficha completa: %v", err)
+			return fmt.Errorf("Error al guardar ficha completa: %v", err)
 		}
 
 		estGuardado = &est
@@ -168,18 +168,18 @@ func (s *StudentService) GuardarFoto(id uint, rutaOrigen string) (string, error)
 	var est student.Estudiante
 
 	if err := s.db.First(&est, id).Error; err != nil {
-		return "", errors.New("estudiante no encontrado")
+		return "", errors.New("Estudiante no encontrado")
 	}
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return "", errors.New("no se pudo acceder a la carpeta del usuario")
+		return "", errors.New("No se pudo acceder a la carpeta del usuario")
 	}
 
 	destinoDir := filepath.Join(homeDir, "Documents", "SistemaDECE", "FotosEstudiantes")
 
 	if err := os.MkdirAll(destinoDir, 0755); err != nil {
-		return "", fmt.Errorf("error al crear carpeta de fotos: %v", err)
+		return "", fmt.Errorf("Error al crear carpeta de fotos: %v", err)
 	}
 
 	ext := filepath.Ext(rutaOrigen)
@@ -192,18 +192,18 @@ func (s *StudentService) GuardarFoto(id uint, rutaOrigen string) (string, error)
 
 	srcFile, err := os.Open(rutaOrigen)
 	if err != nil {
-		return "", fmt.Errorf("error al leer imagen original: %v", err)
+		return "", fmt.Errorf("Error al leer imagen original: %v", err)
 	}
 	defer srcFile.Close()
 
 	dstFile, err := os.Create(rutaDestinoCompleta)
 	if err != nil {
-		return "", fmt.Errorf("error al crear imagen destino: %v", err)
+		return "", fmt.Errorf("Error al crear imagen destino: %v", err)
 	}
 	defer dstFile.Close()
 
 	if _, err := io.Copy(dstFile, srcFile); err != nil {
-		return "", fmt.Errorf("error al copiar imagen: %v", err)
+		return "", fmt.Errorf("Error al copiar imagen: %v", err)
 	}
 
 	if est.RutaFoto != "" {
@@ -213,7 +213,7 @@ func (s *StudentService) GuardarFoto(id uint, rutaOrigen string) (string, error)
 	}
 
 	if err := s.db.Model(&est).Update("ruta_foto", rutaDestinoCompleta).Error; err != nil {
-		return "", fmt.Errorf("imagen copiada pero error al actualizar BD: %v", err)
+		return "", fmt.Errorf("Imagen copiada pero error al actualizar BD: %v", err)
 	}
 
 	return rutaDestinoCompleta, nil
@@ -223,18 +223,18 @@ func (s *StudentService) GuardarFotoBase64(id uint, dataURL string, filename str
 	var est student.Estudiante
 
 	if err := s.db.First(&est, id).Error; err != nil {
-		return "", errors.New("estudiante no encontrado")
+		return "", errors.New("Estudiante no encontrado")
 	}
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return "", errors.New("no se pudo acceder a la carpeta del usuario")
+		return "", errors.New("No se pudo acceder a la carpeta del usuario")
 	}
 
 	destinoDir := filepath.Join(homeDir, "Documents", "SistemaDECE", "FotosEstudiantes")
 
 	if err := os.MkdirAll(destinoDir, 0755); err != nil {
-		return "", fmt.Errorf("error al crear carpeta de fotos: %v", err)
+		return "", fmt.Errorf("Error al crear carpeta de fotos: %v", err)
 	}
 
 	ext := filepath.Ext(filename)
@@ -268,14 +268,14 @@ func (s *StudentService) GuardarFotoBase64(id uint, dataURL string, filename str
 
 	decoded, err := base64.StdEncoding.DecodeString(payload)
 	if err != nil {
-		return "", fmt.Errorf("error al decodificar base64: %v", err)
+		return "", fmt.Errorf("Error al decodificar base64: %v", err)
 	}
 
 	nuevoNombre := fmt.Sprintf("%s_%d%s", est.Cedula, time.Now().Unix(), ext)
 	rutaDestinoCompleta := filepath.Join(destinoDir, nuevoNombre)
 
 	if err := os.WriteFile(rutaDestinoCompleta, decoded, 0644); err != nil {
-		return "", fmt.Errorf("error al escribir imagen destino: %v", err)
+		return "", fmt.Errorf("Error al escribir imagen destino: %v", err)
 	}
 
 	if est.RutaFoto != "" {
@@ -285,7 +285,7 @@ func (s *StudentService) GuardarFotoBase64(id uint, dataURL string, filename str
 	}
 
 	if err := s.db.Model(&est).Update("ruta_foto", rutaDestinoCompleta).Error; err != nil {
-		return "", fmt.Errorf("imagen guardada pero error al actualizar BD: %v", err)
+		return "", fmt.Errorf("Imagen guardada pero error al actualizar BD: %v", err)
 	}
 
 	return rutaDestinoCompleta, nil
@@ -295,16 +295,16 @@ func (s *StudentService) ObtenerFotoBase64(id uint) (string, error) {
 	var est student.Estudiante
 
 	if err := s.db.First(&est, id).Error; err != nil {
-		return "", errors.New("estudiante no encontrado")
+		return "", errors.New("Estudiante no encontrado")
 	}
 
 	if est.RutaFoto == "" {
-		return "", errors.New("estudiante no tiene foto")
+		return "", errors.New("Estudiante no tiene foto")
 	}
 
 	data, err := os.ReadFile(est.RutaFoto)
 	if err != nil {
-		return "", fmt.Errorf("error leyendo archivo: %v", err)
+		return "", fmt.Errorf("Error leyendo archivo: %v", err)
 	}
 
 	ext := strings.ToLower(filepath.Ext(est.RutaFoto))
@@ -324,7 +324,7 @@ func (s *StudentService) EliminarFamiliar(id uint) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return errors.New("familiar no encontrado")
+		return errors.New("Familiar no encontrado")
 	}
 	return nil
 }

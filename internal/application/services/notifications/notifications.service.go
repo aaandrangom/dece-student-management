@@ -19,10 +19,7 @@ const (
 	notifTipoResumenCitas = "resumen_alertas_citas"
 )
 
-// DEBUG: Descomenta la siguiente línea para agregar una hora de prueba personalizada.
-// Formato: "HH:mm" (ej: "20:30", "15:45")
-// Comenta o deja vacío ("") para desactivar en producción.
-const testSlot = "08:05" // ← Cambia esta hora para tus pruebas
+const testSlot = "08:05"
 
 type NotificationsService struct {
 	db  *gorm.DB
@@ -73,17 +70,13 @@ func (s *NotificationsService) StopScheduler() {
 func (s *NotificationsService) schedulerLoop(ctx context.Context) {
 	slots := []string{"00:00", "07:00", "17:00"}
 
-	// Agregar slot de prueba si está definido
 	if testSlot != "" {
 		slots = append(slots, testSlot)
 	}
 
 	for {
 		nextTime, slot := nextScheduledRun(time.Now(), slots)
-		wait := time.Until(nextTime)
-		if wait < 0 {
-			wait = 0
-		}
+		wait := max(time.Until(nextTime), 0)
 
 		t := time.NewTimer(wait)
 		select {
@@ -126,7 +119,6 @@ func nextScheduledRun(now time.Time, slots []string) (time.Time, string) {
 	}
 
 	if best.IsZero() {
-		// Fallback: 24h
 		return now.Add(24 * time.Hour), ""
 	}
 	return best, bestSlot
@@ -138,17 +130,13 @@ func parseInt(s string) (int, error) {
 	return n, err
 }
 
-// =============================================================================
-// CRON: Generar un único resumen (agregado) de alertas de citas
-// =============================================================================
-
 func (s *NotificationsService) GenerarResumenAlertasCitas(rolDestino string, momento string, scheduledAt time.Time) (*notifications.Notificacion, error) {
 	if strings.TrimSpace(rolDestino) == "" {
 		rolDestino = "admin"
 	}
 	momento = strings.TrimSpace(momento)
 	if momento == "" {
-		return nil, errors.New("momento requerido (00:00|07:00|17:00)")
+		return nil, errors.New("Momento requerido (00:00|07:00|17:00)")
 	}
 
 	alertas, err := s.obtenerAlertasCitasActivasOrdenadas()
@@ -161,7 +149,6 @@ func (s *NotificationsService) GenerarResumenAlertasCitas(rolDestino string, mom
 
 	fechaProgramada := scheduledAt.Format("2006-01-02")
 
-	// Construir metadata (cap para evitar payload enorme)
 	items := make([]notifications.CitaAlertaItem, 0, min(len(alertas), 50))
 	for _, a := range alertas {
 		if len(items) >= 50 {
@@ -174,7 +161,6 @@ func (s *NotificationsService) GenerarResumenAlertasCitas(rolDestino string, mom
 
 	titulo := fmt.Sprintf("%d alerta(s) de citas pendientes", len(alertas))
 
-	// Construir mensaje con lista de todas las citas
 	var mensajeBuilder strings.Builder
 	fmt.Fprintf(&mensajeBuilder, "Resumen %s (%s)\n\n", fechaProgramada, momento)
 
@@ -193,7 +179,6 @@ func (s *NotificationsService) GenerarResumenAlertasCitas(rolDestino string, mom
 	q := s.db.Where("tipo = ? AND rol_destino = ? AND fecha_programada = ? AND momento = ?", notifTipoResumenCitas, rolDestino, fechaProgramada, momento)
 	err = q.First(&existing).Error
 
-	// Si existe: actualizar y volver a marcar como no leída para que el admin se entere
 	if err == nil {
 		existing.Titulo = titulo
 		existing.Mensaje = mensaje
@@ -228,7 +213,6 @@ func (s *NotificationsService) GenerarResumenAlertasCitas(rolDestino string, mom
 func (s *NotificationsService) obtenerAlertasCitasActivasOrdenadas() ([]notifications.CitaAlertaItem, error) {
 	var citas []management.Convocatoria
 
-	// Ordenadas por fecha más cercana
 	err := s.db.
 		Preload("Matricula.Estudiante").
 		Preload("Matricula.Curso.Nivel").
@@ -292,7 +276,6 @@ func (s *NotificationsService) obtenerAlertasCitasActivasOrdenadas() ([]notifica
 		})
 	}
 
-	// Seguridad adicional: ordenar por fecha_cita asc por parse
 	sort.SliceStable(activos, func(i, j int) bool {
 		ti, errI := time.Parse(layout, activos[i].FechaCita)
 		tj, errJ := time.Parse(layout, activos[j].FechaCita)
@@ -304,10 +287,6 @@ func (s *NotificationsService) obtenerAlertasCitasActivasOrdenadas() ([]notifica
 
 	return activos, nil
 }
-
-// =============================================================================
-// API: Listar / Resumen / Marcar como leída
-// =============================================================================
 
 func (s *NotificationsService) ResumenNotificaciones(rolDestino string, limit int) (*dto.ResumenNotificacionesDTO, error) {
 	if strings.TrimSpace(rolDestino) == "" {
@@ -392,7 +371,7 @@ func (s *NotificationsService) MarcarNotificacionLeida(id uint) error {
 		return res.Error
 	}
 	if res.RowsAffected == 0 {
-		return errors.New("notificación no encontrada")
+		return errors.New("Notificación no encontrada")
 	}
 	return nil
 }

@@ -37,7 +37,7 @@ func (s *InstitutionService) ObtenerConfiguracion() (*securityDTO.ConfiguracionI
 		CodigoAMIE:         config.CodigoAMIE,
 		Distrito:           config.Distrito,
 		Circuito:           config.Circuito,
-		FechaActualizacion: config.FechaActualizacion, // Directo
+		FechaActualizacion: config.FechaActualizacion,
 
 		Ubicacion: securityDTO.DetalleUbicacionDTO{
 			Provincia:     config.DetalleUbicacion.Data.Provincia,

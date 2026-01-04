@@ -43,13 +43,13 @@ func (s *LevelService) CrearNivel(input academicDTO.NivelEducativoDTO) error {
 	var countNombre int64
 	s.db.Model(&academic.NivelEducativo{}).Where("nombre = ?", input.Nombre).Count(&countNombre)
 	if countNombre > 0 {
-		return fmt.Errorf("ya existe un nivel con el nombre '%s'", input.Nombre)
+		return fmt.Errorf("Ya existe un nivel con el nombre '%s'", input.Nombre)
 	}
 
 	var countOrden int64
 	s.db.Model(&academic.NivelEducativo{}).Where("orden = ?", input.Orden).Count(&countOrden)
 	if countOrden > 0 {
-		return fmt.Errorf("ya existe un nivel configurado con el número de orden %d", input.Orden)
+		return fmt.Errorf("Ya existe un nivel configurado con el número de orden %d", input.Orden)
 	}
 
 	nuevoNivel := academic.NivelEducativo{
@@ -69,7 +69,7 @@ func (s *LevelService) ActualizarNivel(input academicDTO.NivelEducativoDTO) erro
 	var nivel academic.NivelEducativo
 
 	if err := s.db.First(&nivel, input.ID).Error; err != nil {
-		return errors.New("el nivel educativo no existe")
+		return errors.New("El nivel educativo no existe")
 	}
 
 	var countNombre int64
@@ -77,7 +77,7 @@ func (s *LevelService) ActualizarNivel(input academicDTO.NivelEducativoDTO) erro
 		Where("nombre = ? AND id <> ?", input.Nombre, input.ID).
 		Count(&countNombre)
 	if countNombre > 0 {
-		return fmt.Errorf("ya existe otro nivel con el nombre '%s'", input.Nombre)
+		return fmt.Errorf("Ya existe otro nivel con el nombre '%s'", input.Nombre)
 	}
 
 	var countOrden int64
@@ -85,7 +85,7 @@ func (s *LevelService) ActualizarNivel(input academicDTO.NivelEducativoDTO) erro
 		Where("orden = ? AND id <> ?", input.Orden, input.ID).
 		Count(&countOrden)
 	if countOrden > 0 {
-		return fmt.Errorf("ya existe otro nivel con el orden %d", input.Orden)
+		return fmt.Errorf("Ya existe otro nivel con el orden %d", input.Orden)
 	}
 
 	nivel.Nombre = input.Nombre
@@ -99,14 +99,14 @@ func (s *LevelService) EliminarNivel(id uint) error {
 	var nivel academic.NivelEducativo
 
 	if err := s.db.First(&nivel, id).Error; err != nil {
-		return errors.New("nivel educativo no encontrado")
+		return errors.New("Nivel educativo no encontrado")
 	}
 
 	var totalCursos int64
 	s.db.Table("cursos").Where("nivel_id = ?", id).Count(&totalCursos)
 
 	if totalCursos > 0 {
-		return fmt.Errorf("no se puede eliminar: existen %d cursos (aulas) asociados a este nivel educativo. Elimine los cursos primero.", totalCursos)
+		return fmt.Errorf("No se puede eliminar: existen %d cursos (aulas) asociados a este nivel educativo. Elimine los cursos primero.", totalCursos)
 	}
 
 	return s.db.Delete(&nivel).Error

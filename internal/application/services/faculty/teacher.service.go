@@ -54,7 +54,7 @@ func (s *TeacherService) CrearDocente(input teacherDTO.GuardarDocenteDTO) error 
 	var count int64
 	s.db.Model(&faculty.Docente{}).Where("cedula = ?", cedulaLimpia).Count(&count)
 	if count > 0 {
-		return fmt.Errorf("ya existe un docente registrado con la cédula %s", cedulaLimpia)
+		return fmt.Errorf("Ya existe un docente registrado con la cédula %s", cedulaLimpia)
 	}
 
 	nuevoDocente := faculty.Docente{
@@ -66,7 +66,7 @@ func (s *TeacherService) CrearDocente(input teacherDTO.GuardarDocenteDTO) error 
 	}
 
 	if err := s.db.Create(&nuevoDocente).Error; err != nil {
-		return fmt.Errorf("error al guardar docente: %v", err)
+		return fmt.Errorf("Error al guardar docente: %v", err)
 	}
 
 	return nil
@@ -76,7 +76,7 @@ func (s *TeacherService) ActualizarDocente(input teacherDTO.GuardarDocenteDTO) e
 	var docente faculty.Docente
 
 	if err := s.db.First(&docente, input.ID).Error; err != nil {
-		return errors.New("docente no encontrado")
+		return errors.New("Docente no encontrado")
 	}
 
 	cedulaLimpia := strings.TrimSpace(input.Cedula)
@@ -87,7 +87,7 @@ func (s *TeacherService) ActualizarDocente(input teacherDTO.GuardarDocenteDTO) e
 		Count(&count)
 
 	if count > 0 {
-		return fmt.Errorf("la cédula %s ya pertenece a otro docente", cedulaLimpia)
+		return fmt.Errorf("La cédula %s ya pertenece a otro docente", cedulaLimpia)
 	}
 
 	docente.Cedula = cedulaLimpia
@@ -102,7 +102,7 @@ func (s *TeacherService) ToggleEstado(id uint) error {
 	var docente faculty.Docente
 
 	if err := s.db.First(&docente, id).Error; err != nil {
-		return errors.New("docente no encontrado")
+		return errors.New("Docente no encontrado")
 	}
 
 	nuevoEstado := !docente.Activo
@@ -111,11 +111,6 @@ func (s *TeacherService) ToggleEstado(id uint) error {
 	if err := s.db.Model(&docente).Update("activo", nuevoEstado).Error; err != nil {
 		return err
 	}
-
-	// Mensaje de log opcional
-	// estadoTexto := "activado"
-	// if !nuevoEstado { estadoTexto = "desactivado" }
-	// fmt.Printf("Docente %s %s\n", docente.NombresCompletos, estadoTexto)
 
 	return nil
 }

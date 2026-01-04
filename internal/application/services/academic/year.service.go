@@ -21,15 +21,15 @@ func NewYearService(db *gorm.DB) *YearService {
 func (s *YearService) CrearPeriodo(input academicDTO.CrearPeriodoDTO) error {
 	fechaInicioTime, err := time.Parse("2006-01-02", input.FechaInicio)
 	if err != nil {
-		return fmt.Errorf("fecha_inicio inválida (use YYYY-MM-DD): %v", err)
+		return fmt.Errorf("Fecha_inicio inválida (use YYYY-MM-DD): %v", err)
 	}
 	fechaFinTime, err := time.Parse("2006-01-02", input.FechaFin)
 	if err != nil {
-		return fmt.Errorf("fecha_fin inválida (use YYYY-MM-DD): %v", err)
+		return fmt.Errorf("Fecha_fin inválida (use YYYY-MM-DD): %v", err)
 	}
 
 	if fechaInicioTime.After(fechaFinTime) {
-		return errors.New("la fecha de inicio no puede ser posterior a la fecha de fin")
+		return errors.New("La fecha de inicio no puede ser posterior a la fecha de fin")
 	}
 
 	var countNombre int64
@@ -38,7 +38,7 @@ func (s *YearService) CrearPeriodo(input academicDTO.CrearPeriodoDTO) error {
 		Count(&countNombre)
 
 	if countNombre > 0 {
-		return fmt.Errorf("ya existe un periodo registrado con el nombre '%s'", input.Nombre)
+		return fmt.Errorf("Ya existe un periodo registrado con el nombre '%s'", input.Nombre)
 	}
 
 	var countFechas int64
@@ -47,7 +47,7 @@ func (s *YearService) CrearPeriodo(input academicDTO.CrearPeriodoDTO) error {
 		Count(&countFechas)
 
 	if countFechas > 0 {
-		return errors.New("ya existe un periodo con exactamente las mismas fechas de inicio y fin")
+		return errors.New("Ya existe un periodo con exactamente las mismas fechas de inicio y fin")
 	}
 
 	nuevoPeriodo := academic.PeriodoLectivo{
@@ -115,11 +115,11 @@ func (s *YearService) ActivarPeriodo(id uint) error {
 	var target academic.PeriodoLectivo
 	if err := tx.First(&target, id).Error; err != nil {
 		tx.Rollback()
-		return errors.New("el periodo seleccionado no existe")
+		return errors.New("El periodo seleccionado no existe")
 	}
 	if target.Cerrado {
 		tx.Rollback()
-		return errors.New("no se puede activar un periodo cerrado")
+		return errors.New("No se puede activar un periodo cerrado")
 	}
 
 	result := tx.Model(&academic.PeriodoLectivo{}).
@@ -139,7 +139,7 @@ func (s *YearService) ObtenerPeriodoActivo() (*academicDTO.PeriodoResponseDTO, e
 
 	if err := s.db.Where("es_activo = ?", true).First(&periodo).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("no hay ningún periodo lectivo activo configurado")
+			return nil, errors.New("No hay ningún periodo lectivo activo configurado")
 		}
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func (s *YearService) ActualizarPeriodo(input academicDTO.ActualizarPeriodoDTO) 
 		Count(&countFechas)
 
 	if countFechas > 0 {
-		return errors.New("ya existe otro periodo con exactamente las mismas fechas de inicio y fin")
+		return errors.New("Ya existe otro periodo con exactamente las mismas fechas de inicio y fin")
 	}
 
 	periodo.Nombre = input.Nombre
@@ -201,7 +201,7 @@ func (s *YearService) ActualizarPeriodo(input academicDTO.ActualizarPeriodoDTO) 
 	periodo.FechaFin = input.FechaFin
 
 	if err := s.db.Save(&periodo).Error; err != nil {
-		return fmt.Errorf("error al actualizar el periodo: %v", err)
+		return fmt.Errorf("Error al actualizar el periodo: %v", err)
 	}
 
 	return nil
@@ -272,7 +272,7 @@ func (s *YearService) CerrarPeriodo(id uint) error {
 	periodo.Cerrado = true
 
 	if err := s.db.Save(&periodo).Error; err != nil {
-		return fmt.Errorf("error al cerrar el periodo: %v", err)
+		return fmt.Errorf("Error al cerrar el periodo: %v", err)
 	}
 
 	return nil

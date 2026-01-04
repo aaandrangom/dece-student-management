@@ -69,7 +69,7 @@ func (s *CourseService) CrearCurso(input courseDTO.GuardarCursoDTO) error {
 		Count(&count)
 
 	if count > 0 {
-		return fmt.Errorf("ya existe el curso %s de la jornada %s en este periodo", paralelo, input.Jornada)
+		return fmt.Errorf("Ya existe el curso %s de la jornada %s en este periodo", paralelo, input.Jornada)
 	}
 
 	if input.TutorID != nil {
@@ -79,10 +79,9 @@ func (s *CourseService) CrearCurso(input courseDTO.GuardarCursoDTO) error {
 			Count(&countTutor)
 
 		if countTutor > 0 {
-			return errors.New("el docente seleccionado ya es tutor de otro curso en este periodo lectivo")
+			return errors.New("El docente seleccionado ya es tutor de otro curso en este periodo lectivo")
 		}
 	}
-	// -------------------------------------------------------------------------
 
 	nuevoCurso := faculty.Curso{
 		PeriodoID: input.PeriodoID,
@@ -93,7 +92,7 @@ func (s *CourseService) CrearCurso(input courseDTO.GuardarCursoDTO) error {
 	}
 
 	if err := s.db.Create(&nuevoCurso).Error; err != nil {
-		return fmt.Errorf("error al crear el curso: %v", err)
+		return fmt.Errorf("Error al crear el curso: %v", err)
 	}
 
 	return nil
@@ -103,7 +102,7 @@ func (s *CourseService) ActualizarCurso(input courseDTO.GuardarCursoDTO) error {
 	var curso faculty.Curso
 
 	if err := s.db.First(&curso, input.ID).Error; err != nil {
-		return errors.New("el curso no existe")
+		return errors.New("El curso no existe")
 	}
 
 	paralelo := strings.ToUpper(strings.TrimSpace(input.Paralelo))
@@ -115,7 +114,7 @@ func (s *CourseService) ActualizarCurso(input courseDTO.GuardarCursoDTO) error {
 		Count(&count)
 
 	if count > 0 {
-		return fmt.Errorf("ya existe otro curso definido como %s - %s", paralelo, input.Jornada)
+		return fmt.Errorf("Ya existe otro curso definido como %s - %s", paralelo, input.Jornada)
 	}
 
 	if input.TutorID != nil {
@@ -126,7 +125,7 @@ func (s *CourseService) ActualizarCurso(input courseDTO.GuardarCursoDTO) error {
 			Count(&countTutor)
 
 		if countTutor > 0 {
-			return errors.New("el docente seleccionado ya es tutor de otro curso en este periodo lectivo")
+			return errors.New("El docente seleccionado ya es tutor de otro curso en este periodo lectivo")
 		}
 	}
 
