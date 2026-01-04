@@ -3,7 +3,7 @@ import { Toaster, toast } from 'sonner';
 import Swal from 'sweetalert2';
 import {
     Users, Plus, Search, CheckCircle2, XCircle, Power, Pencil,
-    Mail, Phone, IdCard, GraduationCap, X, Loader2
+    Mail, Phone, IdCard, GraduationCap, X, Loader2, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
 import {
@@ -14,6 +14,9 @@ export default function TeachersPage() {
     const [teachers, setTeachers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -150,6 +153,26 @@ export default function TeachersPage() {
         t.cedula.includes(searchTerm)
     );
 
+    const totalPages = Math.max(1, Math.ceil(filteredTeachers.length / rowsPerPage));
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const paginatedTeachers = filteredTeachers.slice(startIndex, endIndex);
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
+
+    const handleRowsPerPageChange = (newSize) => {
+        setRowsPerPage(newSize);
+        setCurrentPage(1);
+    };
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
     return (
         <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans">
 
@@ -230,7 +253,7 @@ export default function TeachersPage() {
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredTeachers.map((teacher) => (
+                                    paginatedTeachers.map((teacher) => (
                                         <tr key={teacher.id} className={`transition-colors ${!teacher.activo ? 'bg-slate-50/50 grayscale-[0.5]' : 'hover:bg-purple-50/30'}`}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
@@ -311,6 +334,49 @@ export default function TeachersPage() {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Footer de Paginación */}
+                    {filteredTeachers.length > 0 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-slate-100 bg-white gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="text-sm text-slate-500">
+                                    Mostrando <span className="font-semibold text-slate-700">{startIndex + 1}</span> a <span className="font-semibold text-slate-700">{Math.min(endIndex, filteredTeachers.length)}</span> de <span className="font-semibold text-slate-700">{filteredTeachers.length}</span> docentes
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-600">Filas:</span>
+                                    <select
+                                        value={rowsPerPage}
+                                        onChange={(e) => handleRowsPerPageChange(Number(e.target.value))}
+                                        className="border border-slate-200 rounded-lg px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-purple-500"
+                                    >
+                                        <option value={5}>5</option>
+                                        <option value={10}>10</option>
+                                        <option value={25}>25</option>
+                                        <option value={50}>50</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <ChevronLeft className="w-4 h-4" /> Anterior
+                                </button>
+                                <span className="text-sm text-slate-600">
+                                    Página <span className="font-semibold text-slate-700">{currentPage}</span> de <span className="font-semibold text-slate-700">{totalPages}</span>
+                                </span>
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage >= totalPages}
+                                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Siguiente <ChevronRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
