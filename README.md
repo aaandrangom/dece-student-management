@@ -85,6 +85,4 @@
    - Windows: `.\scripts\generate-password.ps1`
    - Linux/Mac: `./scripts/generate-password.sh`
 
-📖 For more security details, see [SECURITY.md](SECURITY.md)
-
 ---
