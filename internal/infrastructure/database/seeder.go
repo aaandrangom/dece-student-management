@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -60,6 +61,7 @@ func seedAdminUser(db *gorm.DB) error {
 		NombreCompleto: nombreCompleto,
 		Rol:            "admin",
 		Activo:         true,
+		FechaCreacion:  time.Now().Format("2006-01-02 15:04:05"),
 	}
 
 	log.Printf("Creando usuario administrador: %s", usuario)
