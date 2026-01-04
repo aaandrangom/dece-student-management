@@ -1,8 +1,10 @@
 package main
 
 import (
+	"dece/internal/config"
 	"dece/internal/infrastructure/database"
 	"embed"
+	"log"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -22,6 +24,10 @@ import (
 var assets embed.FS
 
 func main() {
+	if err := config.LoadConfig(); err != nil {
+		log.Fatalf("Error cargando configuración: %v", err)
+	}
+
 	db := database.InitDB()
 	database.SeedAll(db)
 

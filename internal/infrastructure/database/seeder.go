@@ -1,6 +1,7 @@
 package database
 
 import (
+	"dece/internal/config"
 	"dece/internal/domain/academic"
 	"dece/internal/domain/common"
 	"dece/internal/domain/security"
@@ -38,8 +39,9 @@ func SeedAll(db *gorm.DB) error {
 }
 
 func seedAdminUser(db *gorm.DB) error {
-	const usuario = "rafa"
-	const passRaw = "admin123"
+	usuario := config.AppConfig.AdminUsername
+	passRaw := config.AppConfig.AdminPassword
+	nombreCompleto := config.AppConfig.AdminFullName
 
 	var count int64
 	db.Model(&security.Usuario{}).Where("nombre_usuario = ?", usuario).Count(&count)
@@ -55,11 +57,12 @@ func seedAdminUser(db *gorm.DB) error {
 	admin := security.Usuario{
 		NombreUsuario:  usuario,
 		ClaveHash:      string(hashedPassword),
-		NombreCompleto: "Wilson Rafael Macas Armijos",
+		NombreCompleto: nombreCompleto,
 		Rol:            "admin",
 		Activo:         true,
 	}
 
+	log.Printf("✅ Creando usuario administrador: %s", usuario)
 	return db.Create(&admin).Error
 }
 
