@@ -1,6 +1,10 @@
 package database
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+
 	"dece/internal/domain/academic"
 	"dece/internal/domain/enrollment"
 	"dece/internal/domain/faculty"
@@ -19,7 +23,23 @@ var DB *gorm.DB
 func InitDB() *gorm.DB {
 	var err error
 
-	DB, err = gorm.Open(sqlite.Open("sigdece.db"), &gorm.Config{})
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		configDir = "."
+	}
+
+	appPath := filepath.Join(configDir, "SigDECE")
+
+	err = os.MkdirAll(appPath, 0755)
+	if err != nil {
+		panic("Error al crear directorio de base de datos: " + err.Error())
+	}
+
+	dbFile := filepath.Join(appPath, "sigdece.db")
+
+	fmt.Println("📂 Base de datos ubicada en:", dbFile)
+
+	DB, err = gorm.Open(sqlite.Open(dbFile), &gorm.Config{})
 	if err != nil {
 		panic("Error al conectar base de datos: " + err.Error())
 	}
@@ -27,7 +47,6 @@ func InitDB() *gorm.DB {
 	DB.Exec("PRAGMA foreign_keys = ON")
 
 	err = DB.AutoMigrate(
-
 		&security.Usuario{},
 		&security.ConfiguracionInstitucional{},
 		&academic.PeriodoLectivo{},
@@ -35,13 +54,10 @@ func InitDB() *gorm.DB {
 		&academic.Materia{},
 		&faculty.Docente{},
 		&student.Estudiante{},
-
 		&student.Familiar{},
 		&faculty.Curso{},
-
 		&faculty.DistributivoMateria{},
 		&enrollment.Matricula{},
-
 		&tracking.LlamadoAtencion{},
 		&tracking.CasoSensible{},
 		&management.Convocatoria{},
