@@ -15,23 +15,23 @@ import (
 
 func SeedAll(db *gorm.DB) error {
 	if db == nil {
-		return errors.New("base de datos no inicializada")
+		return errors.New("Base de datos no inicializada")
 	}
 
 	if err := seedAdminUser(db); err != nil {
-		return fmt.Errorf("error seeding admin: %w", err)
+		return fmt.Errorf("Error seeding admin: %w", err)
 	}
 
 	if err := seedNivelesEducativos(db); err != nil {
-		return fmt.Errorf("error seeding niveles: %w", err)
+		return fmt.Errorf("Error seeding niveles: %w", err)
 	}
 
 	if err := seedMaterias(db); err != nil {
-		return fmt.Errorf("error seeding materias: %w", err)
+		return fmt.Errorf("Error seeding materias: %w", err)
 	}
 
 	if err := seedConfiguracion(db); err != nil {
-		return fmt.Errorf("error seeding config: %w", err)
+		return fmt.Errorf("Error seeding config: %w", err)
 	}
 
 	log.Println("Base de datos poblada exitosamente (Seeding completado)")
@@ -62,7 +62,7 @@ func seedAdminUser(db *gorm.DB) error {
 		Activo:         true,
 	}
 
-	log.Printf("✅ Creando usuario administrador: %s", usuario)
+	log.Printf("Creando usuario administrador: %s", usuario)
 	return db.Create(&admin).Error
 }
 
