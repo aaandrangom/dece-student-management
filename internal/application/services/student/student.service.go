@@ -73,6 +73,11 @@ func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.Estudiant
 			RutaFoto:        e.RutaFoto,
 			FechaNacimiento: e.FechaNacimiento,
 			Edad:            CaclularEdad(e.FechaNacimiento),
+			InfoNacionalidad: &studentDTO.InfoNacionalidadDTO{
+				EsExtranjero:   e.InfoNacionalidad.Data.EsExtranjero,
+				PaisOrigen:     e.InfoNacionalidad.Data.PaisOrigen,
+				PasaporteOrDNI: e.InfoNacionalidad.Data.PasaporteOrDNI,
+			},
 		}
 	}
 	print(response)

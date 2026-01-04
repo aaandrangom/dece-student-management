@@ -122,13 +122,50 @@ export default function StudentFormPage({ studentId, onBack }) {
         try {
             const data = await ObtenerEstudiante(id);
 
-            if (!data.info_nacionalidad) {
-                data.info_nacionalidad = { es_extranjero: false, pais_origen: 'Ecuador', pasaporte_odni: '' };
+            console.log("Datos recibidos del backend:", data);
+            console.log("info_nacionalidad original:", data.info_nacionalidad);
+
+            let infoNac = { es_extranjero: false, pais_origen: 'Ecuador', pasaporte_odni: '' };
+
+            if (data.info_nacionalidad) {
+                if (data.info_nacionalidad.Data) {
+                    infoNac = data.info_nacionalidad.Data;
+                }
+                else if (data.info_nacionalidad.data) {
+                    infoNac = data.info_nacionalidad.data;
+                }
+                else if (typeof data.info_nacionalidad === 'object' && data.info_nacionalidad.es_extranjero !== undefined) {
+                    infoNac = data.info_nacionalidad;
+                }
+                else if (typeof data.info_nacionalidad === 'string') {
+                    try {
+                        const parsed = JSON.parse(data.info_nacionalidad);
+                        infoNac = parsed.Data || parsed.data || parsed;
+                    } catch (e) {
+                        console.error("Error parseando info_nacionalidad:", e);
+                    }
+                }
             }
+
+            data.info_nacionalidad = infoNac;
+            console.log("info_nacionalidad después de procesar:", data.info_nacionalidad);
+
             if (!data.familiares) {
                 data.familiares = [];
             } else {
-                data.familiares = data.familiares.map(f => ({ ...f, uiId: f.id }));
+                data.familiares = data.familiares.map(f => {
+                    let datosExt = { nivel_instruccion: 'Bachiller', profesion: '', lugar_trabajo: '' };
+                    if (f.datos_extendidos) {
+                        if (f.datos_extendidos.Data) {
+                            datosExt = f.datos_extendidos.Data;
+                        } else if (f.datos_extendidos.data) {
+                            datosExt = f.datos_extendidos.data;
+                        } else if (typeof f.datos_extendidos === 'object') {
+                            datosExt = f.datos_extendidos;
+                        }
+                    }
+                    return { ...f, uiId: f.id, datos_extendidos: datosExt };
+                });
             }
 
             setFormData(data);
@@ -254,7 +291,21 @@ export default function StudentFormPage({ studentId, onBack }) {
         try {
             setIsLoading(true);
 
-            const payload = { ...formData };
+            const infoNac = formData.info_nacionalidad || {
+                es_extranjero: false,
+                pais_origen: 'Ecuador',
+                pasaporte_odni: ''
+            };
+
+            const payload = {
+                ...formData,
+                es_extranjero: infoNac.es_extranjero,
+                pais_origen: infoNac.pais_origen,
+                pasaporte_odni: infoNac.pasaporte_odni
+            };
+
+            delete payload.info_nacionalidad;
+
             if (studentId > 0 && !photoChanged) {
                 payload.ruta_foto = originalRuta || payload.ruta_foto || '';
             }
@@ -390,7 +441,7 @@ export default function StudentFormPage({ studentId, onBack }) {
                                         {!formData.info_nacionalidad.es_extranjero ? (
                                             <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cédula</label><input type="text" name="cedula" value={formData.cedula} onChange={handleInputChange} maxLength={10} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ingrese cédula" /></div>
                                         ) : (
-                                            <><div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pasaporte</label><input type="text" name="pasaporte_odni" value={formData.info_nacionalidad.pasaporte_odni} onChange={handleNacionalidadChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" /></div><div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">País</label><select name="pais_origen" value={formData.info_nacionalidad.pais_origen} onChange={handleNacionalidadChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"><option value="Colombia">Colombia</option><option value="Venezuela">Venezuela</option><option value="Perú">Perú</option><option value="Otro">Otro</option></select></div></>
+                                            <><div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pasaporte</label><input type="text" name="pasaporte_odni" value={formData.info_nacionalidad.pasaporte_odni} onChange={handleNacionalidadChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" /></div><div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">País</label><select name="pais_origen" value={formData.info_nacionalidad.pais_origen} onChange={handleNacionalidadChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"><option value="">Seleccione...</option><option value="Colombia">Colombia</option><option value="Venezuela">Venezuela</option><option value="Perú">Perú</option><option value="Otro">Otro</option></select></div></>
                                         )}
                                     </div>
                                 </div>
@@ -483,7 +534,12 @@ export default function StudentFormPage({ studentId, onBack }) {
                                             )}
                                         </div>
                                         <h3 className="font-bold text-slate-800 text-lg mb-1">{formData.nombres} {formData.apellidos}</h3>
-                                        <p className="text-slate-500 text-sm mb-4">{formData.cedula}</p>
+                                        <p className="text-slate-500 text-sm mb-4">
+                                            {formData.info_nacionalidad?.es_extranjero
+                                                ? `${formData.info_nacionalidad.pasaporte_odni || 'S/N'} (${formData.info_nacionalidad.pais_origen})`
+                                                : (formData.cedula || 'S/N')
+                                            }
+                                        </p>
                                     </div>
                                 </div>
 
@@ -495,7 +551,14 @@ export default function StudentFormPage({ studentId, onBack }) {
                                         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nombres</label><input type="text" name="nombres" value={formData.nombres} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
                                             <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Apellidos</label><input type="text" name="apellidos" value={formData.apellidos} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
-                                            <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Cédula</label><input type="text" name="cedula" value={formData.cedula} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
+                                            {!formData.info_nacionalidad?.es_extranjero ? (
+                                                <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Cédula</label><input type="text" name="cedula" value={formData.cedula} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
+                                            ) : (
+                                                <>
+                                                    <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Pasaporte</label><input type="text" name="pasaporte_odni" value={formData.info_nacionalidad.pasaporte_odni} onChange={handleNacionalidadChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
+                                                    <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">País de Origen</label><input type="text" name="pais_origen" value={formData.info_nacionalidad.pais_origen} onChange={handleNacionalidadChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
+                                                </>
+                                            )}
                                             <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Fecha Nacimiento</label><input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
                                         </div>
                                     </div>

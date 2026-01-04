@@ -158,7 +158,7 @@ function StudentList({ onCreate, onEdit }) {
                         <thead>
                             <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
                                 <th className="px-6 py-4">Estudiante</th>
-                                <th className="px-6 py-4">Cédula</th>
+                                <th className="px-6 py-4">Identificación</th>
                                 <th className="px-6 py-4">Apellidos</th>
                                 <th className="px-6 py-4">Nombres</th>
                                 <th className="px-6 py-4 text-center">Acciones</th>
@@ -190,7 +190,12 @@ function StudentList({ onCreate, onEdit }) {
                                                 })()}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-600 font-mono text-sm font-medium">{st.cedula}</td>
+                                        <td className="px-6 py-4 text-slate-600 font-mono text-sm font-medium">
+                                            {st.info_nacionalidad?.es_extranjero 
+                                                ? (st.info_nacionalidad.pasaporte_odni || 'S/N')
+                                                : (st.cedula || 'S/N')
+                                            }
+                                        </td>
                                         <td className="px-6 py-4 text-slate-800 font-bold text-sm uppercase">{st.apellidos}</td>
                                         <td className="px-6 py-4 text-slate-700 font-medium text-sm uppercase">{st.nombres}</td>
                                         <td className="px-6 py-4 text-center">
