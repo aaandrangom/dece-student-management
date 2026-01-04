@@ -82,8 +82,8 @@ export default function AcademicYearsPage() {
         try {
             const payload = {
                 nombre: formData.nombre,
-                fecha_inicio: new Date(formData.fecha_inicio).toISOString(),
-                fecha_fin: new Date(formData.fecha_fin).toISOString()
+                fecha_inicio: formData.fecha_inicio,
+                fecha_fin: formData.fecha_fin
             };
 
             if (isEditMode && editingId) {
