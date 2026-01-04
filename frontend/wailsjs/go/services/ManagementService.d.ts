@@ -7,12 +7,26 @@ export function ActualizarCita(arg1:management.ActualizarCitaDTO):Promise<manage
 
 export function AgendarCita(arg1:management.AgendarCitaDTO):Promise<management.Convocatoria>;
 
+export function EliminarCapacitacion(arg1:number):Promise<void>;
+
 export function EliminarCita(arg1:number):Promise<void>;
+
+export function ListarAulasPeriodoActivo():Promise<Array<management.AulaDTO>>;
+
+export function ListarCapacitaciones():Promise<Array<management.CapacitacionResumenDTO>>;
 
 export function ListarCitas(arg1:management.FiltroCitasDTO):Promise<Array<management.CitaResumenDTO>>;
 
 export function MarcarCompletada(arg1:number,arg2:boolean):Promise<void>;
 
+export function ObtenerCapacitacion(arg1:number):Promise<management.GuardarCapacitacionDTO>;
+
 export function ObtenerCita(arg1:number):Promise<management.CitaDetalleDTO>;
 
+export function RegistrarCapacitacion(arg1:management.GuardarCapacitacionDTO):Promise<management.Capacitacion>;
+
 export function Startup(arg1:context.Context):Promise<void>;
+
+export function SubirEvidenciaCapacitacion(arg1:number,arg2:string):Promise<string>;
+
+export function VerificarAlertas():Promise<Array<management.AlertaDashboardDTO>>;

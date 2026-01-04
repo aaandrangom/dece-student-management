@@ -23,6 +23,7 @@ type Convocatoria struct {
 type AudienciaCapacitacion struct {
 	GrupoObjetivo         string `json:"grupo_objetivo"`
 	JornadaDocentes       string `json:"jornada_docentes"`
+	CursoID               uint   `json:"curso_id"`
 	GradoEspecifico       string `json:"grado_especifico"`
 	ParaleloEspecifico    string `json:"paralelo_especifico"`
 	CantidadBeneficiarios int    `json:"cantidad_beneficiarios"`

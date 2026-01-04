@@ -299,6 +299,66 @@ export namespace common {
 		    return a;
 		}
 	}
+	export class JSONMap_dece_internal_domain_management_AudienciaCapacitacion_ {
+	    Data: management.AudienciaCapacitacion;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_management_AudienciaCapacitacion_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], management.AudienciaCapacitacion);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class JSONMap_dece_internal_domain_notifications_NotificacionMetadata_ {
+	    Data: notifications.NotificacionMetadata;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_notifications_NotificacionMetadata_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], notifications.NotificacionMetadata);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class JSONMap_dece_internal_domain_student_DatosFamiliar_ {
 	    Data: student.DatosFamiliar;
 	
@@ -369,6 +429,107 @@ export namespace common {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.Data = this.convertValues(source["Data"], tracking.DetalleSancion);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
+export namespace dto {
+	
+	export class NotificacionDTO {
+	    id: number;
+	    tipo: string;
+	    rol_destino: string;
+	    fecha_programada: string;
+	    momento: string;
+	    titulo: string;
+	    mensaje: string;
+	    leida: boolean;
+	    fecha_creacion: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NotificacionDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.tipo = source["tipo"];
+	        this.rol_destino = source["rol_destino"];
+	        this.fecha_programada = source["fecha_programada"];
+	        this.momento = source["momento"];
+	        this.titulo = source["titulo"];
+	        this.mensaje = source["mensaje"];
+	        this.leida = source["leida"];
+	        this.fecha_creacion = source["fecha_creacion"];
+	    }
+	}
+	export class NotificacionesPaginadasDTO {
+	    items: NotificacionDTO[];
+	    total: number;
+	    page: number;
+	    page_size: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new NotificacionesPaginadasDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.items = this.convertValues(source["items"], NotificacionDTO);
+	        this.total = source["total"];
+	        this.page = source["page"];
+	        this.page_size = source["page_size"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ResumenNotificacionesDTO {
+	    items: NotificacionDTO[];
+	    unread_count: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResumenNotificacionesDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.items = this.convertValues(source["items"], NotificacionDTO);
+	        this.unread_count = source["unread_count"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1186,6 +1347,132 @@ export namespace management {
 	        this.dias_alerta = source["dias_alerta"];
 	    }
 	}
+	export class AlertaDashboardDTO {
+	    id: number;
+	    titulo: string;
+	    descripcion: string;
+	    fecha_hora: string;
+	    dias_restantes: number;
+	    nivel_urgencia: string;
+	    color: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AlertaDashboardDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.titulo = source["titulo"];
+	        this.descripcion = source["descripcion"];
+	        this.fecha_hora = source["fecha_hora"];
+	        this.dias_restantes = source["dias_restantes"];
+	        this.nivel_urgencia = source["nivel_urgencia"];
+	        this.color = source["color"];
+	    }
+	}
+	export class AudienciaCapacitacion {
+	    grupo_objetivo: string;
+	    jornada_docentes: string;
+	    curso_id: number;
+	    grado_especifico: string;
+	    paralelo_especifico: string;
+	    cantidad_beneficiarios: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new AudienciaCapacitacion(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.grupo_objetivo = source["grupo_objetivo"];
+	        this.jornada_docentes = source["jornada_docentes"];
+	        this.curso_id = source["curso_id"];
+	        this.grado_especifico = source["grado_especifico"];
+	        this.paralelo_especifico = source["paralelo_especifico"];
+	        this.cantidad_beneficiarios = source["cantidad_beneficiarios"];
+	    }
+	}
+	export class AulaDTO {
+	    id: number;
+	    nombre: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AulaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nombre = source["nombre"];
+	    }
+	}
+	export class Capacitacion {
+	    id: number;
+	    periodo_id: number;
+	    tema: string;
+	    fecha: string;
+	    detalle_audiencia: common.JSONMap_dece_internal_domain_management_AudienciaCapacitacion_;
+	    ruta_evidencia: string;
+	    periodo: academic.PeriodoLectivo;
+	
+	    static createFrom(source: any = {}) {
+	        return new Capacitacion(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.periodo_id = source["periodo_id"];
+	        this.tema = source["tema"];
+	        this.fecha = source["fecha"];
+	        this.detalle_audiencia = this.convertValues(source["detalle_audiencia"], common.JSONMap_dece_internal_domain_management_AudienciaCapacitacion_);
+	        this.ruta_evidencia = source["ruta_evidencia"];
+	        this.periodo = this.convertValues(source["periodo"], academic.PeriodoLectivo);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class CapacitacionResumenDTO {
+	    id: number;
+	    fecha: string;
+	    tema: string;
+	    grupo_objetivo: string;
+	    cantidad_beneficiarios: number;
+	    tiene_evidencia: boolean;
+	    ruta_evidencia: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CapacitacionResumenDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.fecha = source["fecha"];
+	        this.tema = source["tema"];
+	        this.grupo_objetivo = source["grupo_objetivo"];
+	        this.cantidad_beneficiarios = source["cantidad_beneficiarios"];
+	        this.tiene_evidencia = source["tiene_evidencia"];
+	        this.ruta_evidencia = source["ruta_evidencia"];
+	    }
+	}
 	export class CitaDetalleDTO {
 	    id: number;
 	    matricula_id: number;
@@ -1301,6 +1588,141 @@ export namespace management {
 	        this.tipo = source["tipo"];
 	        this.fecha_solo = source["fecha_solo"];
 	    }
+	}
+	export class GuardarCapacitacionDTO {
+	    id: number;
+	    tema: string;
+	    fecha: string;
+	    grupo_objetivo: string;
+	    jornada_docentes: string;
+	    curso_id: number;
+	    grado_especifico: string;
+	    paralelo_especifico: string;
+	    cantidad_beneficiarios: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new GuardarCapacitacionDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.tema = source["tema"];
+	        this.fecha = source["fecha"];
+	        this.grupo_objetivo = source["grupo_objetivo"];
+	        this.jornada_docentes = source["jornada_docentes"];
+	        this.curso_id = source["curso_id"];
+	        this.grado_especifico = source["grado_especifico"];
+	        this.paralelo_especifico = source["paralelo_especifico"];
+	        this.cantidad_beneficiarios = source["cantidad_beneficiarios"];
+	    }
+	}
+
+}
+
+export namespace notifications {
+	
+	export class CitaAlertaItem {
+	    convocatoria_id: number;
+	    fecha_cita: string;
+	    entidad: string;
+	    motivo: string;
+	    estudiante: string;
+	    curso: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CitaAlertaItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.convocatoria_id = source["convocatoria_id"];
+	        this.fecha_cita = source["fecha_cita"];
+	        this.entidad = source["entidad"];
+	        this.motivo = source["motivo"];
+	        this.estudiante = source["estudiante"];
+	        this.curso = source["curso"];
+	    }
+	}
+	export class Notificacion {
+	    id: number;
+	    tipo: string;
+	    rol_destino: string;
+	    fecha_programada: string;
+	    momento: string;
+	    titulo: string;
+	    mensaje: string;
+	    leida: boolean;
+	    metadata: common.JSONMap_dece_internal_domain_notifications_NotificacionMetadata_;
+	    fecha_creacion: time.Time;
+	
+	    static createFrom(source: any = {}) {
+	        return new Notificacion(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.tipo = source["tipo"];
+	        this.rol_destino = source["rol_destino"];
+	        this.fecha_programada = source["fecha_programada"];
+	        this.momento = source["momento"];
+	        this.titulo = source["titulo"];
+	        this.mensaje = source["mensaje"];
+	        this.leida = source["leida"];
+	        this.metadata = this.convertValues(source["metadata"], common.JSONMap_dece_internal_domain_notifications_NotificacionMetadata_);
+	        this.fecha_creacion = this.convertValues(source["fecha_creacion"], time.Time);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class NotificacionMetadata {
+	    total: number;
+	    items: CitaAlertaItem[];
+	
+	    static createFrom(source: any = {}) {
+	        return new NotificacionMetadata(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.total = source["total"];
+	        this.items = this.convertValues(source["items"], CitaAlertaItem);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }
@@ -1571,6 +1993,23 @@ export namespace student {
 	        this.es_extranjero = source["es_extranjero"];
 	        this.pais_origen = source["pais_origen"];
 	        this.pasaporte_odni = source["pasaporte_odni"];
+	    }
+	}
+
+}
+
+export namespace time {
+	
+	export class Time {
+	
+	
+	    static createFrom(source: any = {}) {
+	        return new Time(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	
 	    }
 	}
 

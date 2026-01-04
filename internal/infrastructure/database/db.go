@@ -5,6 +5,7 @@ import (
 	"dece/internal/domain/enrollment"
 	"dece/internal/domain/faculty"
 	"dece/internal/domain/management"
+	"dece/internal/domain/notifications"
 	"dece/internal/domain/security"
 	"dece/internal/domain/student"
 	"dece/internal/domain/tracking"
@@ -45,6 +46,7 @@ func InitDB() *gorm.DB {
 		&tracking.CasoSensible{},
 		&management.Convocatoria{},
 		&management.Capacitacion{},
+		&notifications.Notificacion{},
 	)
 
 	if err != nil {

@@ -2,9 +2,13 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { ScreenLockProvider, useScreenLock } from './context/ScreenLockContext';
+import { NotificationsProvider } from './context/NotificationsContext';
 import SecurityWrapper from './components/SecurityWrapper';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+
+import Dashboard from './pages/Dashboard';
+import NotificationsPage from './pages/NotificationsPage';
 
 import InstitutionSettings from './pages/Institution/InstitutionSettings';
 import UserSystem from './pages/Institution/UserSystem';
@@ -23,6 +27,7 @@ import EnrollmentManager from './pages/Enrollment/EnrollmentManager';
 import DisciplineManagerPage from './pages/Tracking/DisciplineManagerPage';
 
 import MeetingManager from './pages/Management/MeetingManager';
+import TrainingManager from './pages/Management/TrainingManager';
 
 /*import Dashboard from './pages/Dashboard';
 //import GenericPage from './pages/GenericPage';
@@ -82,6 +87,9 @@ const MainLayout = () => {
         <div className="flex-1 overflow-auto">
           <Routes>
             <Route path="/" element={<Navigate to="/panel-principal" replace />} />
+
+            <Route path="/panel-principal" element={<Dashboard />} />
+            <Route path="/notificaciones" element={<NotificationsPage />} />
             <Route path="/institucion/configuracion-general" element={<InstitutionSettings />} />
             <Route path="/institucion/usuarios-sistema" element={<UserSystem />} />
 
@@ -98,6 +106,7 @@ const MainLayout = () => {
             <Route path="/dece" element={<DisciplineManagerPage />} />
 
             <Route path="/agenda/convocatorias" element={<MeetingManager />} />
+            <Route path="/agenda/capacitaciones" element={<TrainingManager />} />
             {/* 
            
             <Route path="/panel-principal" element={<Dashboard />} />
@@ -134,9 +143,11 @@ function App() {
   return (
     <ScreenLockProvider>
       <Toaster position="bottom-right" richColors closeButton />
-      <Router>
-        <MainLayout />
-      </Router>
+      <NotificationsProvider>
+        <Router>
+          <MainLayout />
+        </Router>
+      </NotificationsProvider>
     </ScreenLockProvider>
   );
 }

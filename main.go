@@ -12,6 +12,7 @@ import (
 	enrollment "dece/internal/application/services/enrollment"
 	faculty "dece/internal/application/services/faculty"
 	management "dece/internal/application/services/management"
+	notifications "dece/internal/application/services/notifications"
 	security "dece/internal/application/services/security"
 	student "dece/internal/application/services/student"
 	tracking "dece/internal/application/services/tracking"
@@ -43,8 +44,9 @@ func main() {
 	trackingService := tracking.NewTrackingService(db)
 
 	managementService := management.NewManagementService(db)
+	notificationsService := notifications.NewNotificationsService(db)
 
-	app := NewApp(enrollmentService, trackingService)
+	app := NewApp(enrollmentService, trackingService, notificationsService)
 
 	err := wails.Run(&options.App{
 		Title:            "SIGDECE",
@@ -78,6 +80,7 @@ func main() {
 			trackingService,
 
 			managementService,
+			notificationsService,
 		},
 	})
 

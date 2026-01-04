@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { Lock, User, Bell, Search, Menu, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { useScreenLock } from '../context/ScreenLockContext';
+import { useNotifications } from '../context/NotificationsContext';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const { user, lockScreen, logout } = useScreenLock();
+  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
-
-  const notifications = [
-    { id: 1, text: 'Nueva actualización disponible', time: 'Hace 5 min', unread: true },
-    { id: 2, text: 'Reporte mensual generado', time: 'Hace 1 hora', unread: true },
-    { id: 3, text: 'Reunión programada para mañana', time: 'Hace 3 horas', unread: false }
-  ];
 
   const roleMap = (rolString) => {
     console.log('Mapping role for:', rolString);
@@ -28,7 +26,19 @@ const Header = () => {
     }
   }
 
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const handleToggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
+
+  const openNotification = async (id) => {
+    try {
+      await markAsRead(id);
+    } catch {
+      // ignore
+    }
+    setShowNotifications(false);
+    navigate(`/notificaciones?open=${id}`);
+  };
 
   return (
     <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
@@ -62,7 +72,7 @@ const Header = () => {
 
         <div className="relative">
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={handleToggleNotifications}
             className="relative p-2.5 rounded-xl text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 border border-transparent hover:border-purple-100"
             title="Notificaciones"
           >
@@ -83,18 +93,24 @@ const Header = () => {
                   <p className="text-xs text-slate-600 mt-0.5">{unreadCount} sin leer</p>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
-                  {notifications.map(notif => (
+                  {notifications.length === 0 ? (
+                    <div className="p-6 text-sm text-slate-500">No hay notificaciones.</div>
+                  ) : notifications.map(notif => (
                     <div
                       key={notif.id}
                       className={`p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer ${notif.unread ? 'bg-purple-50/30' : ''
                         }`}
+                      onClick={() => openNotification(notif.id)}
                     >
                       <div className="flex items-start gap-3">
                         {notif.unread && (
                           <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 shrink-0"></div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-slate-700 font-medium">{notif.text}</p>
+                          <p className="text-sm text-slate-700 font-medium">{notif.titulo}</p>
+                          {notif.text ? (
+                            <p className="text-xs text-slate-600 mt-1 line-clamp-2">{notif.text}</p>
+                          ) : null}
                           <p className="text-xs text-slate-500 mt-1">{notif.time}</p>
                         </div>
                       </div>
@@ -102,7 +118,13 @@ const Header = () => {
                   ))}
                 </div>
                 <div className="p-3 bg-slate-50 text-center">
-                  <button className="text-sm font-semibold text-purple-600 hover:text-purple-700">
+                  <button
+                    className="text-sm font-semibold text-purple-600 hover:text-purple-700"
+                    onClick={() => {
+                      setShowNotifications(false);
+                      navigate('/notificaciones');
+                    }}
+                  >
                     Ver todas las notificaciones
                   </button>
                 </div>

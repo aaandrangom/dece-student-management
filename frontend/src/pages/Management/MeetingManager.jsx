@@ -1,22 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
+import { useLocation } from 'react-router-dom';
 import {
     Calendar, Clock, CheckCircle, Trash2,
     Plus, Search, User, AlertTriangle, Filter, Loader2, X, Edit2, MoreVertical,
-    CalendarDays, MapPin, Bell, AlignLeft
+    CalendarDays, MapPin, Bell, AlignLeft, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import {
     AgendarCita, ListarCitas, MarcarCompletada, EliminarCita, ObtenerCita, ActualizarCita
 } from '../../../wailsjs/go/services/ManagementService';
 import { BuscarEstudiantesActivos } from '../../../wailsjs/go/services/TrackingService';
 
+function useQuery() {
+  const { search } = useLocation();
+  return useMemo(() => new URLSearchParams(search), [search]);
+}
+
 export default function MeetingManager() {
+    const query = useQuery();
+    const openCitaId = query.get('open');
+
     const [meetings, setMeetings] = useState([]);
     const [stats, setStats] = useState({ pendientes: 0, total: 0 });
     const [activeFilter, setActiveFilter] = useState('pendientes');
     const [dateFilter, setDateFilter] = useState('');
+
+    // Paginación
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [studentQuery, setStudentQuery] = useState('');
@@ -35,7 +48,10 @@ export default function MeetingManager() {
     };
     const [formData, setFormData] = useState(initialForm);
 
-    useEffect(() => { loadMeetings(); }, [activeFilter, dateFilter]);
+    useEffect(() => { 
+        loadMeetings(); 
+        setCurrentPage(1);
+    }, [activeFilter, dateFilter]);
 
     useEffect(() => {
         const onMouseDown = (event) => {
@@ -136,6 +152,18 @@ export default function MeetingManager() {
         }, 400);
         return () => clearTimeout(timeoutId);
     }, [studentQuery]);
+
+    // Abrir modal automáticamente si viene el parámetro ?open=ID
+    useEffect(() => {
+        const id = openCitaId ? Number(openCitaId) : null;
+        if (!id || Number.isNaN(id)) return;
+        
+        // Solo abrir si hay datos cargados
+        if (meetings.length > 0) {
+            handleEdit(id);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [openCitaId, meetings.length]);
 
     const handleSave = async (e) => {
         e.preventDefault();
@@ -273,6 +301,23 @@ export default function MeetingManager() {
         }
     };
 
+    // Paginación: calcular datos de la página actual
+    const totalPages = Math.max(1, Math.ceil(meetings.length / rowsPerPage));
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const paginatedMeetings = meetings.slice(startIndex, endIndex);
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
+
+    const handleRowsPerPageChange = (newSize) => {
+        setRowsPerPage(newSize);
+        setCurrentPage(1);
+    };
+
     return (
         <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans animate-in fade-in duration-300">
             <div className="flex flex-col gap-6">
@@ -353,7 +398,7 @@ export default function MeetingManager() {
                                         <td colSpan={7} className="py-16 text-center text-slate-400">No hay citas programadas.</td>
                                     </tr>
                                 ) : (
-                                    meetings.map((cita) => (
+                                    paginatedMeetings.map((cita) => (
                                         <tr key={cita.id} className="hover:bg-slate-50 transition-colors">
                                             <td className="px-6 py-4 text-sm text-slate-700">{formatFechaVista(cita.fecha_hora)}</td>
                                             <td className="px-6 py-4 text-sm text-slate-700 font-medium">{cita.entidad}</td>
@@ -383,6 +428,49 @@ export default function MeetingManager() {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Footer de Paginación */}
+                    {meetings.length > 0 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-slate-100 bg-white gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="text-sm text-slate-500">
+                                    Mostrando <span className="font-semibold text-slate-700">{startIndex + 1}</span> a <span className="font-semibold text-slate-700">{Math.min(endIndex, meetings.length)}</span> de <span className="font-semibold text-slate-700">{meetings.length}</span> resultados
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-slate-600">Filas:</span>
+                                    <select
+                                        value={rowsPerPage}
+                                        onChange={(e) => handleRowsPerPageChange(Number(e.target.value))}
+                                        className="border border-slate-200 rounded-lg px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                                    >
+                                        <option value={5}>5</option>
+                                        <option value={10}>10</option>
+                                        <option value={25}>25</option>
+                                        <option value={50}>50</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <ChevronLeft className="w-4 h-4" /> Anterior
+                                </button>
+                                <span className="text-sm text-slate-600">
+                                    Página <span className="font-semibold text-slate-700">{currentPage}</span> de <span className="font-semibold text-slate-700">{totalPages}</span>
+                                </span>
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage >= totalPages}
+                                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Siguiente <ChevronRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {renderActionsMenu()}

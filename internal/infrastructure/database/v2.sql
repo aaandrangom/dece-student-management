@@ -223,8 +223,24 @@ CREATE TABLE IF NOT EXISTS capacitaciones (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     periodo_id INTEGER NOT NULL,
     tema TEXT NOT NULL,
-    fecha DATE NOT NULL,
+    fecha DATETIME NOT NULL,
     detalle_audiencia TEXT, 
     ruta_evidencia TEXT, 
     FOREIGN KEY (periodo_id) REFERENCES periodos_lectivos(id)
+);
+
+-- Tabla: notificaciones
+-- Descripción: Notificaciones persistentes (por rol). Usada para agrupar alertas diarias.
+CREATE TABLE IF NOT EXISTS notificaciones (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo TEXT NOT NULL,
+    rol_destino TEXT NOT NULL DEFAULT 'admin',
+    fecha_programada DATE NOT NULL,
+    momento TEXT NOT NULL,
+    titulo TEXT NOT NULL,
+    mensaje TEXT,
+    leida INTEGER DEFAULT 0,
+    metadata TEXT,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(tipo, rol_destino, fecha_programada, momento)
 );

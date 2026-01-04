@@ -10,8 +10,20 @@ export function AgendarCita(arg1) {
   return window['go']['services']['ManagementService']['AgendarCita'](arg1);
 }
 
+export function EliminarCapacitacion(arg1) {
+  return window['go']['services']['ManagementService']['EliminarCapacitacion'](arg1);
+}
+
 export function EliminarCita(arg1) {
   return window['go']['services']['ManagementService']['EliminarCita'](arg1);
+}
+
+export function ListarAulasPeriodoActivo() {
+  return window['go']['services']['ManagementService']['ListarAulasPeriodoActivo']();
+}
+
+export function ListarCapacitaciones() {
+  return window['go']['services']['ManagementService']['ListarCapacitaciones']();
 }
 
 export function ListarCitas(arg1) {
@@ -22,10 +34,26 @@ export function MarcarCompletada(arg1, arg2) {
   return window['go']['services']['ManagementService']['MarcarCompletada'](arg1, arg2);
 }
 
+export function ObtenerCapacitacion(arg1) {
+  return window['go']['services']['ManagementService']['ObtenerCapacitacion'](arg1);
+}
+
 export function ObtenerCita(arg1) {
   return window['go']['services']['ManagementService']['ObtenerCita'](arg1);
 }
 
+export function RegistrarCapacitacion(arg1) {
+  return window['go']['services']['ManagementService']['RegistrarCapacitacion'](arg1);
+}
+
 export function Startup(arg1) {
   return window['go']['services']['ManagementService']['Startup'](arg1);
+}
+
+export function SubirEvidenciaCapacitacion(arg1, arg2) {
+  return window['go']['services']['ManagementService']['SubirEvidenciaCapacitacion'](arg1, arg2);
+}
+
+export function VerificarAlertas() {
+  return window['go']['services']['ManagementService']['VerificarAlertas']();
 }
