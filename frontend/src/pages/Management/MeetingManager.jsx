@@ -4,18 +4,19 @@ import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { useLocation } from 'react-router-dom';
 import {
-    Calendar, Clock, CheckCircle, Trash2,
-    Plus, Search, User, AlertTriangle, Filter, Loader2, X, Edit2, MoreVertical,
+    Clock, CheckCircle, Trash2,
+    Plus, Search, User, Filter, Loader2, X, Edit2, MoreVertical,
     CalendarDays, MapPin, Bell, AlignLeft, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import {
-    AgendarCita, ListarCitas, MarcarCompletada, EliminarCita, ObtenerCita, ActualizarCita
+    AgendarCita, ListarCitas, MarcarCompletada,
+    EliminarCita, ObtenerCita, ActualizarCita
 } from '../../../wailsjs/go/services/ManagementService';
 import { BuscarEstudiantesActivos } from '../../../wailsjs/go/services/TrackingService';
 
 function useQuery() {
-  const { search } = useLocation();
-  return useMemo(() => new URLSearchParams(search), [search]);
+    const { search } = useLocation();
+    return useMemo(() => new URLSearchParams(search), [search]);
 }
 
 export default function MeetingManager() {
@@ -27,7 +28,6 @@ export default function MeetingManager() {
     const [activeFilter, setActiveFilter] = useState('pendientes');
     const [dateFilter, setDateFilter] = useState('');
 
-    // Paginación
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -37,7 +37,7 @@ export default function MeetingManager() {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isSearching, setIsSearching] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [openActions, setOpenActions] = useState(null); // { id, rect, openUp }
+    const [openActions, setOpenActions] = useState(null);
 
     const initialForm = {
         id: 0,
@@ -46,10 +46,11 @@ export default function MeetingManager() {
         fecha_cita: '',
         dias_alerta: 2
     };
+
     const [formData, setFormData] = useState(initialForm);
 
-    useEffect(() => { 
-        loadMeetings(); 
+    useEffect(() => {
+        loadMeetings();
         setCurrentPage(1);
     }, [activeFilter, dateFilter]);
 
@@ -61,7 +62,6 @@ export default function MeetingManager() {
         };
 
         const onRepositionOrClose = () => {
-            // Lo más simple/robusto: cerrar si el usuario hace scroll/resize
             setOpenActions(null);
         };
 
@@ -153,16 +153,14 @@ export default function MeetingManager() {
         return () => clearTimeout(timeoutId);
     }, [studentQuery]);
 
-    // Abrir modal automáticamente si viene el parámetro ?open=ID
     useEffect(() => {
         const id = openCitaId ? Number(openCitaId) : null;
         if (!id || Number.isNaN(id)) return;
-        
-        // Solo abrir si hay datos cargados
+
         if (meetings.length > 0) {
             handleEdit(id);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [openCitaId, meetings.length]);
 
     const handleSave = async (e) => {
@@ -209,7 +207,6 @@ export default function MeetingManager() {
                 id: data.id,
                 entidad: data.entidad || 'Representante',
                 motivo: data.motivo || '',
-                // Convertimos "YYYY-MM-DD HH:mm" -> "YYYY-MM-DDTHH:mm" para input datetime-local
                 fecha_cita: (data.fecha_cita || '').replace(' ', 'T'),
                 dias_alerta: data.dias_alerta ?? 2,
             });
@@ -247,7 +244,7 @@ export default function MeetingManager() {
         const cita = meetings.find(m => m.id === openActions.id);
         if (!cita) return null;
 
-        const menuWidth = 192; // w-48
+        const menuWidth = 192;
         const gap = 8;
 
         const left = Math.max(8, Math.min(openActions.rect.right - menuWidth, window.innerWidth - menuWidth - 8));
@@ -258,7 +255,7 @@ export default function MeetingManager() {
         return createPortal(
             <div
                 data-actions-flyout="true"
-                className="fixed z-[9999]"
+                className="fixed z-9999"
                 style={{ left, top, transform: openActions.openUp ? 'translateY(-100%)' : 'translateY(0)' }}
             >
                 <div className="w-48 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
@@ -301,7 +298,6 @@ export default function MeetingManager() {
         }
     };
 
-    // Paginación: calcular datos de la página actual
     const totalPages = Math.max(1, Math.ceil(meetings.length / rowsPerPage));
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
@@ -322,7 +318,6 @@ export default function MeetingManager() {
         <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans animate-in fade-in duration-300">
             <div className="flex flex-col gap-6">
 
-                {/* --- HEADER --- */}
                 <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
@@ -346,7 +341,6 @@ export default function MeetingManager() {
                     </div>
                 </div>
 
-                {/* --- FILTROS (sin repetir header) --- */}
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm flex gap-1 w-full md:w-auto">
                         <button
@@ -377,7 +371,6 @@ export default function MeetingManager() {
                     </div>
                 </div>
 
-                {/* --- LISTADO EN TABLA (alineado al header) --- */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -429,7 +422,6 @@ export default function MeetingManager() {
                         </table>
                     </div>
 
-                    {/* Footer de Paginación */}
                     {meetings.length > 0 && (
                         <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-slate-100 bg-white gap-4">
                             <div className="flex items-center gap-4">
@@ -476,8 +468,7 @@ export default function MeetingManager() {
                 {renderActionsMenu()}
             </div>
 
-            {/* --- MODAL FORMULARIO --- */}
-                {isModalOpen && (
+            {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-in fade-in zoom-in-95 duration-200">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col border border-slate-200">
 
@@ -502,9 +493,8 @@ export default function MeetingManager() {
                         <div className="p-6 overflow-y-auto bg-slate-50/50">
                             <form onSubmit={handleSave} className="space-y-6">
 
-                                {/* SECCIÓN 1: BUSCADOR (Card dedicada) */}
                                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block flex items-center gap-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
                                         <User className="w-3 h-3" /> Estudiante
                                     </label>
 
@@ -550,10 +540,8 @@ export default function MeetingManager() {
                                     )}
                                 </div>
 
-                                {/* SECCIÓN 2: DETALLES (Grid) */}
                                 <div className={`grid grid-cols-1 md:grid-cols-12 gap-5 transition-opacity duration-300 ${!selectedStudent ? 'opacity-50 pointer-events-none grayscale' : 'opacity-100'}`}>
 
-                                    {/* Columna Izquierda: Logística */}
                                     <div className="md:col-span-7 space-y-4">
                                         <div>
                                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Fecha y Hora</label>
@@ -605,7 +593,6 @@ export default function MeetingManager() {
                                         </div>
                                     </div>
 
-                                    {/* Columna Derecha: Contexto */}
                                     <div className="md:col-span-5 flex flex-col">
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Motivo de la Cita</label>
                                         <div className="relative flex-1">
@@ -621,7 +608,6 @@ export default function MeetingManager() {
                                     </div>
                                 </div>
 
-                                {/* Footer Acciones */}
                                 <div className="pt-4 flex justify-end gap-3 border-t border-slate-200">
                                     <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium transition-colors">
                                         Cancelar

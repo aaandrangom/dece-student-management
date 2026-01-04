@@ -41,14 +41,13 @@ const NotificationsPage = () => {
 
   useEffect(() => {
     load(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [role]);
 
   useEffect(() => {
     const id = openId ? Number(openId) : null;
     if (!id || Number.isNaN(id)) return;
 
-    // Marcar como leída y seleccionar cuando se abre desde Header
     (async () => {
       try {
         await MarcarNotificacionLeida(id);
@@ -56,10 +55,9 @@ const NotificationsPage = () => {
         const found = items.find(n => n.id === id);
         if (found) setSelectedNotification(found);
       } catch {
-        // ignore
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [openId]);
 
   const onSelectNotification = async (notification) => {
@@ -69,7 +67,6 @@ const NotificationsPage = () => {
         await MarcarNotificacionLeida(notification.id);
         await load(page);
       } catch {
-        // ignore
       }
     }
   };
@@ -86,7 +83,6 @@ const NotificationsPage = () => {
   return (
     <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans">
       <div className="flex flex-col gap-6">
-        {/* Header */}
         <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
@@ -100,9 +96,7 @@ const NotificationsPage = () => {
           </div>
         </div>
 
-        {/* Layout de dos columnas */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Lista de notificaciones - Izquierda */}
           <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col" style={{ maxHeight: 'calc(100vh - 220px)' }}>
             <div className="flex-1 overflow-y-auto">
               {loading ? (
@@ -116,9 +110,8 @@ const NotificationsPage = () => {
                     return (
                       <div
                         key={n.id}
-                        className={`p-4 cursor-pointer transition-colors hover:bg-slate-50 ${
-                          isSelected ? 'bg-indigo-50 border-l-4 border-indigo-600' : n.leida ? 'bg-white' : 'bg-blue-50/30'
-                        }`}
+                        className={`p-4 cursor-pointer transition-colors hover:bg-slate-50 ${isSelected ? 'bg-indigo-50 border-l-4 border-indigo-600' : n.leida ? 'bg-white' : 'bg-blue-50/30'
+                          }`}
                         onClick={() => onSelectNotification(n)}
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -130,7 +123,7 @@ const NotificationsPage = () => {
                             <p className="text-xs text-slate-400 mt-1">{n.fecha_creacion}</p>
                           </div>
                           {!n.leida && (
-                            <div className="w-2 h-2 rounded-full bg-indigo-600 flex-shrink-0 mt-1"></div>
+                            <div className="w-2 h-2 rounded-full bg-indigo-600 shrink-0 mt-1"></div>
                           )}
                         </div>
                       </div>
@@ -140,7 +133,6 @@ const NotificationsPage = () => {
               )}
             </div>
 
-            {/* Paginación */}
             <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50">
               <div className="text-xs text-slate-500">
                 Pág. <span className="font-semibold text-slate-700">{page}</span> de <span className="font-semibold text-slate-700">{totalPages}</span>
@@ -164,12 +156,10 @@ const NotificationsPage = () => {
             </div>
           </div>
 
-          {/* Detalles de la notificación - Derecha */}
           <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" style={{ maxHeight: 'calc(100vh - 220px)' }}>
             {selectedNotification ? (
               <div className="flex flex-col h-full">
-                {/* Header de la notificación */}
-                <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-indigo-50 to-white">
+                <div className="p-6 border-b border-slate-200 bg-linear-to-r from-indigo-50 to-white">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedNotification.titulo}</h2>
@@ -192,7 +182,6 @@ const NotificationsPage = () => {
                   </div>
                 </div>
 
-                {/* Contenido */}
                 <div className="flex-1 overflow-y-auto p-6">
                   <div className="prose prose-slate max-w-none">
                     {selectedNotification.mensaje && (
@@ -202,7 +191,6 @@ const NotificationsPage = () => {
                       </div>
                     )}
 
-                    {/* Metadata - Citas/Alertas */}
                     {(() => {
                       const metadata = parseMetadata(selectedNotification.metadata);
                       if (!metadata || !metadata.citas || metadata.citas.length === 0) return null;
@@ -215,8 +203,8 @@ const NotificationsPage = () => {
                           </h3>
                           <div className="space-y-3">
                             {metadata.citas.map((cita, idx) => (
-                              <div 
-                                key={idx} 
+                              <div
+                                key={idx}
                                 className="p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 transition-all cursor-pointer group"
                                 onClick={() => navigate(`/agenda?open=${cita.convocatoria_id}`)}
                               >
@@ -237,13 +225,12 @@ const NotificationsPage = () => {
                                       {cita.dias_para_cita !== undefined && (
                                         <>
                                           <span className="text-slate-400">•</span>
-                                          <span className={`px-2 py-0.5 rounded-full font-semibold ${
-                                            cita.dias_para_cita <= 1 
-                                              ? 'bg-red-100 text-red-700' 
-                                              : cita.dias_para_cita <= 3 
-                                              ? 'bg-yellow-100 text-yellow-700' 
+                                          <span className={`px-2 py-0.5 rounded-full font-semibold ${cita.dias_para_cita <= 1
+                                            ? 'bg-red-100 text-red-700'
+                                            : cita.dias_para_cita <= 3
+                                              ? 'bg-yellow-100 text-yellow-700'
                                               : 'bg-green-100 text-green-700'
-                                          }`}>
+                                            }`}>
                                             {cita.dias_para_cita === 0 ? 'Hoy' : cita.dias_para_cita === 1 ? 'Mañana' : `En ${cita.dias_para_cita} días`}
                                           </span>
                                         </>

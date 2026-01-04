@@ -21,25 +21,20 @@ import {
 } from '../../../wailsjs/go/services/TrackingService';
 
 export default function TrainingManager() {
-    // --- ESTADOS ---
     const [trainings, setTrainings] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Paginación
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
-    // Modal y Formulario
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [aulas, setAulas] = useState([]);
     const [isLoadingAulas, setIsLoadingAulas] = useState(false);
 
-    // Menú flotante de acciones (3 puntos)
-    const [openActions, setOpenActions] = useState(null); // { id, rect, openUp }
+    const [openActions, setOpenActions] = useState(null);
 
-    // Vista Previa
     const [previewData, setPreviewData] = useState(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
@@ -47,8 +42,6 @@ export default function TrainingManager() {
         id: 0,
         tema: '',
         fecha: '',
-
-        // Datos Audiencia (JSON aplanado)
         grupo_objetivo: 'Padres de Familia',
         jornada_docentes: '',
         curso_id: 0,
@@ -58,20 +51,17 @@ export default function TrainingManager() {
     };
     const [formData, setFormData] = useState(initialForm);
 
-    // --- CARGA DE DATOS ---
     useEffect(() => {
         loadTrainings();
     }, []);
 
     useEffect(() => {
-        // Inicializar fecha/hora local por defecto
         if (!formData.fecha) {
             const now = new Date();
             const pad = (n) => String(n).padStart(2, '0');
             const local = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
             setFormData((prev) => ({ ...prev, fecha: local }));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadAulas = async () => {
@@ -119,13 +109,10 @@ export default function TrainingManager() {
         }
     };
 
-    // --- ACCIONES ---
-
     const handleSave = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            // Convertir cantidad a entero
             const payload = {
                 ...formData,
                 cantidad_beneficiarios: parseInt(formData.cantidad_beneficiarios || 0)
@@ -155,12 +142,7 @@ export default function TrainingManager() {
     };
 
     const handleUpload = async (id) => {
-        try {
-            // Permitimos PDF o Imágenes (jpg, png)
-            // Nota: SeleccionarArchivo maneja la lógica de extensiones internamente si le pasas un tipo genérico o ajustas el backend.
-            // Asumiremos que 'pdf' sirve para documentos, o 'imagen' para fotos.
-            // Usaremos 'pdf' como genérico si tu backend lo soporta, o crea un tipo 'all' en Go.
-            // Por ahora probamos con 'pdf' (que en tu código Go anterior incluía .pdf).
+        try {  
             const path = await SeleccionarArchivo('pdf');
             if (!path) return;
 
@@ -196,7 +178,6 @@ export default function TrainingManager() {
         try {
             setOpenActions(null);
             const data = await ObtenerCapacitacion(id);
-            // fecha: "YYYY-MM-DD HH:mm" -> input datetime-local
             const fechaLocal = (data.fecha || '').includes(' ') ? data.fecha.replace(' ', 'T') : (data.fecha || '');
             setFormData({
                 ...data,
@@ -229,7 +210,7 @@ export default function TrainingManager() {
         }
 
         const rect = anchorEl.getBoundingClientRect();
-        const menuEstimatedHeight = 132; // ~3 items
+        const menuEstimatedHeight = 132;
         const openUp = rect.bottom + menuEstimatedHeight > window.innerHeight - 8;
         setOpenActions({ id: trainingId, rect, openUp });
     };
@@ -240,7 +221,7 @@ export default function TrainingManager() {
         const training = trainings.find(t => t.id === openActions.id);
         if (!training) return null;
 
-        const menuWidth = 192; // w-48
+        const menuWidth = 192;
         const gap = 8;
         const left = Math.max(8, Math.min(openActions.rect.right - menuWidth, window.innerWidth - menuWidth - 8));
         const top = openActions.openUp
@@ -250,7 +231,7 @@ export default function TrainingManager() {
         return createPortal(
             <div
                 data-actions-flyout="true"
-                className="fixed z-[9999]"
+                className="fixed z-9999"
                 style={{ left, top, transform: openActions.openUp ? 'translateY(-100%)' : 'translateY(0)' }}
             >
                 <div className="w-48 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
@@ -305,7 +286,6 @@ export default function TrainingManager() {
         );
     };
 
-    // --- PAGINACIÓN ---
     const totalPages = Math.max(1, Math.ceil(trainings.length / rowsPerPage));
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
@@ -322,14 +302,11 @@ export default function TrainingManager() {
         setCurrentPage(1);
     };
 
-    // --- RENDERIZADO ---
-
     return (
         <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans animate-in fade-in duration-300">
 
             <div className="flex flex-col gap-6">
 
-                {/* --- HEADER (estilo MeetingManager) --- */}
                 <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
@@ -351,7 +328,6 @@ export default function TrainingManager() {
                     </div>
                 </div>
 
-                {/* --- LISTADO EN TABLA --- */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -429,7 +405,6 @@ export default function TrainingManager() {
                         </table>
                     </div>
 
-                    {/* Footer de Paginación */}
                     {trainings.length > 0 && (
                         <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-slate-100 bg-white gap-4">
                             <div className="flex items-center gap-4">
@@ -476,7 +451,6 @@ export default function TrainingManager() {
                 {renderActionsMenu()}
             </div>
 
-            {/* MODAL CREAR/EDITAR */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-in fade-in zoom-in-95 duration-200">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col border border-slate-200">
@@ -504,7 +478,6 @@ export default function TrainingManager() {
                         <div className="p-6 overflow-y-auto bg-slate-50/50">
                             <form onSubmit={handleSave} className="space-y-6">
 
-                                {/* Datos Generales */}
                                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tema / Título del Taller</label>
                                     <input
@@ -540,7 +513,6 @@ export default function TrainingManager() {
                                     </div>
                                 </div>
 
-                                {/* Detalles de Audiencia */}
                                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Detalles de Audiencia</label>
 
@@ -559,7 +531,6 @@ export default function TrainingManager() {
                                             </select>
                                         </div>
 
-                                        {/* Campos Condicionales */}
                                         {formData.grupo_objetivo === 'Docentes' && (
                                             <div className="animate-in fade-in slide-in-from-top-1">
                                                 <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Jornada</label>
@@ -618,9 +589,8 @@ export default function TrainingManager() {
                 </div>
             )}
 
-            {/* MODAL VISTA PREVIA */}
             {isPreviewOpen && previewData && (
-                <div className="fixed inset-0 bg-black/90 z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200">
+                <div className="fixed inset-0 bg-black/90 z-60 flex justify-center items-center p-4 animate-in fade-in duration-200">
                     <div className="bg-white w-full max-w-5xl h-[85vh] rounded-lg flex flex-col overflow-hidden relative">
                         <div className="bg-slate-900 text-white px-4 py-3 flex justify-between items-center">
                             <span className="flex items-center gap-2 text-sm font-bold"><FileCheck className="w-4 h-4 text-teal-400" /> Evidencia de Asistencia</span>
