@@ -5,6 +5,7 @@ type CasoResumenDTO struct {
 	CodigoCaso        string   `json:"codigo_caso"`
 	FechaDeteccion    string   `json:"fecha_deteccion"`
 	EntidadDerivacion string   `json:"entidad_derivacion"`
+	Descripcion       string   `json:"descripcion"`
 	Estado            string   `json:"estado"`
 	TotalEvidencias   int      `json:"total_evidencias"`
 	RutasEvidencias   []string `json:"rutas_evidencias"`

@@ -2058,6 +2058,7 @@ export namespace tracking {
 	    codigo_caso: string;
 	    fecha_deteccion: string;
 	    entidad_derivacion: string;
+	    descripcion: string;
 	    estado: string;
 	    total_evidencias: number;
 	    rutas_evidencias: string[];
@@ -2072,6 +2073,7 @@ export namespace tracking {
 	        this.codigo_caso = source["codigo_caso"];
 	        this.fecha_deteccion = source["fecha_deteccion"];
 	        this.entidad_derivacion = source["entidad_derivacion"];
+	        this.descripcion = source["descripcion"];
 	        this.estado = source["estado"];
 	        this.total_evidencias = source["total_evidencias"];
 	        this.rutas_evidencias = source["rutas_evidencias"];

@@ -159,7 +159,6 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
     return (
         <div className="bg-slate-50/50 min-h-full font-sans animate-in fade-in duration-300">
 
-            {/* --- HEADER Y TABLA (MANTENIDOS IGUAL) --- */}
             <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-4 w-full md:w-auto">
                     <button
@@ -254,12 +253,10 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                 </table>
             </div>
 
-            {/* --- FORMULARIO REDISEÑADO --- */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-in fade-in zoom-in-95 duration-200">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
 
-                        {/* HEADER MODAL */}
                         <div className="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
                             <div>
                                 <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -275,12 +272,10 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                             </button>
                         </div>
 
-                        {/* BODY MODAL */}
                         <div className="overflow-y-auto bg-white flex-1">
                             <form onSubmit={handleSave} className="h-full flex flex-col">
                                 <div className="flex-1 grid grid-cols-1 lg:grid-cols-12">
 
-                                    {/* COLUMNA IZQUIERDA: DETALLES (Mayor espacio) */}
                                     <div className="lg:col-span-7 p-8 border-r border-slate-100">
                                         <h4 className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-6 flex items-center gap-2">
                                             <FileText className="w-4 h-4" /> Detalles del Suceso
@@ -347,7 +342,6 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                                         </div>
                                     </div>
 
-                                    {/* COLUMNA DERECHA: EVIDENCIAS (Panel diferenciado) */}
                                     <div className="lg:col-span-5 bg-slate-50 p-8 flex flex-col h-full border-t lg:border-t-0 border-slate-200">
                                         <div className="flex justify-between items-center mb-6">
                                             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
@@ -426,7 +420,6 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                                     </div>
                                 </div>
 
-                                {/* FOOTER MODAL */}
                                 <div className="px-8 py-4 border-t border-slate-200 bg-white flex justify-end gap-3 shrink-0">
                                     <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors">
                                         Cancelar
@@ -442,7 +435,6 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                 </div>
             )}
 
-            {/* --- VISUALIZADOR (MANTENIDO IGUAL) --- */}
             {isPreviewOpen && previewData && (
                 <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-sm flex justify-center items-center z-60 p-4 animate-in fade-in duration-300">
                     <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden relative">
