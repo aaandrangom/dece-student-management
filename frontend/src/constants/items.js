@@ -97,32 +97,32 @@ export const menuOptions = [
                 icon: "Presentation"
             }
         ]
-    }, 
+    },
     {
         title: "Configuración",
         path: "/settings",
         icon: "Settings",
-        subOptions: [
-            {
-                title: "Años Lectivos",
-                path: "/settings/school-years",
-                icon: "History"
-            },
-            {
-                title: "Cursos",
-                path: "/settings/courses",
-                icon: "Layers"
-            },
-            {
-                title: "Paralelos",
-                path: "/settings/parallels",
-                icon: "Split"
-            },
-            {
-                title: "Datos Institución",
-                path: "/settings/institution",
-                icon: "Building2"
-            }
-        ]
+        /* subOptions: [
+             {
+                 title: "Años Lectivos",
+                 path: "/settings/school-years",
+                 icon: "History"
+             },
+             {
+                 title: "Cursos",
+                 path: "/settings/courses",
+                 icon: "Layers"
+             },
+             {
+                 title: "Paralelos",
+                 path: "/settings/parallels",
+                 icon: "Split"
+             },
+             {
+                 title: "Datos Institución",
+                 path: "/settings/institution",
+                 icon: "Building2"
+             }
+         ]*/
     }
 ];

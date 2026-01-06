@@ -19,7 +19,7 @@ const (
 	notifTipoResumenCitas = "resumen_alertas_citas"
 )
 
-const testSlot = "08:05"
+const testSlot = "16:00"
 
 type NotificationsService struct {
 	db  *gorm.DB
