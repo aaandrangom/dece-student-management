@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	dto "dece/internal/application/dtos/management"
+	"dece/internal/application/services/sync"
 	"dece/internal/domain/academic"
 	"dece/internal/domain/common"
 	"dece/internal/domain/faculty"
@@ -19,12 +20,13 @@ import (
 )
 
 type ManagementService struct {
-	db  *gorm.DB
-	ctx context.Context
+	db   *gorm.DB
+	ctx  context.Context
+	sync *sync.TelegramSyncService
 }
 
-func NewManagementService(db *gorm.DB) *ManagementService {
-	return &ManagementService{db: db}
+func NewManagementService(db *gorm.DB, sync *sync.TelegramSyncService) *ManagementService {
+	return &ManagementService{db: db, sync: sync}
 }
 
 func (s *ManagementService) Startup(ctx context.Context) {
@@ -52,6 +54,11 @@ func (s *ManagementService) AgendarCita(input dto.AgendarCitaDTO) (*management.C
 
 	if err := s.db.Create(&cita).Error; err != nil {
 		return nil, fmt.Errorf("Error al agendar cita: %v", err)
+	}
+
+	// Sincronizar en segundo plano
+	if s.sync != nil {
+		go s.sync.SyncConvocatorias()
 	}
 
 	return &cita, nil

@@ -10,9 +10,11 @@ import (
 type Config struct {
 	AdminUsername string
 	AdminPassword string
-	AdminFullName string
-	DBPath        string
-	AppEnv        string
+	AdminFullName  string
+	DBPath         string
+	AppEnv         string
+	TelegramAPIURL string
+	TelegramAPIKey string
 }
 
 var AppConfig *Config
@@ -23,11 +25,13 @@ func LoadConfig() error {
 	}
 
 	AppConfig = &Config{
-		AdminUsername: getEnv("ADMIN_USERNAME", "admin"),
-		AdminPassword: getEnv("ADMIN_PASSWORD", "ChangeMe123!"),
-		AdminFullName: getEnv("ADMIN_FULL_NAME", "Administrador del Sistema"),
-		DBPath:        getEnv("DB_PATH", "./sigdece.db"),
-		AppEnv:        getEnv("APP_ENV", "development"),
+		AdminUsername:  getEnv("ADMIN_USERNAME", "admin"),
+		AdminPassword:  getEnv("ADMIN_PASSWORD", "ChangeMe123!"),
+		AdminFullName:  getEnv("ADMIN_FULL_NAME", "Administrador del Sistema"),
+		DBPath:         getEnv("DB_PATH", "./sigdece.db"),
+		AppEnv:         getEnv("APP_ENV", "development"),
+		TelegramAPIURL: getEnv("TELEGRAM_API_URL", ""),
+		TelegramAPIKey: getEnv("TELEGRAM_API_KEY", ""),
 	}
 
 	if AppConfig.AppEnv == "production" && AppConfig.AdminPassword == "ChangeMe123!" {
