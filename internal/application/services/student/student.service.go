@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	studentDTO "dece/internal/application/dtos/student"
 	"dece/internal/domain/common"
 	"dece/internal/domain/student"
@@ -14,15 +15,142 @@ import (
 	"strings"
 	"time"
 
+	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 )
 
 type StudentService struct {
-	db *gorm.DB
+	ctx context.Context
+	db  *gorm.DB
 }
 
 func NewStudentService(db *gorm.DB) *StudentService {
 	return &StudentService{db: db}
+}
+
+func (s *StudentService) SetContext(ctx context.Context) {
+	s.ctx = ctx
+}
+
+func (s *StudentService) ImportarEstudiantes() (int, error) {
+	if s.ctx == nil {
+		return 0, errors.New("contexto no inicializado")
+	}
+
+	filePath, err := runtime.OpenFileDialog(s.ctx, runtime.OpenDialogOptions{
+		Title: "Seleccionar Archivo Excel",
+		Filters: []runtime.FileFilter{
+			{DisplayName: "Arrchivos Excel", Pattern: "*.xlsx;*.xlsm"},
+		},
+	})
+	if err != nil {
+		return 0, err
+	}
+	if filePath == "" {
+		return 0, nil
+	}
+
+	f, err := excelize.OpenFile(filePath)
+	if err != nil {
+		return 0, err
+	}
+	defer f.Close()
+
+	sheetName := f.GetSheetName(0)
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		return 0, err
+	}
+
+	idxCedula, idxNombres, idxApellidos, idxCorreo := -1, -1, -1, -1
+	headerRowIndex := -1
+
+	for i, row := range rows {
+		foundCedula, foundNombres, foundApellidos := false, false, false
+		for j, cell := range row {
+			val := strings.ToLower(strings.TrimSpace(cell))
+			if strings.Contains(val, "cedula") || strings.Contains(val, "cédula") {
+				idxCedula = j
+				foundCedula = true
+			} else if val == "nombres" {
+				idxNombres = j
+				foundNombres = true
+			} else if val == "apellidos" {
+				idxApellidos = j
+				foundApellidos = true
+			} else if strings.Contains(val, "correo") || val == "email" {
+				idxCorreo = j
+			}
+		}
+		if foundCedula && foundNombres && foundApellidos {
+			headerRowIndex = i
+			break
+		}
+	}
+
+	if headerRowIndex == -1 {
+		return 0, errors.New("no se encontraron las columnas: Cedula, Nombres, Apellidos")
+	}
+
+	count := 0
+	for i := headerRowIndex + 1; i < len(rows); i++ {
+		row := rows[i]
+		getVal := func(idx int) string {
+			if idx >= 0 && idx < len(row) {
+				return strings.TrimSpace(row[idx])
+			}
+			return ""
+		}
+
+		cedula := getVal(idxCedula)
+		nombres := getVal(idxNombres)
+		apellidos := getVal(idxApellidos)
+		correo := getVal(idxCorreo)
+
+		if cedula == "" {
+			continue
+		}
+
+		var resultados []student.Estudiante
+		// Usamos Find con Limit 1 para evitar el error "record not found" en los logs cuando es nuevo
+		if err := s.db.Where("cedula = ?", cedula).Limit(1).Find(&resultados).Error; err != nil {
+			fmt.Printf("Error consultando cédula %s: %v\n", cedula, err)
+			continue
+		}
+
+		if len(resultados) > 0 {
+			// Actualizar existente
+			existe := resultados[0]
+			existe.Nombres = nombres
+			existe.Apellidos = apellidos
+			if correo != "" {
+				existe.CorreoElectronico = correo
+			}
+			if err := s.db.Save(&existe).Error; err == nil {
+				count++
+			} else {
+				fmt.Printf("Error al actualizar estudiante %s: %v\n", cedula, err)
+			}
+		} else {
+			// Crear nuevo
+			nuevo := student.Estudiante{
+				Cedula:            cedula,
+				Nombres:           nombres,
+				Apellidos:         apellidos,
+				CorreoElectronico: correo,
+				InfoNacionalidad:  common.JSONMap[student.InfoNacionalidad]{Data: student.InfoNacionalidad{EsExtranjero: false}},
+				GeneroNacimiento:  "M",
+			}
+			if err := s.db.Create(&nuevo).Error; err == nil {
+				count++
+			} else {
+				fmt.Printf("Error al crear estudiante %s: %v\n", cedula, err)
+			}
+		}
+	}
+
+	return count, nil
 }
 
 func CaclularEdad(fechaNacimiento string) int {
@@ -55,7 +183,7 @@ func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.Estudiant
 		Where("cedula LIKE ?", likeQuery).
 		Or("apellidos LIKE ? OR nombres LIKE ?", likeQuery, likeQuery).
 		Order("apellidos ASC").
-		Limit(20).
+		Limit(3000).
 		Find(&estudiantes)
 
 	if result.Error != nil {

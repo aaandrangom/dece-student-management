@@ -22,10 +22,18 @@ export function GuardarFotoBase64(arg1, arg2, arg3) {
   return window['go']['services']['StudentService']['GuardarFotoBase64'](arg1, arg2, arg3);
 }
 
+export function ImportarEstudiantes() {
+  return window['go']['services']['StudentService']['ImportarEstudiantes']();
+}
+
 export function ObtenerEstudiante(arg1) {
   return window['go']['services']['StudentService']['ObtenerEstudiante'](arg1);
 }
 
 export function ObtenerFotoBase64(arg1) {
   return window['go']['services']['StudentService']['ObtenerFotoBase64'](arg1);
+}
+
+export function SetContext(arg1) {
+  return window['go']['services']['StudentService']['SetContext'](arg1);
 }

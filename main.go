@@ -56,7 +56,7 @@ func main() {
 	notificationsService := notifications.NewNotificationsService(db)
 	reportService := reports.NewReportService(institutionService, teacherService)
 
-	app := NewApp(enrollmentService, trackingService, notificationsService, telegramSyncService)
+	app := NewApp(enrollmentService, trackingService, notificationsService, telegramSyncService, studentService)
 
 	err := wails.Run(&options.App{
 		Title:            "SIGDECE",

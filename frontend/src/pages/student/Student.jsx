@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
     Search, Plus, User, Edit3, Users,
-    ChevronLeft, ChevronRight
+    ChevronLeft, ChevronRight, Upload
 } from 'lucide-react';
 
-import { BuscarEstudiantes, ObtenerFotoBase64 } from '../../../wailsjs/go/services/StudentService';
+import { BuscarEstudiantes, ObtenerFotoBase64, ImportarEstudiantes } from '../../../wailsjs/go/services/StudentService';
 import StudentFormPage from './StudentFormPage';
 
 export default function StudentsPage() {
@@ -98,6 +98,21 @@ function StudentList({ onCreate, onEdit }) {
     const totalPages = Math.ceil(students.length / itemsPerPage);
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+    const handleImport = async () => {
+        try {
+            const count = await ImportarEstudiantes();
+            if (count > 0) {
+                toast.success(`Se importaron ${count} estudiantes.`);
+                search(query);
+            } else {
+                toast.info("Proceso finalizado (0 importados o cancelado).");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Error al importar estudiantes");
+        }
+    };
+
     const getImageSrc = () => {
         if (tempPhotoPath) return tempPhotoPath;
         const rf = formData.ruta_foto || '';
@@ -120,12 +135,20 @@ function StudentList({ onCreate, onEdit }) {
                         <p className="text-slate-500 text-sm font-medium">Directorio general de alumnos</p>
                     </div>
                 </div>
-                <button
-                    onClick={onCreate}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95"
-                >
-                    <Plus size={18} /> Nuevo Estudiante
-                </button>
+                <div className="flex gap-3 w-full sm:w-auto">
+                    <button
+                        onClick={handleImport}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-sm font-bold shadow-md hover:shadow-green-200 active:scale-95"
+                    >
+                        <Upload size={18} /> Importar
+                    </button>
+                    <button
+                        onClick={onCreate}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95"
+                    >
+                        <Plus size={18} /> Nuevo
+                    </button>
+                </div>
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -140,15 +163,17 @@ function StudentList({ onCreate, onEdit }) {
                     />
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <span className="font-medium text-slate-500 mr-2">Total: {students.length}</span>
                     <span>Mostrar</span>
                     <select
                         value={itemsPerPage}
                         onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
                         className="bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 focus:outline-none focus:border-purple-500 font-semibold text-slate-700"
                     >
-                        <option value="5">5</option>
                         <option value="10">10</option>
                         <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
                     </select>
                     <span>filas</span>
                 </div>
