@@ -66,6 +66,7 @@ export default function StudentFormPage({ studentId, onBack }) {
         nombres: '',
         fecha_nacimiento: '',
         genero_nacimiento: 'M',
+        correo_electronico: '',
         ruta_foto: '',
         info_nacionalidad: {
             es_extranjero: false,
@@ -462,6 +463,10 @@ export default function StudentFormPage({ studentId, onBack }) {
                                             )}
                                         </div>
                                         <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Género</label><div className="flex bg-white rounded-lg border border-slate-300 overflow-hidden">{['M', 'F'].map(g => (<button key={g} type="button" onClick={() => setFormData(prev => ({ ...prev, genero_nacimiento: g }))} className={`flex-1 py-2.5 text-sm font-medium transition-colors ${formData.genero_nacimiento === g ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}>{g === 'M' ? 'Masculino' : 'Femenino'}</button>))}</div></div>
+                                    </div>
+                                    <div className="mt-4">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Correo Electrónico</label>
+                                        <input type="email" name="correo_electronico" value={formData.correo_electronico || ''} onChange={handleInputChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="ejemplo@correo.com" />
                                     </div>
                                 </div>
                             </div>

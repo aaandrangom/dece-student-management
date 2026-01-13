@@ -20,6 +20,8 @@ type Estudiante struct {
 
 	GeneroNacimiento string `json:"genero_nacimiento"`
 
+	CorreoElectronico string `json:"correo_electronico"`
+
 	InfoNacionalidad common.JSONMap[InfoNacionalidad] `gorm:"type:text" json:"info_nacionalidad"`
 	RutaFoto         string                           `json:"ruta_foto"`
 

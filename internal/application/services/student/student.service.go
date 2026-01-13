@@ -66,13 +66,14 @@ func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.Estudiant
 	print(estudiantes)
 	for i, e := range estudiantes {
 		response[i] = studentDTO.EstudianteListaDTO{
-			ID:              e.ID,
-			Cedula:          e.Cedula,
-			Apellidos:       e.Apellidos,
-			Nombres:         e.Nombres,
-			RutaFoto:        e.RutaFoto,
-			FechaNacimiento: e.FechaNacimiento,
-			Edad:            CaclularEdad(e.FechaNacimiento),
+			ID:                e.ID,
+			Cedula:            e.Cedula,
+			Apellidos:         e.Apellidos,
+			Nombres:           e.Nombres,
+			CorreoElectronico: e.CorreoElectronico,
+			RutaFoto:          e.RutaFoto,
+			FechaNacimiento:   e.FechaNacimiento,
+			Edad:              CaclularEdad(e.FechaNacimiento),
 			InfoNacionalidad: &studentDTO.InfoNacionalidadDTO{
 				EsExtranjero:   e.InfoNacionalidad.Data.EsExtranjero,
 				PaisOrigen:     e.InfoNacionalidad.Data.PaisOrigen,
@@ -111,12 +112,13 @@ func (s *StudentService) GuardarEstudiante(input studentDTO.GuardarEstudianteDTO
 		}
 
 		est := student.Estudiante{
-			ID:               input.ID,
-			Cedula:           input.Cedula,
-			Apellidos:        strings.ToUpper(input.Apellidos),
-			Nombres:          strings.ToUpper(input.Nombres),
-			FechaNacimiento:  input.FechaNacimiento,
-			GeneroNacimiento: input.GeneroNacimiento,
+			ID:                input.ID,
+			Cedula:            input.Cedula,
+			Apellidos:         strings.ToUpper(input.Apellidos),
+			Nombres:           strings.ToUpper(input.Nombres),
+			FechaNacimiento:   input.FechaNacimiento,
+			GeneroNacimiento:  input.GeneroNacimiento,
+			CorreoElectronico: input.CorreoElectronico,
 
 			RutaFoto: input.RutaFoto,
 		}

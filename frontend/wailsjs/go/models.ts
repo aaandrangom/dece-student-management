@@ -1824,6 +1824,7 @@ export namespace student {
 	    nombres: string;
 	    fecha_nacimiento: string;
 	    genero_nacimiento: string;
+	    correo_electronico: string;
 	    info_nacionalidad: common.JSONMap_dece_internal_domain_student_InfoNacionalidad_;
 	    ruta_foto: string;
 	    familiares: Familiar[];
@@ -1841,6 +1842,7 @@ export namespace student {
 	        this.nombres = source["nombres"];
 	        this.fecha_nacimiento = source["fecha_nacimiento"];
 	        this.genero_nacimiento = source["genero_nacimiento"];
+	        this.correo_electronico = source["correo_electronico"];
 	        this.info_nacionalidad = this.convertValues(source["info_nacionalidad"], common.JSONMap_dece_internal_domain_student_InfoNacionalidad_);
 	        this.ruta_foto = source["ruta_foto"];
 	        this.familiares = this.convertValues(source["familiares"], Familiar);
@@ -1888,6 +1890,7 @@ export namespace student {
 	    nombres: string;
 	    ruta_foto: string;
 	    fecha_nacimiento: string;
+	    correo_electronico: string;
 	    edad: number;
 	    info_nacionalidad?: InfoNacionalidadDTO;
 	
@@ -1903,6 +1906,7 @@ export namespace student {
 	        this.nombres = source["nombres"];
 	        this.ruta_foto = source["ruta_foto"];
 	        this.fecha_nacimiento = source["fecha_nacimiento"];
+	        this.correo_electronico = source["correo_electronico"];
 	        this.edad = source["edad"];
 	        this.info_nacionalidad = this.convertValues(source["info_nacionalidad"], InfoNacionalidadDTO);
 	    }
@@ -1979,6 +1983,7 @@ export namespace student {
 	    nombres: string;
 	    fecha_nacimiento: string;
 	    genero_nacimiento: string;
+	    correo_electronico: string;
 	    ruta_foto: string;
 	    es_extranjero: boolean;
 	    pais_origen: string;
@@ -1997,6 +2002,7 @@ export namespace student {
 	        this.nombres = source["nombres"];
 	        this.fecha_nacimiento = source["fecha_nacimiento"];
 	        this.genero_nacimiento = source["genero_nacimiento"];
+	        this.correo_electronico = source["correo_electronico"];
 	        this.ruta_foto = source["ruta_foto"];
 	        this.es_extranjero = source["es_extranjero"];
 	        this.pais_origen = source["pais_origen"];

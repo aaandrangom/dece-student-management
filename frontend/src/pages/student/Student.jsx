@@ -61,6 +61,7 @@ function StudentList({ onCreate, onEdit }) {
     const search = async (q) => {
         try {
             const data = await BuscarEstudiantes(q);
+            console.log('BuscarEstudiantes', { q, data });
             setStudents(data || []);
             setCurrentPage(1);
             try {
@@ -93,6 +94,7 @@ function StudentList({ onCreate, onEdit }) {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = students.slice(indexOfFirstItem, indexOfLastItem);
+    console.log({ students, currentItems });
     const totalPages = Math.ceil(students.length / itemsPerPage);
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -161,6 +163,7 @@ function StudentList({ onCreate, onEdit }) {
                                 <th className="px-6 py-4">Identificación</th>
                                 <th className="px-6 py-4">Apellidos</th>
                                 <th className="px-6 py-4">Nombres</th>
+                                <th className="px-6 py-4">Correo</th>
                                 <th className="px-6 py-4 text-center">Acciones</th>
                             </tr>
                         </thead>
@@ -198,6 +201,7 @@ function StudentList({ onCreate, onEdit }) {
                                         </td>
                                         <td className="px-6 py-4 text-slate-800 font-bold text-sm uppercase">{st.apellidos}</td>
                                         <td className="px-6 py-4 text-slate-700 font-medium text-sm uppercase">{st.nombres}</td>
+                                        <td className="px-6 py-4 text-slate-500 text-sm">{st.correo_electronico || '-'}</td>
                                         <td className="px-6 py-4 text-center">
                                             <button
                                                 onClick={() => onEdit(st.id)}

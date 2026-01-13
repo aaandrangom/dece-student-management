@@ -7,14 +7,15 @@ type InfoNacionalidadDTO struct {
 }
 
 type EstudianteListaDTO struct {
-	ID               uint                 `json:"id"`
-	Cedula           string               `json:"cedula"`
-	Apellidos        string               `json:"apellidos"`
-	Nombres          string               `json:"nombres"`
-	RutaFoto         string               `json:"ruta_foto"`
-	FechaNacimiento  string               `json:"fecha_nacimiento"`
-	Edad             int                  `json:"edad"`
-	InfoNacionalidad *InfoNacionalidadDTO `json:"info_nacionalidad"`
+	ID                uint                 `json:"id"`
+	Cedula            string               `json:"cedula"`
+	Apellidos         string               `json:"apellidos"`
+	Nombres           string               `json:"nombres"`
+	RutaFoto          string               `json:"ruta_foto"`
+	FechaNacimiento   string               `json:"fecha_nacimiento"`
+	CorreoElectronico string               `json:"correo_electronico"`
+	Edad              int                  `json:"edad"`
+	InfoNacionalidad  *InfoNacionalidadDTO `json:"info_nacionalidad"`
 }
 
 type DatosFamiliarDTO struct {
@@ -37,12 +38,13 @@ type GuardarFamiliarDTO struct {
 }
 
 type GuardarEstudianteDTO struct {
-	ID               uint   `json:"id"`
-	Cedula           string `json:"cedula" validate:"required,len=10"`
-	Apellidos        string `json:"apellidos" validate:"required"`
-	Nombres          string `json:"nombres" validate:"required"`
-	FechaNacimiento  string `json:"fecha_nacimiento"`
-	GeneroNacimiento string `json:"genero_nacimiento"`
+	ID                uint   `json:"id"`
+	Cedula            string `json:"cedula" validate:"required,len=10"`
+	Apellidos         string `json:"apellidos" validate:"required"`
+	Nombres           string `json:"nombres" validate:"required"`
+	FechaNacimiento   string `json:"fecha_nacimiento"`
+	GeneroNacimiento  string `json:"genero_nacimiento"`
+	CorreoElectronico string `json:"correo_electronico"`
 
 	RutaFoto string `json:"ruta_foto"`
 
