@@ -93,8 +93,20 @@ func (s *StudentService) ImportarEstudiantes() (int, error) {
 		return 0, errors.New("no se encontraron las columnas: Cedula, Nombres, Apellidos")
 	}
 
+	totalTotal := len(rows) - (headerRowIndex + 1)
+	processedCount := 0
 	count := 0
 	for i := headerRowIndex + 1; i < len(rows); i++ {
+		processedCount++
+		// Emitir evento de progreso cada 5 registros o al final
+		if processedCount%5 == 0 || processedCount == totalTotal {
+			runtime.EventsEmit(s.ctx, "student:import_progress", map[string]int{
+				"current": processedCount,
+				"total":   totalTotal,
+				"success": count,
+			})
+		}
+
 		row := rows[i]
 		getVal := func(idx int) string {
 			if idx >= 0 && idx < len(row) {
@@ -181,7 +193,9 @@ func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.Estudiant
 
 	result := s.db.
 		Where("cedula LIKE ?", likeQuery).
-		Or("apellidos LIKE ? OR nombres LIKE ?", likeQuery, likeQuery).
+		Or("apellidos LIKE ?", likeQuery).
+		Or("nombres LIKE ?", likeQuery).
+		Or("json_extract(info_nacionalidad, '$.pasaporte_odni') LIKE ?", likeQuery).
 		Order("apellidos ASC").
 		Limit(3000).
 		Find(&estudiantes)

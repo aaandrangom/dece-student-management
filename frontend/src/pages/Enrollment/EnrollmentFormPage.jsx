@@ -75,7 +75,9 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                         }));
                     }
                 }
-            } catch (error) { console.error(error); toast.error("Error cargando datos."); } finally { setIsLoading(false); }
+            } catch (error) { 
+                console.warn("No se encontraron datos de matrícula previos o error:", error);
+            } finally { setIsLoading(false); }
         };
         loadInitialData();
     }, [studentId]);

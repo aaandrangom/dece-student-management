@@ -4,6 +4,7 @@ import {
     Search, Plus, User, Edit3, Users,
     ChevronLeft, ChevronRight, Upload
 } from 'lucide-react';
+import { EventsOn } from '../../../wailsjs/runtime/runtime';
 
 import { BuscarEstudiantes, ObtenerFotoBase64, ImportarEstudiantes } from '../../../wailsjs/go/services/StudentService';
 import StudentFormPage from './StudentFormPage';
@@ -44,6 +45,16 @@ function StudentList({ onCreate, onEdit }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [imageCache, setImageCache] = useState({});
+    const [importProgress, setImportProgress] = useState(null);
+
+    useEffect(() => {
+        const cancel = EventsOn("student:import_progress", (data) => {
+            setImportProgress(data);
+        });
+        return () => {
+            if (cancel) cancel();
+        };
+    }, []);
 
     const isLocalPath = (rf) => {
         if (!rf) return false;
@@ -99,6 +110,7 @@ function StudentList({ onCreate, onEdit }) {
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const handleImport = async () => {
+        setImportProgress({ current: 0, total: 100, success: 0 });
         try {
             const count = await ImportarEstudiantes();
             if (count > 0) {
@@ -110,6 +122,8 @@ function StudentList({ onCreate, onEdit }) {
         } catch (err) {
             console.error(err);
             toast.error("Error al importar estudiantes");
+        } finally {
+            setImportProgress(null);
         }
     };
 
@@ -258,6 +272,32 @@ function StudentList({ onCreate, onEdit }) {
                     </div>
                 )}
             </div>
+
+            {importProgress && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-100">
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
+                        <div className="flex flex-col items-center mb-6">
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                                <Upload className="w-8 h-8 text-blue-600" />
+                            </div>
+                            <h3 className="font-bold text-xl text-slate-800">Importando Estudiantes</h3>
+                            <p className="text-slate-500 text-sm mt-1">Por favor espere, no cierre la aplicación...</p>
+                        </div>
+                        
+                        <div className="w-full bg-slate-100 rounded-full h-3 mb-4 overflow-hidden border border-slate-200">
+                            <div 
+                                className="bg-blue-600 h-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.5)]" 
+                                style={{ width: `${Math.round((importProgress.current / importProgress.total) * 100)}%` }}
+                            ></div>
+                        </div>
+                        
+                        <div className="flex justify-between items-center text-sm font-medium">
+                            <span className="text-slate-600">{importProgress.current} de {importProgress.total} procesados</span>
+                            <span className="text-blue-600">{Math.round((importProgress.current / importProgress.total) * 100)}%</span>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
