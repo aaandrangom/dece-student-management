@@ -11,10 +11,14 @@ type AutoridadDTO struct {
 }
 
 type AutoridadesInstitucionDTO struct {
-	Rector           AutoridadDTO `json:"rector"`
-	Subdirector      AutoridadDTO `json:"subdirector"`
-	InspectorGeneral AutoridadDTO `json:"inspector_general"`
-	ResponsableDECE  AutoridadDTO `json:"responsable_dece"`
+	Rector                AutoridadDTO `json:"rector"`
+	SubdirectorMatutina   AutoridadDTO `json:"subdirector_matutina"`
+	SubdirectorVespertina AutoridadDTO `json:"subdirector_vespertina"`
+	InspectorGeneral      AutoridadDTO `json:"inspector_general"`
+	Subinspector          AutoridadDTO `json:"subinspector"`
+	CoordinadorDECE       AutoridadDTO `json:"coordinador_dece"`
+	AnalistaDECE1         AutoridadDTO `json:"analista_dece_1"`
+	AnalistaDECE2         AutoridadDTO `json:"analista_dece_2"`
 }
 
 type DetalleUbicacionDTO struct {

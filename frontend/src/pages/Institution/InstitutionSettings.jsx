@@ -30,9 +30,13 @@ const InstitutionSettings = () => {
         },
         autoridades: {
             rector: { nombres: '', cedula: '', jornada: '', telefono: '' },
-            subdirector: { nombres: '', cedula: '', jornada: '', telefono: '' },
+            subdirector_matutina: { nombres: '', cedula: '', jornada: '', telefono: '' },
+            subdirector_vespertina: { nombres: '', cedula: '', jornada: '', telefono: '' },
             inspector_general: { nombres: '', cedula: '', jornada: '', telefono: '' },
-            responsable_dece: { nombres: '', cedula: '', jornada: '', telefono: '' }
+            subinspector: { nombres: '', cedula: '', jornada: '', telefono: '' },
+            coordinador_dece: { nombres: '', cedula: '', jornada: '', telefono: '' },
+            analista_dece_1: { nombres: '', cedula: '', jornada: '', telefono: '' },
+            analista_dece_2: { nombres: '', cedula: '', jornada: '', telefono: '' }
         }
     });
 
@@ -61,9 +65,13 @@ const InstitutionSettings = () => {
                     },
                     autoridades: {
                         rector: data.autoridades?.rector || { nombres: '', cedula: '', jornada: '', telefono: '' },
-                        subdirector: data.autoridades?.subdirector || { nombres: '', cedula: '', jornada: '', telefono: '' },
+                        subdirector_matutina: data.autoridades?.subdirector_matutina || { nombres: '', cedula: '', jornada: '', telefono: '' },
+                        subdirector_vespertina: data.autoridades?.subdirector_vespertina || { nombres: '', cedula: '', jornada: '', telefono: '' },
                         inspector_general: data.autoridades?.inspector_general || { nombres: '', cedula: '', jornada: '', telefono: '' },
-                        responsable_dece: data.autoridades?.responsable_dece || { nombres: '', cedula: '', jornada: '', telefono: '' }
+                        subinspector: data.autoridades?.subinspector || { nombres: '', cedula: '', jornada: '', telefono: '' },
+                        coordinador_dece: data.autoridades?.coordinador_dece || { nombres: '', cedula: '', jornada: '', telefono: '' },
+                        analista_dece_1: data.autoridades?.analista_dece_1 || { nombres: '', cedula: '', jornada: '', telefono: '' },
+                        analista_dece_2: data.autoridades?.analista_dece_2 || { nombres: '', cedula: '', jornada: '', telefono: '' }
                     }
                 });
             }
@@ -289,57 +297,114 @@ const InstitutionSettings = () => {
                         </div>
                     </div>
 
-                    <div className="p-8 bg-slate-50/30">
+                    <div className="p-8 bg-slate-50/30 border-t border-slate-100">
                         <div className="flex items-center gap-2 mb-6">
                             <Users className="w-5 h-5 text-emerald-500" />
                             <h2 className="text-lg font-bold text-slate-800">Autoridades Institucionales</h2>
                         </div>
 
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-
-                            <div className="flex flex-col gap-4">
+                            
+                            {/* Columna Izquierda: Dirección e Inspección */}
+                            <div className="flex flex-col gap-8">
+                                
+                                {/* Sección Dirección */}
                                 <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                    <AutoridadForm
-                                        titulo="Director"
-                                        color="purple"
-                                        autoridad={config.autoridades.rector}
-                                        onChange={(field, value) => handleAutoridadChange('rector', field, value)}
-                                        isOpen={openAuthoritySection === 'rector'}
-                                        onToggle={() => toggleAuthority('rector')}
-                                    />
+                                    <div className="bg-slate-50 border-b border-slate-100 px-4 py-3">
+                                        <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Dirección</h3>
+                                    </div>
+                                    <div className="divide-y divide-slate-100">
+                                        <AutoridadForm
+                                            titulo="Rector/a"
+                                            color="purple"
+                                            autoridad={config.autoridades.rector}
+                                            onChange={(field, value) => handleAutoridadChange('rector', field, value)}
+                                            isOpen={openAuthoritySection === 'rector'}
+                                            onToggle={() => toggleAuthority('rector')}
+                                        />
+                                        <div className="bg-blue-50/30 px-4 py-2 border-l-4 border-blue-500 flex items-center gap-2">
+                                            <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Subdirección</span>
+                                        </div>
+                                        <AutoridadForm
+                                            titulo="Jornada Matutina"
+                                            color="blue"
+                                            autoridad={config.autoridades.subdirector_matutina}
+                                            onChange={(field, value) => handleAutoridadChange('subdirector_matutina', field, value)}
+                                            isOpen={openAuthoritySection === 'subdirector_matutina'}
+                                            onToggle={() => toggleAuthority('subdirector_matutina')}
+                                        />
+                                        <AutoridadForm
+                                            titulo="Jornada Vespertina"
+                                            color="blue"
+                                            autoridad={config.autoridades.subdirector_vespertina}
+                                            onChange={(field, value) => handleAutoridadChange('subdirector_vespertina', field, value)}
+                                            isOpen={openAuthoritySection === 'subdirector_vespertina'}
+                                            onToggle={() => toggleAuthority('subdirector_vespertina')}
+                                        />
+                                    </div>
                                 </div>
+
+                                {/* Sección Inspección */}
                                 <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                    <AutoridadForm
-                                        titulo="Vicerrector/a"
-                                        color="blue"
-                                        autoridad={config.autoridades.subdirector}
-                                        onChange={(field, value) => handleAutoridadChange('subdirector', field, value)}
-                                        isOpen={openAuthoritySection === 'subdirector'}
-                                        onToggle={() => toggleAuthority('subdirector')}
-                                    />
+                                    <div className="bg-slate-50 border-b border-slate-100 px-4 py-3">
+                                        <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Inspección</h3>
+                                    </div>
+                                    <div className="divide-y divide-slate-100">
+                                        <AutoridadForm
+                                            titulo="Inspector General"
+                                            color="indigo"
+                                            autoridad={config.autoridades.inspector_general}
+                                            onChange={(field, value) => handleAutoridadChange('inspector_general', field, value)}
+                                            isOpen={openAuthoritySection === 'inspector_general'}
+                                            onToggle={() => toggleAuthority('inspector_general')}
+                                        />
+                                        <AutoridadForm
+                                            titulo="Subinspector"
+                                            color="indigo"
+                                            autoridad={config.autoridades.subinspector}
+                                            onChange={(field, value) => handleAutoridadChange('subinspector', field, value)}
+                                            isOpen={openAuthoritySection === 'subinspector'}
+                                            onToggle={() => toggleAuthority('subinspector')}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex flex-col gap-4">
-                                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                    <AutoridadForm
-                                        titulo="Inspector General"
-                                        color="indigo"
-                                        autoridad={config.autoridades.inspector_general}
-                                        onChange={(field, value) => handleAutoridadChange('inspector_general', field, value)}
-                                        isOpen={openAuthoritySection === 'inspector_general'}
-                                        onToggle={() => toggleAuthority('inspector_general')}
-                                    />
-                                </div>
-                                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                    <AutoridadForm
-                                        titulo="Responsable DECE"
-                                        color="emerald"
-                                        autoridad={config.autoridades.responsable_dece}
-                                        onChange={(field, value) => handleAutoridadChange('responsable_dece', field, value)}
-                                        isOpen={openAuthoritySection === 'responsable_dece'}
-                                        onToggle={() => toggleAuthority('responsable_dece')}
-                                    />
+                            {/* Columna Derecha: DECE */}
+                            <div className="flex flex-col gap-8">
+                                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm h-full">
+                                    <div className="bg-slate-50 border-b border-slate-100 px-4 py-3">
+                                        <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Departamento de Consejería Estudiantil (DECE)</h3>
+                                    </div>
+                                    <div className="divide-y divide-slate-100">
+                                        <AutoridadForm
+                                            titulo="Coordinador/a DECE"
+                                            color="emerald"
+                                            autoridad={config.autoridades.coordinador_dece}
+                                            onChange={(field, value) => handleAutoridadChange('coordinador_dece', field, value)}
+                                            isOpen={openAuthoritySection === 'coordinador_dece'}
+                                            onToggle={() => toggleAuthority('coordinador_dece')}
+                                        />
+                                        <div className="bg-emerald-50/30 px-4 py-2 border-l-4 border-emerald-500 flex items-center gap-2">
+                                            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">Equipo de Analistas</span>
+                                        </div>
+                                        <AutoridadForm
+                                            titulo="Analista DECE 1"
+                                            color="emerald"
+                                            autoridad={config.autoridades.analista_dece_1}
+                                            onChange={(field, value) => handleAutoridadChange('analista_dece_1', field, value)}
+                                            isOpen={openAuthoritySection === 'analista_dece_1'}
+                                            onToggle={() => toggleAuthority('analista_dece_1')}
+                                        />
+                                        <AutoridadForm
+                                            titulo="Analista DECE 2"
+                                            color="emerald"
+                                            autoridad={config.autoridades.analista_dece_2}
+                                            onChange={(field, value) => handleAutoridadChange('analista_dece_2', field, value)}
+                                            isOpen={openAuthoritySection === 'analista_dece_2'}
+                                            onToggle={() => toggleAuthority('analista_dece_2')}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 

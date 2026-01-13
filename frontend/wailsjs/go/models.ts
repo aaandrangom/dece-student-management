@@ -577,9 +577,13 @@ export namespace dtos {
 	}
 	export class AutoridadesInstitucionDTO {
 	    rector: AutoridadDTO;
-	    subdirector: AutoridadDTO;
+	    subdirector_matutina: AutoridadDTO;
+	    subdirector_vespertina: AutoridadDTO;
 	    inspector_general: AutoridadDTO;
-	    responsable_dece: AutoridadDTO;
+	    subinspector: AutoridadDTO;
+	    coordinador_dece: AutoridadDTO;
+	    analista_dece_1: AutoridadDTO;
+	    analista_dece_2: AutoridadDTO;
 	
 	    static createFrom(source: any = {}) {
 	        return new AutoridadesInstitucionDTO(source);
@@ -588,9 +592,13 @@ export namespace dtos {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.rector = this.convertValues(source["rector"], AutoridadDTO);
-	        this.subdirector = this.convertValues(source["subdirector"], AutoridadDTO);
+	        this.subdirector_matutina = this.convertValues(source["subdirector_matutina"], AutoridadDTO);
+	        this.subdirector_vespertina = this.convertValues(source["subdirector_vespertina"], AutoridadDTO);
 	        this.inspector_general = this.convertValues(source["inspector_general"], AutoridadDTO);
-	        this.responsable_dece = this.convertValues(source["responsable_dece"], AutoridadDTO);
+	        this.subinspector = this.convertValues(source["subinspector"], AutoridadDTO);
+	        this.coordinador_dece = this.convertValues(source["coordinador_dece"], AutoridadDTO);
+	        this.analista_dece_1 = this.convertValues(source["analista_dece_1"], AutoridadDTO);
+	        this.analista_dece_2 = this.convertValues(source["analista_dece_2"], AutoridadDTO);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

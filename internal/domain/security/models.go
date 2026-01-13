@@ -31,10 +31,14 @@ type Autoridad struct {
 }
 
 type AutoridadesInstitucion struct {
-	Rector           Autoridad `json:"rector"`
-	Subdirector      Autoridad `json:"subdirector"`
-	InspectorGeneral Autoridad `json:"inspector_general"`
-	ResponsableDECE  Autoridad `json:"responsable_dece"`
+	Rector                Autoridad `json:"rector"`
+	SubdirectorMatutina   Autoridad `json:"subdirector_matutina"`
+	SubdirectorVespertina Autoridad `json:"subdirector_vespertina"`
+	InspectorGeneral      Autoridad `json:"inspector_general"`
+	Subinspector          Autoridad `json:"subinspector"`
+	CoordinadorDECE       Autoridad `json:"coordinador_dece"`
+	AnalistaDECE1         Autoridad `json:"analista_dece_1"`
+	AnalistaDECE2         Autoridad `json:"analista_dece_2"`
 }
 
 type ConfiguracionInstitucional struct {

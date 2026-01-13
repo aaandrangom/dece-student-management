@@ -47,10 +47,14 @@ func (s *InstitutionService) ObtenerConfiguracion() (*securityDTO.ConfiguracionI
 		},
 
 		Autoridades: securityDTO.AutoridadesInstitucionDTO{
-			Rector:           securityHelper.MapAutoridadToDTO(config.Autoridades.Data.Rector),
-			Subdirector:      securityHelper.MapAutoridadToDTO(config.Autoridades.Data.Subdirector),
-			InspectorGeneral: securityHelper.MapAutoridadToDTO(config.Autoridades.Data.InspectorGeneral),
-			ResponsableDECE:  securityHelper.MapAutoridadToDTO(config.Autoridades.Data.ResponsableDECE),
+			Rector:                securityHelper.MapAutoridadToDTO(config.Autoridades.Data.Rector),
+			SubdirectorMatutina:   securityHelper.MapAutoridadToDTO(config.Autoridades.Data.SubdirectorMatutina),
+			SubdirectorVespertina: securityHelper.MapAutoridadToDTO(config.Autoridades.Data.SubdirectorVespertina),
+			InspectorGeneral:      securityHelper.MapAutoridadToDTO(config.Autoridades.Data.InspectorGeneral),
+			Subinspector:          securityHelper.MapAutoridadToDTO(config.Autoridades.Data.Subinspector),
+			CoordinadorDECE:       securityHelper.MapAutoridadToDTO(config.Autoridades.Data.CoordinadorDECE),
+			AnalistaDECE1:         securityHelper.MapAutoridadToDTO(config.Autoridades.Data.AnalistaDECE1),
+			AnalistaDECE2:         securityHelper.MapAutoridadToDTO(config.Autoridades.Data.AnalistaDECE2),
 		},
 	}
 
@@ -80,10 +84,14 @@ func (s *InstitutionService) GuardarConfiguracion(input securityDTO.Configuracio
 
 	configModel.Autoridades = common.JSONMap[security.AutoridadesInstitucion]{
 		Data: security.AutoridadesInstitucion{
-			Rector:           securityHelper.MapDTOToAutoridad(input.Autoridades.Rector),
-			Subdirector:      securityHelper.MapDTOToAutoridad(input.Autoridades.Subdirector),
-			InspectorGeneral: securityHelper.MapDTOToAutoridad(input.Autoridades.InspectorGeneral),
-			ResponsableDECE:  securityHelper.MapDTOToAutoridad(input.Autoridades.ResponsableDECE),
+			Rector:                securityHelper.MapDTOToAutoridad(input.Autoridades.Rector),
+			SubdirectorMatutina:   securityHelper.MapDTOToAutoridad(input.Autoridades.SubdirectorMatutina),
+			SubdirectorVespertina: securityHelper.MapDTOToAutoridad(input.Autoridades.SubdirectorVespertina),
+			InspectorGeneral:      securityHelper.MapDTOToAutoridad(input.Autoridades.InspectorGeneral),
+			Subinspector:          securityHelper.MapDTOToAutoridad(input.Autoridades.Subinspector),
+			CoordinadorDECE:       securityHelper.MapDTOToAutoridad(input.Autoridades.CoordinadorDECE),
+			AnalistaDECE1:         securityHelper.MapDTOToAutoridad(input.Autoridades.AnalistaDECE1),
+			AnalistaDECE2:         securityHelper.MapDTOToAutoridad(input.Autoridades.AnalistaDECE2),
 		},
 	}
 
