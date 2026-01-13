@@ -10,13 +10,16 @@ import {
     ChevronUp,
     UserCog,
     LayoutDashboard,
+    FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ObtenerConfiguracion, GuardarConfiguracion } from "../../../wailsjs/go/services/InstitutionService";
+import { GenerarReporteInstitucional, AbrirUbicacionReporte } from "../../../wailsjs/go/reports/ReportService";
 
 const InstitutionSettings = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [config, setConfig] = useState({
         nombre: '',
         codigo_amie: '',
@@ -117,6 +120,24 @@ const InstitutionSettings = () => {
         setOpenAuthoritySection(openAuthoritySection === key ? null : key);
     };
 
+    const handleGenerateReport = async () => {
+        try {
+            setIsGeneratingReport(true);
+            const path = await GenerarReporteInstitucional();
+            toast.success('Reporte generado exitosamente', {
+                action: {
+                    label: 'Abrir',
+                    onClick: () => AbrirUbicacionReporte(path)
+                }
+            });
+        } catch (error) {
+            console.error('Error al generar reporte:', error);
+            toast.error('Error al generar el reporte');
+        } finally {
+            setIsGeneratingReport(false);
+        }
+    };
+
     const handleSubmit = async () => {
         if (!config.nombre || !config.codigo_amie) {
             toast.error('Por favor completa los campos obligatorios (Nombre y AMIE)');
@@ -142,7 +163,7 @@ const InstitutionSettings = () => {
                     <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
                     <p className="text-slate-500 font-medium">Cargando configuración...</p>
                 </div>
-            </div>
+</div>
         );
     }
 
@@ -160,23 +181,39 @@ const InstitutionSettings = () => {
                         </div>
                     </div>
 
-                    <button
-                        onClick={handleSubmit}
-                        disabled={isSaving}
-                        className="w-full sm:w-auto px-6 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-                    >
-                        {isSaving ? (
-                            <>
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <button
+                            onClick={handleGenerateReport}
+                            disabled={isGeneratingReport || isSaving}
+                            className="px-4 py-2.5 bg-white text-slate-700 font-bold rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-purple-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                            title="Generar Reporte PDF"
+                        >
+                            {isGeneratingReport ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                <span>Guardando...</span>
-                            </>
-                        ) : (
-                            <>
-                                <Save className="w-4 h-4" />
-                                <span>Guardar Cambios</span>
-                            </>
-                        )}
-                    </button>
+                            ) : (
+                                <FileText className="w-4 h-4" />
+                            )}
+                            <span className="hidden sm:inline">Reporte</span>
+                        </button>
+
+                        <button
+                            onClick={handleSubmit}
+                            disabled={isSaving}
+                            className="w-full sm:w-auto px-6 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                        >
+                            {isSaving ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <span>Guardando...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-4 h-4" />
+                                    <span>Guardar Cambios</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="divide-y divide-slate-100">

@@ -3,16 +3,18 @@ import { Toaster, toast } from 'sonner';
 import Swal from 'sweetalert2';
 import {
     Users, Plus, Search, CheckCircle2, XCircle, Power, Pencil,
-    Mail, Phone, IdCard, GraduationCap, X, Loader2, ChevronLeft, ChevronRight
+    Mail, Phone, IdCard, GraduationCap, X, Loader2, ChevronLeft, ChevronRight, FileText
 } from 'lucide-react';
 
 import {
     ListarDocentes, CrearDocente, ActualizarDocente, ToggleEstado
 } from '../../../wailsjs/go/services/TeacherService';
+import { GenerarReporteDocentes, AbrirUbicacionReporte } from "../../../wailsjs/go/reports/ReportService";
 
 export default function TeachersPage() {
     const [teachers, setTeachers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -43,6 +45,24 @@ export default function TeachersPage() {
             toast.error("Error al cargar la planta docente");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleGenerateReport = async () => {
+        try {
+            setIsGeneratingReport(true);
+            const path = await GenerarReporteDocentes();
+            toast.success('Reporte generado exitosamente', {
+                action: {
+                    label: 'Abrir',
+                    onClick: () => AbrirUbicacionReporte(path)
+                }
+            });
+        } catch (error) {
+            console.error('Error al generar reporte:', error);
+            toast.error('Error al generar el reporte');
+        } finally {
+            setIsGeneratingReport(false);
         }
     };
 
@@ -189,13 +209,28 @@ export default function TeachersPage() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={openCreateModal}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Nuevo Docente
-                    </button>
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <button
+                            onClick={handleGenerateReport}
+                            disabled={isGeneratingReport || isLoading}
+                            className="px-4 py-2.5 bg-white text-slate-700 font-bold rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-purple-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                            title="Generar Reporte PDF"
+                        >
+                            {isGeneratingReport ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <FileText className="w-4 h-4" />
+                            )}
+                            <span className="hidden sm:inline">Reporte</span>
+                        </button>
+                        <button
+                            onClick={openCreateModal}
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Nuevo Docente
+                        </button>
+                    </div>
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">

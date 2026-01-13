@@ -15,6 +15,7 @@ import (
 	faculty "dece/internal/application/services/faculty"
 	management "dece/internal/application/services/management"
 	notifications "dece/internal/application/services/notifications"
+	reports "dece/internal/application/services/reports"
 	security "dece/internal/application/services/security"
 	student "dece/internal/application/services/student"
 	telegramSync "dece/internal/application/services/sync"
@@ -53,6 +54,7 @@ func main() {
 	telegramSyncService := telegramSync.NewTelegramSyncService(db)
 	managementService := management.NewManagementService(db, telegramSyncService)
 	notificationsService := notifications.NewNotificationsService(db)
+	reportService := reports.NewReportService(institutionService, teacherService)
 
 	app := NewApp(enrollmentService, trackingService, notificationsService, telegramSyncService)
 
@@ -89,6 +91,7 @@ func main() {
 
 			managementService,
 			notificationsService,
+			reportService,
 		},
 	})
 
