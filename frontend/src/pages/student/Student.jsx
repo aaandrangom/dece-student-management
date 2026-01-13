@@ -43,7 +43,7 @@ function StudentList({ onCreate, onEdit }) {
     const [students, setStudents] = useState([]);
     const [query, setQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
     const [imageCache, setImageCache] = useState({});
     const [importProgress, setImportProgress] = useState(null);
 
@@ -184,6 +184,7 @@ function StudentList({ onCreate, onEdit }) {
                         onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
                         className="bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 focus:outline-none focus:border-purple-500 font-semibold text-slate-700"
                     >
+                        <option value="5">5</option>
                         <option value="10">10</option>
                         <option value="20">20</option>
                         <option value="50">50</option>

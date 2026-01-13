@@ -1735,6 +1735,37 @@ export namespace notifications {
 
 }
 
+export namespace search {
+	
+	export class GlobalSearchResultDTO {
+	    type: string;
+	    id: number;
+	    title: string;
+	    description: string;
+	    route: string;
+	    icon: string;
+	    tiene_caso_sensible: boolean;
+	    tiene_disciplina: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new GlobalSearchResultDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.type = source["type"];
+	        this.id = source["id"];
+	        this.title = source["title"];
+	        this.description = source["description"];
+	        this.route = source["route"];
+	        this.icon = source["icon"];
+	        this.tiene_caso_sensible = source["tiene_caso_sensible"];
+	        this.tiene_disciplina = source["tiene_disciplina"];
+	    }
+	}
+
+}
+
 export namespace student {
 	
 	export class DatosFamiliar {
