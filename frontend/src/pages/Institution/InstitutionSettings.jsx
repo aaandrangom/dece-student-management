@@ -300,7 +300,7 @@ const InstitutionSettings = () => {
                             <div className="flex flex-col gap-4">
                                 <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                                     <AutoridadForm
-                                        titulo="Rector/a"
+                                        titulo="Director"
                                         color="purple"
                                         autoridad={config.autoridades.rector}
                                         onChange={(field, value) => handleAutoridadChange('rector', field, value)}
