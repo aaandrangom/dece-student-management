@@ -110,9 +110,10 @@ type Matricula struct {
 	DatosSociales      common.JSONMap[DatosSociales]      `gorm:"type:text" json:"datos_sociales"`
 	CondicionGenero    common.JSONMap[CondicionGenero]    `gorm:"type:text" json:"condicion_genero"`
 
-	DireccionActual string `json:"direccion_actual"`
-	RutaCroquis     string `json:"ruta_croquis"`
-	FechaRegistro   string `json:"fecha_registro"`
+	DireccionActual    string `json:"direccion_actual"`
+	RutaCroquis        string `json:"ruta_croquis"`
+	RutaConsentimiento string `json:"ruta_consentimiento"`
+	FechaRegistro      string `json:"fecha_registro"`
 
 	Estudiante student.Estudiante `gorm:"foreignKey:EstudianteID" json:"estudiante,omitempty"`
 	Curso      faculty.Curso      `gorm:"foreignKey:CursoID" json:"curso,omitempty"`

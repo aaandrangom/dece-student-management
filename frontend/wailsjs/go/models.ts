@@ -955,6 +955,7 @@ export namespace enrollment {
 	    condicion_genero: CondicionGenero;
 	    direccion_actual: string;
 	    ruta_croquis: string;
+	    ruta_consentimiento: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new GuardarMatriculaDTO(source);
@@ -973,6 +974,7 @@ export namespace enrollment {
 	        this.condicion_genero = this.convertValues(source["condicion_genero"], CondicionGenero);
 	        this.direccion_actual = source["direccion_actual"];
 	        this.ruta_croquis = source["ruta_croquis"];
+	        this.ruta_consentimiento = source["ruta_consentimiento"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1029,6 +1031,7 @@ export namespace enrollment {
 	    condicion_genero: common.JSONMap_dece_internal_domain_enrollment_CondicionGenero_;
 	    direccion_actual: string;
 	    ruta_croquis: string;
+	    ruta_consentimiento: string;
 	    fecha_registro: string;
 	    estudiante?: student.Estudiante;
 	    curso?: faculty.Curso;
@@ -1051,6 +1054,7 @@ export namespace enrollment {
 	        this.condicion_genero = this.convertValues(source["condicion_genero"], common.JSONMap_dece_internal_domain_enrollment_CondicionGenero_);
 	        this.direccion_actual = source["direccion_actual"];
 	        this.ruta_croquis = source["ruta_croquis"];
+	        this.ruta_consentimiento = source["ruta_consentimiento"];
 	        this.fecha_registro = source["fecha_registro"];
 	        this.estudiante = this.convertValues(source["estudiante"], student.Estudiante);
 	        this.curso = this.convertValues(source["curso"], faculty.Curso);
@@ -1086,6 +1090,7 @@ export namespace enrollment {
 	    condicion_genero: CondicionGenero;
 	    direccion_actual: string;
 	    ruta_croquis: string;
+	    ruta_consentimiento: string;
 	    estado: string;
 	
 	    static createFrom(source: any = {}) {
@@ -1105,6 +1110,7 @@ export namespace enrollment {
 	        this.condicion_genero = this.convertValues(source["condicion_genero"], CondicionGenero);
 	        this.direccion_actual = source["direccion_actual"];
 	        this.ruta_croquis = source["ruta_croquis"];
+	        this.ruta_consentimiento = source["ruta_consentimiento"];
 	        this.estado = source["estado"];
 	    }
 	

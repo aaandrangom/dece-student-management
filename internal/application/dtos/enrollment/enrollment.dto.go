@@ -27,8 +27,9 @@ type GuardarMatriculaDTO struct {
 	DatosSociales      domain.DatosSociales      `json:"datos_sociales"`
 	CondicionGenero    domain.CondicionGenero    `json:"condicion_genero"`
 
-	DireccionActual string `json:"direccion_actual"`
-	RutaCroquis     string `json:"ruta_croquis"`
+	DireccionActual    string `json:"direccion_actual"`
+	RutaCroquis        string `json:"ruta_croquis"`
+	RutaConsentimiento string `json:"ruta_consentimiento"`
 }
 
 // DTO de Respuesta Completa (Para cargar el formulario)

@@ -17,7 +17,7 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
     const [previewFile, setPreviewFile] = useState(null);
 
     const [formData, setFormData] = useState({
-        id: 0, estudiante_id: studentId, curso_id: 0, es_repetidor: false, direccion_actual: '', ruta_croquis: '',
+        id: 0, estudiante_id: studentId, curso_id: 0, es_repetidor: false, direccion_actual: '', ruta_croquis: '', ruta_consentimiento: '',
         antropometria: { peso: 0, talla: 0, tipo_sangre: 'O+' },
         historial_academico: { es_nuevo_estudiante: false, institucion_anterior: '', provincia_anterior: '', canton_anterior: '', ha_repetido_anio: false, detalle_anio_repetido: '', materias_favoritas: [], materias_menos_gustan: [] },
         datos_salud: { tiene_eval_psicopedagogica: false, ruta_eval_psicopedagogica: '', tiene_discapacidad: false, detalle_discapacidad: '', ha_sufrido_accidente: false, detalle_accidente: '', tiene_alergias: false, detalle_alergia: '', tiene_cirugias: false, detalle_cirugia: '', tiene_enfermedad: false, detalle_enfermedad: '' },
@@ -57,6 +57,7 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                             es_repetidor: data.es_repetidor,
                             direccion_actual: data.direccion_actual,
                             ruta_croquis: data.ruta_croquis,
+                            ruta_consentimiento: data.ruta_consentimiento,
                             antropometria: { ...prev.antropometria, ...(data.antropometria || {}) },
                             historial_academico: {
                                 ...prev.historial_academico, ...(data.historial_academico || {}),
@@ -164,7 +165,7 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
 
                 {/* Content */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 min-h-150">
-                    {activeTab === 'academico' && <AcademicTab data={formData} courses={courses} onChange={(field, val) => updateRoot(field, val)} />}
+                    {activeTab === 'academico' && <AcademicTab data={formData} courses={courses} onChange={(field, val) => updateRoot(field, val)} onFileSelect={handleFileSelect} onPreview={handlePreview} />}
                     {activeTab === 'fisico' && <PhysicalTab data={formData.antropometria} onChange={(field, val) => updateField('antropometria', field, val)} />}
                     {activeTab === 'salud' && <HealthTab data={formData.datos_salud} onChange={(field, val) => updateField('datos_salud', field, val)} onFileSelect={handleFileSelect} onPreview={handlePreview} />}
                     {activeTab === 'social' && <SocialTab history={formData.historial_academico} social={formData.datos_sociales} rutaCroquis={formData.ruta_croquis} subjectsList={subjectsList} onChangeHistory={(field, val) => updateField('historial_academico', field, val)} onChangeSocial={(field, val) => updateField('datos_sociales', field, val)} onFileSelect={handleFileSelect} onPreview={handlePreview} />}

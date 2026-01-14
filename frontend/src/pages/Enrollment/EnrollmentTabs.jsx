@@ -11,7 +11,7 @@ import {
 import { toast } from 'sonner';
 
 
-export const AcademicTab = ({ data, courses, onChange }) => (
+export const AcademicTab = ({ data, courses, onChange, onFileSelect, onPreview }) => (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
@@ -74,6 +74,24 @@ export const AcademicTab = ({ data, courses, onChange }) => (
                         </label>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
+            <SectionTitle title="Documentación Legal" icon={FileText} />
+            <div className="mt-6">
+                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                    <h4 className="font-medium text-slate-800 mb-2">Consentimiento Informado</h4>
+                    <p className="text-sm text-slate-500 mb-4">Documento firmado por el representante legal autorizando los procesos del DECE.</p>
+                     
+                    <FileUploader
+                        label="Subir PDF (Máx 5MB)"
+                        path={data.ruta_consentimiento}
+                        onSelect={() => onFileSelect(null, 'ruta_consentimiento')}
+                        onPreview={() => onPreview(data.ruta_consentimiento)}
+                        onDelete={() => onChange('ruta_consentimiento', '')}
+                    />
+                 </div>
             </div>
         </div>
     </div>

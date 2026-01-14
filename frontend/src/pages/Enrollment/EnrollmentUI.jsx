@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Search, Upload, Eye, FileText, Check } from 'lucide-react';
+import { X, Plus, Search, Upload, Eye, FileText, Check, Trash2 } from 'lucide-react';
 import { BuscarEstudiantes } from '../../../wailsjs/go/services/StudentService';
 import { toast } from 'sonner';
 
@@ -78,7 +78,7 @@ export const BaseSelect = (props) => (
     </div>
 );
 
-export const FileUploader = ({ label, path, onSelect, onPreview }) => (
+export const FileUploader = ({ label, path, onSelect, onPreview, onDelete }) => (
     <InputGroup label={label}>
         <div className="group border-2 border-dashed border-slate-200 rounded-xl p-4 hover:border-indigo-400 hover:bg-indigo-50/10 transition-all bg-slate-50/30">
             <div className="flex items-center justify-between gap-4">
@@ -104,13 +104,24 @@ export const FileUploader = ({ label, path, onSelect, onPreview }) => (
                         Examinar
                     </button>
                     {path && (
-                        <button
-                            onClick={() => onPreview(path)}
-                            className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors border border-indigo-100"
-                            title="Ver archivo"
-                        >
-                            <Eye className="w-4 h-4" />
-                        </button>
+                        <>
+                            <button
+                                onClick={() => onPreview(path)}
+                                className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors border border-indigo-100"
+                                title="Ver archivo"
+                            >
+                                <Eye className="w-4 h-4" />
+                            </button>
+                            {onDelete && (
+                                <button
+                                    onClick={onDelete}
+                                    className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
+                                    title="Eliminar archivo"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

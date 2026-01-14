@@ -167,6 +167,7 @@ func (s *EnrollmentService) ObtenerMatriculaActual(estudianteID uint) (*enrollme
 			CondicionGenero:    matricula.CondicionGenero.Data,
 			DireccionActual:    matricula.DireccionActual,
 			RutaCroquis:        matricula.RutaCroquis,
+			RutaConsentimiento: matricula.RutaConsentimiento,
 		},
 		Estado: matricula.Estado,
 	}
@@ -209,6 +210,17 @@ func (s *EnrollmentService) GuardarMatricula(input enrollmentDTO.GuardarMatricul
 		}
 	}
 
+	if input.RutaConsentimiento != "" {
+		newPath, err := s.guardarArchivo(
+			input.RutaConsentimiento,
+			"DocumentosEstudiantes",
+			"CONSENTIMIENTO_"+est.Cedula,
+		)
+		if err == nil {
+			input.RutaConsentimiento = newPath
+		}
+	}
+
 	if input.ID == 0 {
 		var curso faculty.Curso
 		if err := s.db.First(&curso, input.CursoID).Error; err != nil {
@@ -238,8 +250,9 @@ func (s *EnrollmentService) GuardarMatricula(input enrollmentDTO.GuardarMatricul
 		DatosSociales:      common.JSONMap[domain.DatosSociales]{Data: input.DatosSociales},
 		CondicionGenero:    common.JSONMap[domain.CondicionGenero]{Data: input.CondicionGenero},
 
-		DireccionActual: input.DireccionActual,
-		RutaCroquis:     input.RutaCroquis,
+		DireccionActual:    input.DireccionActual,
+		RutaCroquis:        input.RutaCroquis,
+		RutaConsentimiento: input.RutaConsentimiento,
 	}
 
 	if mat.ID == 0 {
