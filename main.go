@@ -21,6 +21,7 @@ import (
 	security "dece/internal/application/services/security"
 	student "dece/internal/application/services/student"
 	telegramSync "dece/internal/application/services/sync"
+	system "dece/internal/application/services/system"
 	tracking "dece/internal/application/services/tracking"
 )
 
@@ -59,8 +60,9 @@ func main() {
 	notificationsService := notifications.NewNotificationsService(db)
 	reportService := reports.NewReportService(institutionService, teacherService)
 	searchService := search.NewSearchService(db)
+	maintenanceService := system.NewMaintenanceService(db)
 
-	app := NewApp(enrollmentService, trackingService, notificationsService, telegramSyncService, studentService, searchService)
+	app := NewApp(enrollmentService, trackingService, notificationsService, telegramSyncService, studentService, searchService, maintenanceService)
 
 	err := wails.Run(&options.App{
 		Title:            "SIGDECE",
@@ -98,6 +100,7 @@ func main() {
 			notificationsService,
 			reportService,
 			searchService,
+			maintenanceService,
 		},
 	})
 

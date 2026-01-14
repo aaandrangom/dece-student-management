@@ -9,6 +9,7 @@ import Header from './components/Header';
 
 import Dashboard from './pages/Common/Dashboard';
 import NotificationsPage from './pages/Common/NotificationsPage';
+import SystemSettings from './pages/Common/SystemSettings';
 
 import InstitutionSettings from './pages/Institution/InstitutionSettings';
 import UserSystem from './pages/Institution/UserSystem';
@@ -51,6 +52,7 @@ const MainLayout = () => {
 
             <Route path="/panel-principal" element={<Dashboard />} />
             <Route path="/notificaciones" element={<NotificationsPage />} />
+            <Route path="/configuraciones" element={<SystemSettings />} />
             <Route path="/institucion/configuracion-general" element={<InstitutionSettings />} />
             <Route path="/institucion/usuarios-sistema" element={<UserSystem />} />
 

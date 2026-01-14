@@ -100,7 +100,7 @@ export const menuOptions = [
     },
     {
         title: "Configuración",
-        path: "/settings",
+        path: "/configuraciones",
         icon: "Settings",
         /* subOptions: [
              {

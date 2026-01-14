@@ -7,6 +7,7 @@ import (
 	searchSvc "dece/internal/application/services/search"
 	studentSvc "dece/internal/application/services/student"
 	telegramSync "dece/internal/application/services/sync"
+	system "dece/internal/application/services/system"
 	tracking "dece/internal/application/services/tracking"
 )
 
@@ -18,9 +19,10 @@ type App struct {
 	telegramSyncService *telegramSync.TelegramSyncService
 	studentService      *studentSvc.StudentService
 	searchService       *searchSvc.SearchService
+	maintenanceService  *system.MaintenanceService
 }
 
-func NewApp(enrollmentService *services.EnrollmentService, trackingService *tracking.TrackingService, notificationsService *notificationsSvc.NotificationsService, telegramSyncService *telegramSync.TelegramSyncService, studentService *studentSvc.StudentService, searchService *searchSvc.SearchService) *App {
+func NewApp(enrollmentService *services.EnrollmentService, trackingService *tracking.TrackingService, notificationsService *notificationsSvc.NotificationsService, telegramSyncService *telegramSync.TelegramSyncService, studentService *studentSvc.StudentService, searchService *searchSvc.SearchService, maintenanceService *system.MaintenanceService) *App {
 	return &App{
 		enrollmentService:   enrollmentService,
 		trackingService:     trackingService,
@@ -28,6 +30,7 @@ func NewApp(enrollmentService *services.EnrollmentService, trackingService *trac
 		telegramSyncService: telegramSyncService,
 		studentService:      studentService,
 		searchService:       searchService,
+		maintenanceService:  maintenanceService,
 	}
 }
 
@@ -37,6 +40,7 @@ func (a *App) startup(ctx context.Context) {
 	a.trackingService.SetContext(ctx)
 	a.studentService.SetContext(ctx)
 	a.searchService.SetContext(ctx)
+	a.maintenanceService.SetContext(ctx)
 	if a.notificationsSvc != nil {
 		a.notificationsSvc.SetContext(ctx)
 		a.notificationsSvc.StartScheduler()
