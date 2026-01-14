@@ -96,12 +96,12 @@ const GlobalSearch = () => {
         setQuery('');
         
         if (item.type === 'student') {
-            navigate('/estudiantes/listado-general', { state: { focusedStudentId: item.id } });
+            navigate(`/estudiantes/editar/${item.id}`);
         } else if (item.type === 'navigation') {
             navigate(item.route);
         } else if (item.type === 'action') {
             if (item.route === 'action:new_student') {
-                navigate('/estudiantes/listado-general', { state: { action: 'openNewStudentModal' } });
+                navigate('/estudiantes/nuevo');
             } else if (item.route === 'action:new_notification') {
                 navigate('/notificaciones');
             }

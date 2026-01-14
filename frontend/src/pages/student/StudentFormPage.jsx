@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
     User, MapPin, Camera, Save, ArrowLeft, Users,
@@ -23,7 +24,14 @@ const calculateAge = (dateString) => {
 const generateTempId = () => -Date.now();
 const LS_KEY = 'student_form_backup';
 
-export default function StudentFormPage({ studentId, onBack }) {
+export default function StudentFormPage() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const studentId = id ? parseInt(id) : 0;
+    
+    // Función helper para regresar
+    const onBack = () => navigate('/estudiantes/listado-general');
+
     const [currentStep, setCurrentStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
 

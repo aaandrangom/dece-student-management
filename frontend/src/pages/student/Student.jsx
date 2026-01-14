@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
     Search, Plus, User, Edit3, Users,
@@ -7,30 +8,17 @@ import {
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
 
 import { BuscarEstudiantes, ObtenerFotoBase64, ImportarEstudiantes } from '../../../wailsjs/go/services/StudentService';
-import StudentFormPage from './StudentFormPage';
 
 export default function StudentsPage() {
-    const [view, setView] = useState('list');
-    const [selectedId, setSelectedId] = useState(0);
+    const navigate = useNavigate();
 
     const handleCreate = () => {
-        setSelectedId(0);
-        setView('form');
+        navigate('/estudiantes/nuevo');
     };
 
     const handleEdit = (id) => {
-        setSelectedId(id);
-        setView('form');
+        navigate(`/estudiantes/editar/${id}`);
     };
-
-    const handleBack = () => {
-        setView('list');
-        setSelectedId(0);
-    };
-
-    if (view === 'form') {
-        return <StudentFormPage studentId={selectedId} onBack={handleBack} />;
-    }
 
     return (
         <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans">

@@ -21,6 +21,7 @@ import TeachersPage from './pages/faculty/Teachers';
 import CoursesPage from './pages/faculty/Courses';
 
 import StudentsPage from './pages/student/Student';
+import StudentFormPage from './pages/student/StudentFormPage';
 
 import EnrollmentManager from './pages/Enrollment/EnrollmentManager';
 
@@ -61,6 +62,8 @@ const MainLayout = () => {
             <Route path="/gestion-academica/cursos-distributivo" element={<CoursesPage />} />
 
             <Route path="/estudiantes/listado-general" element={<StudentsPage />} />
+            <Route path="/estudiantes/nuevo" element={<StudentFormPage />} />
+            <Route path="/estudiantes/editar/:id" element={<StudentFormPage />} />
             <Route path="/estudiantes/ficha-dece" element={<EnrollmentManager />} />
 
             <Route path="/dece" element={<DisciplineManagerPage />} />
