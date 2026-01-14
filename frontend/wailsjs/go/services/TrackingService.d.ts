@@ -27,4 +27,4 @@ export function SetContext(arg1:context.Context):Promise<void>;
 
 export function SubirDocumentoDisciplina(arg1:number,arg2:string,arg3:string):Promise<string>;
 
-export function SubirEvidenciaCaso(arg1:number,arg2:string):Promise<string>;
+export function SubirEvidenciaCaso(arg1:number,arg2:string,arg3:string):Promise<string>;

@@ -1,14 +1,19 @@
 package tracking
 
+type EvidenciaDTO struct {
+	Nombre string `json:"nombre"`
+	Ruta   string `json:"ruta"`
+}
+
 type CasoResumenDTO struct {
-	ID                uint     `json:"id"`
-	CodigoCaso        string   `json:"codigo_caso"`
-	FechaDeteccion    string   `json:"fecha_deteccion"`
-	EntidadDerivacion string   `json:"entidad_derivacion"`
-	Descripcion       string   `json:"descripcion"`
-	Estado            string   `json:"estado"`
-	TotalEvidencias   int      `json:"total_evidencias"`
-	RutasEvidencias   []string `json:"rutas_evidencias"`
+	ID                uint           `json:"id"`
+	CodigoCaso        string         `json:"codigo_caso"`
+	FechaDeteccion    string         `json:"fecha_deteccion"`
+	EntidadDerivacion string         `json:"entidad_derivacion"`
+	Descripcion       string         `json:"descripcion"`
+	Estado            string         `json:"estado"`
+	TotalEvidencias   int            `json:"total_evidencias"`
+	RutasEvidencias   []EvidenciaDTO `json:"rutas_evidencias"`
 }
 
 type GuardarCasoDTO struct {

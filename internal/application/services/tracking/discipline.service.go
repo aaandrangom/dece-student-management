@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -291,7 +292,15 @@ func (s *TrackingService) ListarCasos(estudianteID uint) ([]dto.CasoResumenDTO, 
 	for i, c := range casos {
 		evidencias := c.RutasDocumentos.Data
 		if evidencias == nil {
-			evidencias = []string{}
+			evidencias = []tracking.Evidencia{}
+		}
+
+		evidenciasDTO := make([]dto.EvidenciaDTO, len(evidencias))
+		for j, ev := range evidencias {
+			evidenciasDTO[j] = dto.EvidenciaDTO{
+				Nombre: ev.Nombre,
+				Ruta:   ev.Ruta,
+			}
 		}
 
 		response[i] = dto.CasoResumenDTO{
@@ -302,7 +311,7 @@ func (s *TrackingService) ListarCasos(estudianteID uint) ([]dto.CasoResumenDTO, 
 			Descripcion:       c.Descripcion,
 			Estado:            c.Estado,
 			TotalEvidencias:   len(evidencias),
-			RutasEvidencias:   evidencias,
+			RutasEvidencias:   evidenciasDTO,
 		}
 	}
 
@@ -349,7 +358,7 @@ func (s *TrackingService) CrearCaso(input dto.GuardarCasoDTO) (*tracking.CasoSen
 			EntidadDerivacion: input.EntidadDerivacion,
 			Descripcion:       input.Descripcion,
 			Estado:            input.Estado,
-			RutasDocumentos:   common.JSONMap[[]string]{Data: []string{}},
+			RutasDocumentos:   common.JSONMap[[]tracking.Evidencia]{Data: []tracking.Evidencia{}},
 		}
 
 		if err := s.db.Create(&caso).Error; err != nil {
@@ -375,7 +384,7 @@ func (s *TrackingService) CrearCaso(input dto.GuardarCasoDTO) (*tracking.CasoSen
 	}
 }
 
-func (s *TrackingService) SubirEvidenciaCaso(casoID uint, rutaOrigen string) (string, error) {
+func (s *TrackingService) SubirEvidenciaCaso(casoID uint, rutaOrigen string, nombre string) (string, error) {
 	var caso tracking.CasoSensible
 
 	if err := s.db.First(&caso, casoID).Error; err != nil {
@@ -397,8 +406,21 @@ func (s *TrackingService) SubirEvidenciaCaso(casoID uint, rutaOrigen string) (st
 		ext = ".pdf"
 	}
 
-	nuevoNombre := fmt.Sprintf("EVID_%d%s", time.Now().UnixMilli(), ext)
+	safeName := nombre
+	if safeName == "" {
+		safeName = fmt.Sprintf("EVID_%d", time.Now().UnixMilli())
+	}
+
+	replacer := strings.NewReplacer("<", "", ">", "", ":", "", "\"", "", "/", "", "\\", "", "|", "", "?", "", "*", "")
+	safeName = replacer.Replace(safeName)
+
+	nuevoNombre := fmt.Sprintf("%s%s", safeName, ext)
 	rutaDestinoCompleta := filepath.Join(destinoDir, nuevoNombre)
+
+	if _, err := os.Stat(rutaDestinoCompleta); err == nil {
+		nuevoNombre = fmt.Sprintf("%s_%d%s", safeName, time.Now().UnixMilli(), ext)
+		rutaDestinoCompleta = filepath.Join(destinoDir, nuevoNombre)
+	}
 
 	src, err := os.Open(rutaOrigen)
 	if err != nil {
@@ -418,12 +440,19 @@ func (s *TrackingService) SubirEvidenciaCaso(casoID uint, rutaOrigen string) (st
 
 	listaActual := caso.RutasDocumentos.Data
 	if listaActual == nil {
-		listaActual = []string{}
+		listaActual = []tracking.Evidencia{}
 	}
 
-	listaActual = append(listaActual, rutaDestinoCompleta)
+	if nombre == "" {
+		nombre = "Evidencia " + fmt.Sprintf("%d", len(listaActual)+1)
+	}
 
-	caso.RutasDocumentos = common.JSONMap[[]string]{Data: listaActual}
+	listaActual = append(listaActual, tracking.Evidencia{
+		Nombre: nombre,
+		Ruta:   rutaDestinoCompleta,
+	})
+
+	caso.RutasDocumentos = common.JSONMap[[]tracking.Evidencia]{Data: listaActual}
 
 	if err := s.db.Save(&caso).Error; err != nil {
 		return "", fmt.Errorf("Evidencia guardada pero error al actualizar BD: %v", err)
@@ -449,17 +478,17 @@ func (s *TrackingService) EliminarEvidenciaCaso(casoID uint, ruta string) error 
 
 	listaActual := caso.RutasDocumentos.Data
 	if listaActual == nil {
-		listaActual = []string{}
+		listaActual = []tracking.Evidencia{}
 	}
 
-	nuevaLista := make([]string, 0, len(listaActual))
+	nuevaLista := make([]tracking.Evidencia, 0, len(listaActual))
 	for _, r := range listaActual {
-		if r != ruta {
+		if r.Ruta != ruta {
 			nuevaLista = append(nuevaLista, r)
 		}
 	}
 
-	caso.RutasDocumentos = common.JSONMap[[]string]{Data: nuevaLista}
+	caso.RutasDocumentos = common.JSONMap[[]tracking.Evidencia]{Data: nuevaLista}
 
 	if err := s.db.Save(&caso).Error; err != nil {
 		return fmt.Errorf("Error al actualizar BD: %v", err)

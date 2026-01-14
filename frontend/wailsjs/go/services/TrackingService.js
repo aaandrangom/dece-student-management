@@ -50,6 +50,6 @@ export function SubirDocumentoDisciplina(arg1, arg2, arg3) {
   return window['go']['services']['TrackingService']['SubirDocumentoDisciplina'](arg1, arg2, arg3);
 }
 
-export function SubirEvidenciaCaso(arg1, arg2) {
-  return window['go']['services']['TrackingService']['SubirEvidenciaCaso'](arg1, arg2);
+export function SubirEvidenciaCaso(arg1, arg2, arg3) {
+  return window['go']['services']['TrackingService']['SubirEvidenciaCaso'](arg1, arg2, arg3);
 }

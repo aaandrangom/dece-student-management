@@ -137,17 +137,35 @@ export namespace academic {
 
 export namespace common {
 	
-	export class JSONMap___string_ {
-	    Data: string[];
+	export class JSONMap___dece_internal_domain_tracking_Evidencia_ {
+	    Data: tracking.Evidencia[];
 	
 	    static createFrom(source: any = {}) {
-	        return new JSONMap___string_(source);
+	        return new JSONMap___dece_internal_domain_tracking_Evidencia_(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.Data = source["Data"];
+	        this.Data = this.convertValues(source["Data"], tracking.Evidencia);
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class JSONMap_dece_internal_domain_enrollment_Antropometria_ {
 	    Data: enrollment.Antropometria;
@@ -2110,6 +2128,20 @@ export namespace time {
 
 export namespace tracking {
 	
+	export class EvidenciaDTO {
+	    nombre: string;
+	    ruta: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EvidenciaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.nombre = source["nombre"];
+	        this.ruta = source["ruta"];
+	    }
+	}
 	export class CasoResumenDTO {
 	    id: number;
 	    codigo_caso: string;
@@ -2118,7 +2150,7 @@ export namespace tracking {
 	    descripcion: string;
 	    estado: string;
 	    total_evidencias: number;
-	    rutas_evidencias: string[];
+	    rutas_evidencias: EvidenciaDTO[];
 	
 	    static createFrom(source: any = {}) {
 	        return new CasoResumenDTO(source);
@@ -2133,8 +2165,26 @@ export namespace tracking {
 	        this.descripcion = source["descripcion"];
 	        this.estado = source["estado"];
 	        this.total_evidencias = source["total_evidencias"];
-	        this.rutas_evidencias = source["rutas_evidencias"];
+	        this.rutas_evidencias = this.convertValues(source["rutas_evidencias"], EvidenciaDTO);
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class CasoSensible {
 	    id: number;
@@ -2229,6 +2279,21 @@ export namespace tracking {
 	        this.curso = source["curso"];
 	    }
 	}
+	export class Evidencia {
+	    nombre: string;
+	    ruta: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Evidencia(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.nombre = source["nombre"];
+	        this.ruta = source["ruta"];
+	    }
+	}
+	
 	export class GuardarCasoDTO {
 	    id: number;
 	    estudiante_id: number;

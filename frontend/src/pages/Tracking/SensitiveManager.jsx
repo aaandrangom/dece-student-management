@@ -67,14 +67,30 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
             const path = await SeleccionarArchivo('pdf');
             if (!path) return;
 
+            const { value: nombre } = await Swal.fire({
+                title: 'Nombre de la evidencia',
+                input: 'text',
+                inputLabel: 'Ingrese un nombre descriptivo',
+                inputPlaceholder: 'Ej: Informe Psicopedagógico',
+                showCancelButton: true,
+                confirmButtonText: 'Subir',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'El nombre es obligatorio';
+                    }
+                }
+            });
+
+            if (!nombre) return;
+
             const toastId = toast.loading("Encriptando y subiendo evidencia...");
-            await SubirEvidenciaCaso(casoId, path);
+            await SubirEvidenciaCaso(casoId, path, nombre);
 
             toast.dismiss(toastId);
 
             if (isModalOpen) {
                 const data = await ListarCasos(studentId);
-                setCasos(data || []);
                 const casoActualizado = data.find(c => c.id === casoId);
                 if (casoActualizado) {
                     setFormData(prev => ({ ...prev, rutas_evidencias: casoActualizado.rutas_evidencias }));
@@ -114,7 +130,10 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
             toast.success('Evidencia eliminada');
 
             if (isModalOpen) {
-                setFormData(prev => ({ ...prev, rutas_evidencias: (prev.rutas_evidencias || []).filter(r => r !== ruta) }));
+                setFormData(prev => ({ 
+                    ...prev, 
+                    rutas_evidencias: (prev.rutas_evidencias || []).filter(r => r.ruta !== ruta) 
+                }));
             }
             cargarCasos();
         } catch (error) {
@@ -377,21 +396,21 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
 
                                                 <div className="flex-1 overflow-y-auto pr-1 space-y-3">
                                                     {formData.rutas_evidencias && formData.rutas_evidencias.length > 0 ? (
-                                                        formData.rutas_evidencias.map((ruta, idx) => (
+                                                        formData.rutas_evidencias.map((ev, idx) => (
                                                             <div key={idx} className="bg-white p-3 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all group">
                                                                 <div className="flex items-start gap-3">
                                                                     <div className="bg-indigo-50 p-2.5 rounded-lg text-indigo-600 shrink-0">
                                                                         <FileText className="w-5 h-5" />
                                                                     </div>
                                                                     <div className="flex-1 min-w-0">
-                                                                        <p className="text-sm font-bold text-slate-700 truncate">Evidencia Documental #{idx + 1}</p>
-                                                                        <p className="text-[10px] text-slate-400 truncate font-mono mt-0.5" title={ruta}>
-                                                                            ...{ruta.slice(-25)}
+                                                                        <p className="text-sm font-bold text-slate-700 truncate">{ev.nombre}</p>
+                                                                        <p className="text-[10px] text-slate-400 truncate font-mono mt-0.5" title={ev.ruta}>
+                                                                            ...{ev.ruta.slice(-25)}
                                                                         </p>
                                                                     </div>
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => handlePreview(ruta)}
+                                                                        onClick={() => handlePreview(ev.ruta)}
                                                                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                                                                         title="Ver Documento"
                                                                     >
@@ -399,7 +418,7 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                                                                     </button>
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => handleDeleteEvidence(formData.id, ruta)}
+                                                                        onClick={() => handleDeleteEvidence(formData.id, ev.ruta)}
                                                                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1"
                                                                         title="Eliminar evidencia"
                                                                     >

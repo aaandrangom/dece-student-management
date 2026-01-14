@@ -31,6 +31,11 @@ type LlamadoAtencion struct {
 	Matricula enrollment.Matricula `gorm:"foreignKey:MatriculaID" json:"matricula,omitempty"`
 }
 
+type Evidencia struct {
+	Nombre string `json:"nombre"`
+	Ruta   string `json:"ruta"`
+}
+
 type CasoSensible struct {
 	ID           uint `gorm:"primaryKey" json:"id"`
 	EstudianteID uint `json:"estudiante_id"`
@@ -42,7 +47,7 @@ type CasoSensible struct {
 	Descripcion       string `json:"descripcion"`
 	Estado            string `json:"estado"`
 
-	RutasDocumentos common.JSONMap[[]string] `gorm:"type:text" json:"rutas_documentos"`
+	RutasDocumentos common.JSONMap[[]Evidencia] `gorm:"type:text" json:"rutas_documentos"`
 
 	Estudiante student.Estudiante      `gorm:"foreignKey:EstudianteID" json:"estudiante"`
 	Periodo    academic.PeriodoLectivo `gorm:"foreignKey:PeriodoID" json:"periodo"`
