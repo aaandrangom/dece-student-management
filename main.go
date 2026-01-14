@@ -11,6 +11,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 
 	academic "dece/internal/application/services/academic"
+	dashboard "dece/internal/application/services/dashboard"
 	enrollment "dece/internal/application/services/enrollment"
 	faculty "dece/internal/application/services/faculty"
 	management "dece/internal/application/services/management"
@@ -54,6 +55,7 @@ func main() {
 
 	telegramSyncService := telegramSync.NewTelegramSyncService(db)
 	managementService := management.NewManagementService(db, telegramSyncService)
+	dashboardService := dashboard.NewDashboardService(db)
 	notificationsService := notifications.NewNotificationsService(db)
 	reportService := reports.NewReportService(institutionService, teacherService)
 	searchService := search.NewSearchService(db)
@@ -92,6 +94,7 @@ func main() {
 			trackingService,
 
 			managementService,
+			dashboardService,
 			notificationsService,
 			reportService,
 			searchService,

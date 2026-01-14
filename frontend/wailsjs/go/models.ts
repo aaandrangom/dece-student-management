@@ -470,6 +470,152 @@ export namespace common {
 
 }
 
+export namespace dashboard {
+	
+	export class ActividadDTO {
+	    tipo: string;
+	    fecha: string;
+	    descripcion: string;
+	    estudiante: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ActividadDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tipo = source["tipo"];
+	        this.fecha = source["fecha"];
+	        this.descripcion = source["descripcion"];
+	        this.estudiante = source["estudiante"];
+	    }
+	}
+	export class CasoPorTipoDTO {
+	    tipo_caso: string;
+	    cantidad: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new CasoPorTipoDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tipo_caso = source["tipo_caso"];
+	        this.cantidad = source["cantidad"];
+	    }
+	}
+	export class CitaProximaDTO {
+	    estudiante: string;
+	    curso: string;
+	    entidad: string;
+	    motivo: string;
+	    fecha_cita: string;
+	    dias_alerta: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new CitaProximaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.estudiante = source["estudiante"];
+	        this.curso = source["curso"];
+	        this.entidad = source["entidad"];
+	        this.motivo = source["motivo"];
+	        this.fecha_cita = source["fecha_cita"];
+	        this.dias_alerta = source["dias_alerta"];
+	    }
+	}
+	export class CursoConflictivoDTO {
+	    curso: string;
+	    cantidad_faltas: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new CursoConflictivoDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.curso = source["curso"];
+	        this.cantidad_faltas = source["cantidad_faltas"];
+	    }
+	}
+	export class GeneroDTO {
+	    genero: string;
+	    cantidad: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new GeneroDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.genero = source["genero"];
+	        this.cantidad = source["cantidad"];
+	    }
+	}
+	export class KPIDashboardDTO {
+	    total_estudiantes: number;
+	    casos_abiertos: number;
+	    citas_pendientes: number;
+	    sanciones_mes: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new KPIDashboardDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.total_estudiantes = source["total_estudiantes"];
+	        this.casos_abiertos = source["casos_abiertos"];
+	        this.citas_pendientes = source["citas_pendientes"];
+	        this.sanciones_mes = source["sanciones_mes"];
+	    }
+	}
+	export class DashboardDataDTO {
+	    kpi: KPIDashboardDTO;
+	    citas_proximas: CitaProximaDTO[];
+	    cursos_conflictivos: CursoConflictivoDTO[];
+	    casos_por_tipo: CasoPorTipoDTO[];
+	    estudiantes_genero: GeneroDTO[];
+	    actividad_reciente: ActividadDTO[];
+	
+	    static createFrom(source: any = {}) {
+	        return new DashboardDataDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kpi = this.convertValues(source["kpi"], KPIDashboardDTO);
+	        this.citas_proximas = this.convertValues(source["citas_proximas"], CitaProximaDTO);
+	        this.cursos_conflictivos = this.convertValues(source["cursos_conflictivos"], CursoConflictivoDTO);
+	        this.casos_por_tipo = this.convertValues(source["casos_por_tipo"], CasoPorTipoDTO);
+	        this.estudiantes_genero = this.convertValues(source["estudiantes_genero"], GeneroDTO);
+	        this.actividad_reciente = this.convertValues(source["actividad_reciente"], ActividadDTO);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+
+}
+
 export namespace dto {
 	
 	export class NotificacionDTO {
