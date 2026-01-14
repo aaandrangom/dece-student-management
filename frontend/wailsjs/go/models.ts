@@ -1401,6 +1401,7 @@ export namespace management {
 	    grupo_objetivo: string;
 	    jornada_docentes: string;
 	    curso_id: number;
+	    cursos_ids: number[];
 	    grado_especifico: string;
 	    paralelo_especifico: string;
 	    cantidad_beneficiarios: number;
@@ -1414,6 +1415,7 @@ export namespace management {
 	        this.grupo_objetivo = source["grupo_objetivo"];
 	        this.jornada_docentes = source["jornada_docentes"];
 	        this.curso_id = source["curso_id"];
+	        this.cursos_ids = source["cursos_ids"];
 	        this.grado_especifico = source["grado_especifico"];
 	        this.paralelo_especifico = source["paralelo_especifico"];
 	        this.cantidad_beneficiarios = source["cantidad_beneficiarios"];
@@ -1622,6 +1624,7 @@ export namespace management {
 	    grupo_objetivo: string;
 	    jornada_docentes: string;
 	    curso_id: number;
+	    cursos_ids: number[];
 	    grado_especifico: string;
 	    paralelo_especifico: string;
 	    cantidad_beneficiarios: number;
@@ -1638,6 +1641,7 @@ export namespace management {
 	        this.grupo_objetivo = source["grupo_objetivo"];
 	        this.jornada_docentes = source["jornada_docentes"];
 	        this.curso_id = source["curso_id"];
+	        this.cursos_ids = source["cursos_ids"];
 	        this.grado_especifico = source["grado_especifico"];
 	        this.paralelo_especifico = source["paralelo_especifico"];
 	        this.cantidad_beneficiarios = source["cantidad_beneficiarios"];

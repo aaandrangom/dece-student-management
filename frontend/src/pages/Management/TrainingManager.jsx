@@ -37,6 +37,7 @@ export default function TrainingManager() {
 
     const [previewData, setPreviewData] = useState(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [isMultiSelectOpen, setIsMultiSelectOpen] = useState(false);
 
     const initialForm = {
         id: 0,
@@ -45,6 +46,7 @@ export default function TrainingManager() {
         grupo_objetivo: 'Padres de Familia',
         jornada_docentes: '',
         curso_id: 0,
+        cursos_ids: [],
         grado_especifico: '',
         paralelo_especifico: '',
         cantidad_beneficiarios: 0
@@ -183,7 +185,9 @@ export default function TrainingManager() {
                 ...data,
                 fecha: fechaLocal,
                 curso_id: data.curso_id ?? 0,
+                cursos_ids: data.cursos_ids || [],
             });
+
             await loadAulas();
             setIsModalOpen(true);
         } catch (error) {
@@ -198,6 +202,7 @@ export default function TrainingManager() {
         const pad = (n) => String(n).padStart(2, '0');
         const local = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
         setFormData({ ...initialForm, fecha: local });
+        setIsMultiSelectOpen(false);
         loadAulas();
         setIsModalOpen(true);
     };
@@ -453,7 +458,7 @@ export default function TrainingManager() {
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-in fade-in zoom-in-95 duration-200">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col border border-slate-200">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col border border-slate-200">
 
                         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
                             <div>
@@ -475,21 +480,29 @@ export default function TrainingManager() {
                             </button>
                         </div>
 
-                        <div className="p-6 overflow-y-auto bg-slate-50/50">
-                            <form onSubmit={handleSave} className="space-y-6">
+                        <div className="p-6 bg-slate-50/50 flex-1 overflow-y-auto">
+                            <form onSubmit={handleSave} className="flex flex-col h-full">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
+                                    {/* Columna Izquierda: Datos Generales */}
+                                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 h-fit">
+                                        <div className="border-b border-slate-100 pb-2 mb-2">
+                                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                                                <Presentation className="w-4 h-4" /> Datos del Taller
+                                            </h4>
+                                        </div>
 
-                                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tema / Título del Taller</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        placeholder="Ej: Prevención de embarazo adolescente"
-                                        value={formData.tema}
-                                        onChange={e => setFormData({ ...formData, tema: e.target.value })}
-                                        className="w-full border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm px-3 py-2.5"
-                                    />
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tema / Título</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                placeholder="Ej: Prevención de embarazo"
+                                                value={formData.tema}
+                                                onChange={e => setFormData({ ...formData, tema: e.target.value })}
+                                                className="w-full border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm px-3 py-2.5"
+                                            />
+                                        </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                         <div>
                                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Fecha y hora</label>
                                             <input
@@ -500,6 +513,7 @@ export default function TrainingManager() {
                                                 className="w-full border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm px-3 py-2.5"
                                             />
                                         </div>
+
                                         <div>
                                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Asistentes aprox.</label>
                                             <input
@@ -511,12 +525,15 @@ export default function TrainingManager() {
                                             />
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Detalles de Audiencia</label>
+                                    {/* Columna Derecha: Audiencia */}
+                                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 h-fit">
+                                        <div className="border-b border-slate-100 pb-2 mb-2">
+                                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                                                <Users className="w-4 h-4" /> Audiencia
+                                            </h4>
+                                        </div>
 
-                                    <div className="space-y-4">
                                         <div>
                                             <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Grupo Objetivo</label>
                                             <select
@@ -549,24 +566,71 @@ export default function TrainingManager() {
 
                                         {(formData.grupo_objetivo === 'Estudiantes' || formData.grupo_objetivo === 'Padres de Familia') && (
                                             <div className="animate-in fade-in slide-in-from-top-1">
-                                                <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Aula (curso)</label>
-                                                <select
-                                                    value={formData.curso_id}
-                                                    onChange={e => setFormData({ ...formData, curso_id: parseInt(e.target.value || 0) })}
-                                                    className="w-full border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm px-3 py-2.5 bg-white"
-                                                    disabled={isLoadingAulas}
-                                                >
-                                                    <option value={0}>{isLoadingAulas ? 'Cargando...' : '-- Seleccione un aula --'}</option>
-                                                    {aulas.map(a => (
-                                                        <option key={a.id} value={a.id}>{a.nombre}</option>
-                                                    ))}
-                                                </select>
+                                                <label className="text-sm font-semibold text-slate-700 block mb-1.5">
+                                                    Seleccionar Aulas
+                                                </label>
+                                                <div className="relative">
+                                                    <div 
+                                                        className="w-full border border-slate-200 rounded-lg p-2.5 bg-white min-h-10.5 cursor-pointer hover:border-indigo-300 transition-colors flex flex-wrap gap-1 items-center"
+                                                        onClick={() => setIsMultiSelectOpen(!isMultiSelectOpen)}
+                                                    >
+                                                        {formData.cursos_ids?.length > 0 
+                                                            ? formData.cursos_ids.map(id => {
+                                                                const aula = aulas.find(a => a.id === id);
+                                                                return aula ? (
+                                                                    <span key={id} className="text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded-full uppercase">
+                                                                        {aula.nombre}
+                                                                    </span>
+                                                                ) : null;
+                                                            })
+                                                            : <span className="text-slate-400 text-sm select-none">-- Clic para seleccionar --</span>
+                                                        }
+                                                        <div className="ml-auto">
+                                                            <Plus className={`w-4 h-4 text-slate-400 transition-transform ${isMultiSelectOpen ? 'rotate-45' : ''}`} />
+                                                        </div>
+                                                    </div>
+
+                                                    {isMultiSelectOpen && (
+                                                        <>
+                                                            <div className="fixed inset-0 z-30" onClick={() => setIsMultiSelectOpen(false)}></div>
+                                                            <div className="absolute z-40 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto left-0 right-0">
+                                                                {isLoadingAulas ? (
+                                                                    <div className="px-4 py-3 text-sm text-slate-400">Cargando aulas...</div>
+                                                                ) : (
+                                                                    aulas.map(aula => (
+                                                                        <div 
+                                                                            key={aula.id} 
+                                                                            className="flex items-center px-3 py-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors"
+                                                                            onClick={() => {
+                                                                                const ids = formData.cursos_ids || [];
+                                                                                const newIds = ids.includes(aula.id) 
+                                                                                    ? ids.filter(i => i !== aula.id)
+                                                                                    : [...ids, aula.id];
+                                                                                setFormData({...formData, cursos_ids: newIds});
+                                                                            }}
+                                                                        >
+                                                                            <div className={`w-4 h-4 rounded border flex items-center justify-center mr-3 transition-colors ${(formData.cursos_ids || []).includes(aula.id) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}`}>
+                                                                                {(formData.cursos_ids || []).includes(aula.id) && <CheckCircle className="w-3 h-3 text-white" />}
+                                                                            </div>
+                                                                            <span className={`text-sm ${(formData.cursos_ids || []).includes(aula.id) ? 'text-indigo-700 font-medium' : 'text-slate-700'}`}>
+                                                                                {aula.nombre}
+                                                                            </span>
+                                                                        </div>
+                                                                    ))
+                                                                )}
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
+                                                    Seleccione todas las aulas que participaron en el taller.
+                                                </p>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
-                                <div className="pt-4 flex justify-end gap-3 border-t border-slate-200">
+                                <div className="pt-6 mt-6 flex justify-end gap-3 border-t border-slate-200">
                                     <button
                                         type="button"
                                         onClick={() => setIsModalOpen(false)}

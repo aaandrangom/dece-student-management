@@ -24,6 +24,7 @@ type AudienciaCapacitacion struct {
 	GrupoObjetivo         string `json:"grupo_objetivo"`
 	JornadaDocentes       string `json:"jornada_docentes"`
 	CursoID               uint   `json:"curso_id"`
+	CursosIDs             []uint `json:"cursos_ids"` // Soporte Múltiple
 	GradoEspecifico       string `json:"grado_especifico"`
 	ParaleloEspecifico    string `json:"paralelo_especifico"`
 	CantidadBeneficiarios int    `json:"cantidad_beneficiarios"`

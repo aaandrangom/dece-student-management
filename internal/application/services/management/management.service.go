@@ -292,6 +292,7 @@ func (s *ManagementService) ObtenerCapacitacion(id uint) (*dto.GuardarCapacitaci
 		GrupoObjetivo:         detalles.GrupoObjetivo,
 		JornadaDocentes:       detalles.JornadaDocentes,
 		CursoID:               detalles.CursoID,
+		CursosIDs:             detalles.CursosIDs,
 		GradoEspecifico:       detalles.GradoEspecifico,
 		ParaleloEspecifico:    detalles.ParaleloEspecifico,
 		CantidadBeneficiarios: detalles.CantidadBeneficiarios,
@@ -307,34 +308,60 @@ func (s *ManagementService) RegistrarCapacitacion(input dto.GuardarCapacitacionD
 		return nil, errors.New("Debe configurar un periodo lectivo activo antes de registrar capacitaciones")
 	}
 
-	var cursoSeleccionado faculty.Curso
-	if input.CursoID > 0 {
+	// Lógica para procesar múltiples cursos
+	var gradoEspecificoFinal string
+	var paraleloEspecificoFinal string
+
+	if len(input.CursosIDs) > 0 {
+		var cursosSeleccionados []faculty.Curso
+		if err := s.db.Preload("Nivel").
+			Where("id IN ? AND periodo_id = ?", input.CursosIDs, periodoActivo.ID).
+			Find(&cursosSeleccionados).Error; err != nil {
+			return nil, errors.New("Error al consultar aulas seleccionadas")
+		}
+
+		if len(cursosSeleccionados) > 0 {
+			var nombres []string
+			for _, curso := range cursosSeleccionados {
+				nombre := strings.TrimSpace(curso.Nivel.Nombre)
+				paralelo := strings.TrimSpace(curso.Paralelo)
+				nombres = append(nombres, fmt.Sprintf("%s %s", nombre, paralelo))
+			}
+			gradoEspecificoFinal = strings.Join(nombres, ", ")
+			paraleloEspecificoFinal = "Varios"
+		}
+	} else if input.CursoID > 0 {
+		// Compatibilidad con un solo curso (si el frontend envía solo uno)
+		var cursoSeleccionado faculty.Curso
 		if err := s.db.Preload("Nivel").
 			Where("id = ? AND periodo_id = ?", input.CursoID, periodoActivo.ID).
-			First(&cursoSeleccionado).Error; err != nil {
-			return nil, errors.New("El aula seleccionada no pertenece al periodo lectivo activo")
+			First(&cursoSeleccionado).Error; err == nil {
+
+			nivel := strings.TrimSpace(cursoSeleccionado.Nivel.NombreCompleto)
+			if nivel == "" {
+				nivel = strings.TrimSpace(cursoSeleccionado.Nivel.Nombre)
+			}
+			gradoEspecificoFinal = nivel
+
+			paralelo := strings.TrimSpace(cursoSeleccionado.Paralelo)
+			jornada := strings.TrimSpace(cursoSeleccionado.Jornada)
+			suffix := strings.TrimSpace(strings.Join([]string{paralelo, jornada}, " "))
+			paraleloEspecificoFinal = suffix
 		}
+	} else {
+		// Manual
+		gradoEspecificoFinal = input.GradoEspecifico
+		paraleloEspecificoFinal = input.ParaleloEspecifico
 	}
 
 	audiencia := management.AudienciaCapacitacion{
 		GrupoObjetivo:         input.GrupoObjetivo,
 		JornadaDocentes:       input.JornadaDocentes,
 		CursoID:               input.CursoID,
-		GradoEspecifico:       input.GradoEspecifico,
-		ParaleloEspecifico:    input.ParaleloEspecifico,
+		CursosIDs:             input.CursosIDs,
+		GradoEspecifico:       gradoEspecificoFinal,
+		ParaleloEspecifico:    paraleloEspecificoFinal,
 		CantidadBeneficiarios: input.CantidadBeneficiarios,
-	}
-
-	if input.CursoID > 0 {
-		nivel := strings.TrimSpace(cursoSeleccionado.Nivel.NombreCompleto)
-		if nivel == "" {
-			nivel = strings.TrimSpace(cursoSeleccionado.Nivel.Nombre)
-		}
-		audiencia.GradoEspecifico = nivel
-		paralelo := strings.TrimSpace(cursoSeleccionado.Paralelo)
-		jornada := strings.TrimSpace(cursoSeleccionado.Jornada)
-		suffix := strings.TrimSpace(strings.Join([]string{paralelo, jornada}, " "))
-		audiencia.ParaleloEspecifico = suffix
 	}
 
 	if input.ID > 0 {
