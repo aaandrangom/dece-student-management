@@ -304,14 +304,16 @@ func (s *TrackingService) ListarCasos(estudianteID uint) ([]dto.CasoResumenDTO, 
 		}
 
 		response[i] = dto.CasoResumenDTO{
-			ID:                c.ID,
-			CodigoCaso:        c.CodigoCaso,
-			FechaDeteccion:    c.FechaDeteccion,
-			EntidadDerivacion: c.EntidadDerivacion,
-			Descripcion:       c.Descripcion,
-			Estado:            c.Estado,
-			TotalEvidencias:   len(evidencias),
-			RutasEvidencias:   evidenciasDTO,
+			ID:                       c.ID,
+			CodigoCaso:               c.CodigoCaso,
+			TipoCaso:                 c.TipoCaso,
+			FechaDeteccion:           c.FechaDeteccion,
+			EntidadDerivacion:        c.EntidadDerivacion,
+			EntidadDerivacionDetalle: c.EntidadDerivacionDetalle,
+			Descripcion:              c.Descripcion,
+			Estado:                   c.Estado,
+			TotalEvidencias:          len(evidencias),
+			RutasEvidencias:          evidenciasDTO,
 		}
 	}
 
@@ -325,12 +327,14 @@ func (s *TrackingService) ObtenerCaso(id uint) (*dto.GuardarCasoDTO, error) {
 	}
 
 	return &dto.GuardarCasoDTO{
-		ID:                c.ID,
-		EstudianteID:      c.EstudianteID,
-		FechaDeteccion:    c.FechaDeteccion,
-		EntidadDerivacion: c.EntidadDerivacion,
-		Descripcion:       c.Descripcion,
-		Estado:            c.Estado,
+		ID:                       c.ID,
+		EstudianteID:             c.EstudianteID,
+		TipoCaso:                 c.TipoCaso,
+		FechaDeteccion:           c.FechaDeteccion,
+		EntidadDerivacion:        c.EntidadDerivacion,
+		EntidadDerivacionDetalle: c.EntidadDerivacionDetalle,
+		Descripcion:              c.Descripcion,
+		Estado:                   c.Estado,
 	}, nil
 }
 
@@ -351,14 +355,16 @@ func (s *TrackingService) CrearCaso(input dto.GuardarCasoDTO) (*tracking.CasoSen
 		codigoGenerado := fmt.Sprintf("CASO-%d-%03d", year, count+1)
 
 		caso := tracking.CasoSensible{
-			EstudianteID:      input.EstudianteID,
-			PeriodoID:         periodoActivo.ID,
-			CodigoCaso:        codigoGenerado,
-			FechaDeteccion:    input.FechaDeteccion,
-			EntidadDerivacion: input.EntidadDerivacion,
-			Descripcion:       input.Descripcion,
-			Estado:            input.Estado,
-			RutasDocumentos:   common.JSONMap[[]tracking.Evidencia]{Data: []tracking.Evidencia{}},
+			EstudianteID:             input.EstudianteID,
+			PeriodoID:                periodoActivo.ID,
+			CodigoCaso:               codigoGenerado,
+			TipoCaso:                 input.TipoCaso,
+			FechaDeteccion:           input.FechaDeteccion,
+			EntidadDerivacion:        input.EntidadDerivacion,
+			EntidadDerivacionDetalle: input.EntidadDerivacionDetalle,
+			Descripcion:              input.Descripcion,
+			Estado:                   input.Estado,
+			RutasDocumentos:          common.JSONMap[[]tracking.Evidencia]{Data: []tracking.Evidencia{}},
 		}
 
 		if err := s.db.Create(&caso).Error; err != nil {
@@ -372,8 +378,10 @@ func (s *TrackingService) CrearCaso(input dto.GuardarCasoDTO) (*tracking.CasoSen
 			return nil, errors.New("Caso no encontrado")
 		}
 
+		caso.TipoCaso = input.TipoCaso
 		caso.FechaDeteccion = input.FechaDeteccion
 		caso.EntidadDerivacion = input.EntidadDerivacion
+		caso.EntidadDerivacionDetalle = input.EntidadDerivacionDetalle
 		caso.Descripcion = input.Descripcion
 		caso.Estado = input.Estado
 

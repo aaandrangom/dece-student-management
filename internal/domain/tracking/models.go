@@ -41,11 +41,13 @@ type CasoSensible struct {
 	EstudianteID uint `json:"estudiante_id"`
 	PeriodoID    uint `json:"periodo_id"`
 
-	CodigoCaso        string `json:"codigo_caso"`
-	FechaDeteccion    string `json:"fecha_deteccion"`
-	EntidadDerivacion string `json:"entidad_derivacion"`
-	Descripcion       string `json:"descripcion"`
-	Estado            string `json:"estado"`
+	CodigoCaso               string `json:"codigo_caso"`
+	TipoCaso                 string `json:"tipo_caso"`
+	FechaDeteccion           string `json:"fecha_deteccion"`
+	EntidadDerivacion        string `json:"entidad_derivacion"`
+	EntidadDerivacionDetalle string `json:"entidad_derivacion_detalle"`
+	Descripcion              string `json:"descripcion"`
+	Estado                   string `json:"estado"`
 
 	RutasDocumentos common.JSONMap[[]Evidencia] `gorm:"type:text" json:"rutas_documentos"`
 

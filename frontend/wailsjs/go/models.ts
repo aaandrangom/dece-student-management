@@ -2149,8 +2149,10 @@ export namespace tracking {
 	export class CasoResumenDTO {
 	    id: number;
 	    codigo_caso: string;
+	    tipo_caso: string;
 	    fecha_deteccion: string;
 	    entidad_derivacion: string;
+	    entidad_derivacion_detalle: string;
 	    descripcion: string;
 	    estado: string;
 	    total_evidencias: number;
@@ -2164,8 +2166,10 @@ export namespace tracking {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.codigo_caso = source["codigo_caso"];
+	        this.tipo_caso = source["tipo_caso"];
 	        this.fecha_deteccion = source["fecha_deteccion"];
 	        this.entidad_derivacion = source["entidad_derivacion"];
+	        this.entidad_derivacion_detalle = source["entidad_derivacion_detalle"];
 	        this.descripcion = source["descripcion"];
 	        this.estado = source["estado"];
 	        this.total_evidencias = source["total_evidencias"];
@@ -2195,8 +2199,10 @@ export namespace tracking {
 	    estudiante_id: number;
 	    periodo_id: number;
 	    codigo_caso: string;
+	    tipo_caso: string;
 	    fecha_deteccion: string;
 	    entidad_derivacion: string;
+	    entidad_derivacion_detalle: string;
 	    descripcion: string;
 	    estado: string;
 	    // Go type: common
@@ -2214,8 +2220,10 @@ export namespace tracking {
 	        this.estudiante_id = source["estudiante_id"];
 	        this.periodo_id = source["periodo_id"];
 	        this.codigo_caso = source["codigo_caso"];
+	        this.tipo_caso = source["tipo_caso"];
 	        this.fecha_deteccion = source["fecha_deteccion"];
 	        this.entidad_derivacion = source["entidad_derivacion"];
+	        this.entidad_derivacion_detalle = source["entidad_derivacion_detalle"];
 	        this.descripcion = source["descripcion"];
 	        this.estado = source["estado"];
 	        this.rutas_documentos = this.convertValues(source["rutas_documentos"], null);
@@ -2301,8 +2309,10 @@ export namespace tracking {
 	export class GuardarCasoDTO {
 	    id: number;
 	    estudiante_id: number;
+	    tipo_caso: string;
 	    fecha_deteccion: string;
 	    entidad_derivacion: string;
+	    entidad_derivacion_detalle: string;
 	    descripcion: string;
 	    estado: string;
 	
@@ -2314,8 +2324,10 @@ export namespace tracking {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.estudiante_id = source["estudiante_id"];
+	        this.tipo_caso = source["tipo_caso"];
 	        this.fecha_deteccion = source["fecha_deteccion"];
 	        this.entidad_derivacion = source["entidad_derivacion"];
+	        this.entidad_derivacion_detalle = source["entidad_derivacion_detalle"];
 	        this.descripcion = source["descripcion"];
 	        this.estado = source["estado"];
 	    }

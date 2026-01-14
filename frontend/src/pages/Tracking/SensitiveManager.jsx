@@ -24,7 +24,9 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
         id: 0,
         estudiante_id: studentId,
         fecha_deteccion: new Date().toISOString().split('T')[0],
+        tipo_caso: '',
         entidad_derivacion: '',
+        entidad_derivacion_detalle: '',
         descripcion: '',
         estado: 'Abierto',
         rutas_evidencias: []
@@ -165,7 +167,9 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
             id: caso.id,
             estudiante_id: studentId,
             fecha_deteccion: caso.fecha_deteccion,
-            entidad_derivacion: caso.entidad_derivacion,
+            tipo_caso: caso.tipo_caso || '',
+            entidad_derivacion: caso.entidad_derivacion || '',
+            entidad_derivacion_detalle: caso.entidad_derivacion_detalle || '',
             descripcion: caso.descripcion || '',
             estado: caso.estado,
             rutas_evidencias: caso.rutas_evidencias || []
@@ -218,6 +222,7 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Código</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Fecha</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Tipo de Caso</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Entidad / Derivación</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Estado</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Evidencias</th>
@@ -226,14 +231,17 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-200">
                         {isLoading ? (
-                            <tr><td colSpan="6" className="px-6 py-12 text-center"><Loader2 className="w-8 h-8 text-indigo-400 animate-spin mx-auto" /></td></tr>
+                            <tr><td colSpan="7" className="px-6 py-12 text-center"><Loader2 className="w-8 h-8 text-indigo-400 animate-spin mx-auto" /></td></tr>
                         ) : casos.length === 0 ? (
-                            <tr><td colSpan="6" className="px-6 py-12 text-center text-slate-400 italic">No existen casos registrados para este estudiante.</td></tr>
+                            <tr><td colSpan="7" className="px-6 py-12 text-center text-slate-400 italic">No existen casos registrados para este estudiante.</td></tr>
                         ) : (
                             casos.map((caso) => (
                                 <tr key={caso.id} className="hover:bg-slate-50 transition-colors">
                                     <td className="px-6 py-4 text-sm text-slate-700 font-mono font-bold">{caso.codigo_caso}</td>
                                     <td className="px-6 py-4 text-sm text-slate-700">{caso.fecha_deteccion}</td>
+                                    <td className="px-6 py-4 text-sm text-slate-800 font-medium">
+                                        {caso.tipo_caso || <span className="text-slate-400 italic">No especificado</span>}
+                                    </td>
                                     <td className="px-6 py-4 text-sm text-slate-700">
                                         {caso.entidad_derivacion ? (
                                             <span className="flex items-center gap-1.5">
@@ -334,18 +342,51 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Entidad de Derivación (Opcional)</label>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Tipología / Tipo de Caso</label>
                                                 <div className="relative">
-                                                    <Building className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                                                    <ShieldAlert className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
                                                     <input
                                                         type="text"
-                                                        placeholder="Ej: Fiscalía, UDAI, Ministerio de Salud..."
-                                                        value={formData.entidad_derivacion}
-                                                        onChange={e => updateField('entidad_derivacion', e.target.value)}
+                                                        placeholder="Ej: Violencia VIF, Riesgo Suicida, Acoso Escolar..."
+                                                        value={formData.tipo_caso}
+                                                        onChange={e => updateField('tipo_caso', e.target.value)}
                                                         className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                                     />
                                                 </div>
                                             </div>
+
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Entidad de Derivación</label>
+                                                <div className="relative">
+                                                    <Building className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                                                    <select
+                                                        value={formData.entidad_derivacion}
+                                                        onChange={e => updateField('entidad_derivacion', e.target.value)}
+                                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all appearance-none"
+                                                    >
+                                                        <option value="">-- Ninguna (Caso Interno) --</option>
+                                                        <option value="Fiscalía">Fiscalía</option>
+                                                        <option value="Junta Cantonal de Protección de Derechos">Junta Cantonal de Protección de Derechos</option>
+                                                        <option value="Ministerio de Salud Pública">Ministerio de Salud Pública</option>
+                                                        <option value="Patronato de Amparo Social">Patronato de Amparo Social</option>
+                                                        <option value="Distrito de Educación">Distrito de Educación</option>
+                                                        <option value="Otros">Otros</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            {formData.entidad_derivacion && (
+                                                <div className="animate-in fade-in slide-in-from-top-2">
+                                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Especificar Área / Departamento / Detalle</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Ej: Unidad de Violencia, Psicología Clínica, Trabajo Social..."
+                                                        value={formData.entidad_derivacion_detalle}
+                                                        onChange={e => updateField('entidad_derivacion_detalle', e.target.value)}
+                                                        className="w-full px-4 py-2 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all shadow-sm"
+                                                    />
+                                                </div>
+                                            )}
 
                                             <div className="h-full">
                                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Descripción y Antecedentes</label>
