@@ -208,14 +208,16 @@ func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.Estudiant
 	print(estudiantes)
 	for i, e := range estudiantes {
 		response[i] = studentDTO.EstudianteListaDTO{
-			ID:                e.ID,
-			Cedula:            e.Cedula,
-			Apellidos:         e.Apellidos,
-			Nombres:           e.Nombres,
-			CorreoElectronico: e.CorreoElectronico,
-			RutaFoto:          e.RutaFoto,
-			FechaNacimiento:   e.FechaNacimiento,
-			Edad:              CaclularEdad(e.FechaNacimiento),
+			ID:                    e.ID,
+			Cedula:                e.Cedula,
+			Apellidos:             e.Apellidos,
+			Nombres:               e.Nombres,
+			CorreoElectronico:     e.CorreoElectronico,
+			RutaFoto:              e.RutaFoto,
+			RutaCedula:            e.RutaCedula,
+			RutaPartidaNacimiento: e.RutaPartidaNacimiento,
+			FechaNacimiento:       e.FechaNacimiento,
+			Edad:                  CaclularEdad(e.FechaNacimiento),
 			InfoNacionalidad: &studentDTO.InfoNacionalidadDTO{
 				EsExtranjero:   e.InfoNacionalidad.Data.EsExtranjero,
 				PaisOrigen:     e.InfoNacionalidad.Data.PaisOrigen,
@@ -263,6 +265,9 @@ func (s *StudentService) GuardarEstudiante(input studentDTO.GuardarEstudianteDTO
 			CorreoElectronico: input.CorreoElectronico,
 
 			RutaFoto: input.RutaFoto,
+
+			RutaCedula:            input.RutaCedula,
+			RutaPartidaNacimiento: input.RutaPartidaNacimiento,
 		}
 
 		est.InfoNacionalidad = common.JSONMap[student.InfoNacionalidad]{
@@ -464,6 +469,106 @@ func (s *StudentService) ObtenerFotoBase64(id uint) (string, error) {
 
 	encoded := base64.StdEncoding.EncodeToString(data)
 	dataURL := fmt.Sprintf("data:%s;base64,%s", mimeType, encoded)
+	return dataURL, nil
+}
+
+func (s *StudentService) GuardarDocumentoPDF(id uint, tipoDocumento string, base64Data string) (string, error) {
+	var est student.Estudiante
+
+	if err := s.db.First(&est, id).Error; err != nil {
+		return "", errors.New("Estudiante no encontrado")
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", errors.New("No se pudo acceder a la carpeta del usuario")
+	}
+
+	destinoDir := filepath.Join(homeDir, "Documents", "SistemaDECE", "DocumentosEstudiantes")
+
+	if err := os.MkdirAll(destinoDir, 0755); err != nil {
+		return "", fmt.Errorf("Error al crear carpeta de documentos: %v", err)
+	}
+
+	payload := base64Data
+	if _, after, ok := strings.Cut(base64Data, "base64,"); ok {
+		payload = after
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(payload)
+	if err != nil {
+		return "", fmt.Errorf("Error al decodificar base64: %v", err)
+	}
+
+	// tipoDocumento expected: "cedula", "partida"
+	safeTipo := strings.ToLower(tipoDocumento)
+	nuevoNombre := fmt.Sprintf("%s_%s_%d.pdf", est.Cedula, safeTipo, time.Now().Unix())
+	rutaDestinoCompleta := filepath.Join(destinoDir, nuevoNombre)
+
+	if err := os.WriteFile(rutaDestinoCompleta, decoded, 0644); err != nil {
+		return "", fmt.Errorf("Error al escribir documento destino: %v", err)
+	}
+
+	// Update DB
+	updates := map[string]interface{}{}
+	var oldPath string
+
+	if safeTipo == "cedula" {
+		updates["ruta_cedula"] = rutaDestinoCompleta
+		oldPath = est.RutaCedula
+	} else if safeTipo == "partida" {
+		updates["ruta_partida_nacimiento"] = rutaDestinoCompleta
+		oldPath = est.RutaPartidaNacimiento
+	} else {
+		return "", errors.New("Tipo de documento inválido")
+	}
+
+	if oldPath != "" {
+		if _, err := os.Stat(oldPath); err == nil {
+			os.Remove(oldPath)
+		}
+	}
+
+	if err := s.db.Model(&est).UpdateColumns(updates).Error; err != nil {
+		return "", fmt.Errorf("Documento guardado pero error al actualizar BD: %v", err)
+	}
+
+	return rutaDestinoCompleta, nil
+}
+
+func (s *StudentService) ObtenerDocumentoPDF(id uint, tipo string) (string, error) {
+	var est student.Estudiante
+	if err := s.db.First(&est, id).Error; err != nil {
+		return "", errors.New("Estudiante no encontrado")
+	}
+
+	var path string
+	safeTipo := strings.ToLower(tipo)
+	if safeTipo == "cedula" {
+		path = est.RutaCedula
+	} else if safeTipo == "partida" {
+		path = est.RutaPartidaNacimiento
+	} else {
+		return "", errors.New("Tipo de documento inválido")
+	}
+
+	if path == "" {
+		return "", errors.New("Documento no disponible")
+	}
+
+	// Verificar si existe el archivo
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return "", errors.New("El archivo físico no existe")
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("Error leyendo archivo: %v", err)
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(data)
+	// Retornamos Data URI para que el iframe lo lea directo
+	dataURL := fmt.Sprintf("data:application/pdf;base64,%s", encoded)
 	return dataURL, nil
 }
 

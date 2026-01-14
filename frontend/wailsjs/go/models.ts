@@ -1858,6 +1858,8 @@ export namespace student {
 	    correo_electronico: string;
 	    info_nacionalidad: common.JSONMap_dece_internal_domain_student_InfoNacionalidad_;
 	    ruta_foto: string;
+	    ruta_cedula: string;
+	    ruta_partida_nacimiento: string;
 	    familiares: Familiar[];
 	    fecha_creacion: string;
 	
@@ -1876,6 +1878,8 @@ export namespace student {
 	        this.correo_electronico = source["correo_electronico"];
 	        this.info_nacionalidad = this.convertValues(source["info_nacionalidad"], common.JSONMap_dece_internal_domain_student_InfoNacionalidad_);
 	        this.ruta_foto = source["ruta_foto"];
+	        this.ruta_cedula = source["ruta_cedula"];
+	        this.ruta_partida_nacimiento = source["ruta_partida_nacimiento"];
 	        this.familiares = this.convertValues(source["familiares"], Familiar);
 	        this.fecha_creacion = source["fecha_creacion"];
 	    }
@@ -1920,6 +1924,8 @@ export namespace student {
 	    apellidos: string;
 	    nombres: string;
 	    ruta_foto: string;
+	    ruta_cedula: string;
+	    ruta_partida_nacimiento: string;
 	    fecha_nacimiento: string;
 	    correo_electronico: string;
 	    edad: number;
@@ -1936,6 +1942,8 @@ export namespace student {
 	        this.apellidos = source["apellidos"];
 	        this.nombres = source["nombres"];
 	        this.ruta_foto = source["ruta_foto"];
+	        this.ruta_cedula = source["ruta_cedula"];
+	        this.ruta_partida_nacimiento = source["ruta_partida_nacimiento"];
 	        this.fecha_nacimiento = source["fecha_nacimiento"];
 	        this.correo_electronico = source["correo_electronico"];
 	        this.edad = source["edad"];
@@ -2016,6 +2024,8 @@ export namespace student {
 	    genero_nacimiento: string;
 	    correo_electronico: string;
 	    ruta_foto: string;
+	    ruta_cedula: string;
+	    ruta_partida_nacimiento: string;
 	    es_extranjero: boolean;
 	    pais_origen: string;
 	    pasaporte_odni: string;
@@ -2035,6 +2045,8 @@ export namespace student {
 	        this.genero_nacimiento = source["genero_nacimiento"];
 	        this.correo_electronico = source["correo_electronico"];
 	        this.ruta_foto = source["ruta_foto"];
+	        this.ruta_cedula = source["ruta_cedula"];
+	        this.ruta_partida_nacimiento = source["ruta_partida_nacimiento"];
 	        this.es_extranjero = source["es_extranjero"];
 	        this.pais_origen = source["pais_origen"];
 	        this.pasaporte_odni = source["pasaporte_odni"];

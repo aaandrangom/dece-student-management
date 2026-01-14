@@ -25,6 +25,9 @@ type Estudiante struct {
 	InfoNacionalidad common.JSONMap[InfoNacionalidad] `gorm:"type:text" json:"info_nacionalidad"`
 	RutaFoto         string                           `json:"ruta_foto"`
 
+	RutaCedula            string `json:"ruta_cedula"`
+	RutaPartidaNacimiento string `json:"ruta_partida_nacimiento"`
+
 	Familiares []Familiar `gorm:"foreignKey:EstudianteID" json:"familiares"`
 
 	FechaCreacion string `gorm:"default:CURRENT_TIMESTAMP" json:"fecha_creacion"`

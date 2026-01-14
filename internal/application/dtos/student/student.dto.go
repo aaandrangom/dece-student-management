@@ -7,15 +7,17 @@ type InfoNacionalidadDTO struct {
 }
 
 type EstudianteListaDTO struct {
-	ID                uint                 `json:"id"`
-	Cedula            string               `json:"cedula"`
-	Apellidos         string               `json:"apellidos"`
-	Nombres           string               `json:"nombres"`
-	RutaFoto          string               `json:"ruta_foto"`
-	FechaNacimiento   string               `json:"fecha_nacimiento"`
-	CorreoElectronico string               `json:"correo_electronico"`
-	Edad              int                  `json:"edad"`
-	InfoNacionalidad  *InfoNacionalidadDTO `json:"info_nacionalidad"`
+	ID                    uint                 `json:"id"`
+	Cedula                string               `json:"cedula"`
+	Apellidos             string               `json:"apellidos"`
+	Nombres               string               `json:"nombres"`
+	RutaFoto              string               `json:"ruta_foto"`
+	RutaCedula            string               `json:"ruta_cedula"`
+	RutaPartidaNacimiento string               `json:"ruta_partida_nacimiento"`
+	FechaNacimiento       string               `json:"fecha_nacimiento"`
+	CorreoElectronico     string               `json:"correo_electronico"`
+	Edad                  int                  `json:"edad"`
+	InfoNacionalidad      *InfoNacionalidadDTO `json:"info_nacionalidad"`
 }
 
 type DatosFamiliarDTO struct {
@@ -47,6 +49,9 @@ type GuardarEstudianteDTO struct {
 	CorreoElectronico string `json:"correo_electronico"`
 
 	RutaFoto string `json:"ruta_foto"`
+
+	RutaCedula            string `json:"ruta_cedula"`
+	RutaPartidaNacimiento string `json:"ruta_partida_nacimiento"`
 
 	EsExtranjero   bool                 `json:"es_extranjero"`
 	PaisOrigen     string               `json:"pais_origen"`

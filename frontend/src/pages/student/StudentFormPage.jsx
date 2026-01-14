@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import {
     GuardarEstudiante, GuardarFoto, GuardarFotoBase64,
-    ObtenerEstudiante, ObtenerFotoBase64
+    ObtenerEstudiante, ObtenerFotoBase64, GuardarDocumentoPDF, ObtenerDocumentoPDF
 } from '../../../wailsjs/go/services/StudentService';
 
 const calculateAge = (dateString) => {
@@ -28,7 +28,7 @@ export default function StudentFormPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const studentId = id ? parseInt(id) : 0;
-    
+
     // Función helper para regresar
     const onBack = () => navigate('/estudiantes/listado-general');
 
@@ -39,6 +39,12 @@ export default function StudentFormPage() {
     const [tempPhotoFile, setTempPhotoFile] = useState(null);
     const [photoChanged, setPhotoChanged] = useState(false);
     const [originalRuta, setOriginalRuta] = useState('');
+
+    const [pdfCedulaFile, setPdfCedulaFile] = useState(null);
+    const [pdfPartidaFile, setPdfPartidaFile] = useState(null);
+    const [hasCedula, setHasCedula] = useState(false);
+    const [hasPartida, setHasPartida] = useState(false);
+    const [viewPdfUrl, setViewPdfUrl] = useState(null);
 
     const [isEditingFamily, setIsEditingFamily] = useState(false);
     const [familyFormData, setFamilyFormData] = useState(null);
@@ -179,6 +185,8 @@ export default function StudentFormPage() {
 
             setFormData(data);
             setOriginalRuta(data.ruta_foto || '');
+            setHasCedula(!!data.ruta_cedula);
+            setHasPartida(!!data.ruta_partida_nacimiento);
 
             if (data.ruta_foto) {
                 try {
@@ -214,6 +222,59 @@ export default function StudentFormPage() {
         }));
     };
 
+    const handlePdfSelect = (type) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/pdf';
+        input.onchange = () => {
+            const files = input.files;
+            if (!files || files.length === 0) return;
+            const file = files[0];
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit example
+                return toast.warning("El archivo es demasiado grande (Máx 5MB)");
+            }
+
+            if (type === 'cedula') {
+                setPdfCedulaFile(file);
+            } else {
+                setPdfPartidaFile(file);
+            }
+            toast.success(`PDF de ${type === 'cedula' ? 'Cédula' : 'Partida'} seleccionado`);
+        };
+        input.click();
+    };
+
+    const handleViewPdf = async (type, e) => {
+        if (e) e.stopPropagation();
+
+        // Prioridad: archivo recién seleccionado
+        if (type === 'cedula' && pdfCedulaFile) {
+            setViewPdfUrl(URL.createObjectURL(pdfCedulaFile));
+            return;
+        }
+        if (type === 'partida' && pdfPartidaFile) {
+            setViewPdfUrl(URL.createObjectURL(pdfPartidaFile));
+            return;
+        }
+
+        // Si no hay archivo nuevo, intentar cargar del backend
+        if (studentId > 0) {
+            if ((type === 'cedula' && !hasCedula) || (type === 'partida' && !hasPartida)) {
+                return toast.info("No hay documento cargado para visualizar");
+            }
+
+            try {
+                toast.loading("Cargando documento...");
+                const b64 = await ObtenerDocumentoPDF(studentId, type);
+                toast.dismiss();
+                if (b64) setViewPdfUrl(b64);
+            } catch (err) {
+                toast.dismiss();
+                toast.error("Error cargando documento: " + err);
+            }
+        }
+    };
+
     const handlePhotoSelect = async () => {
         try {
             const input = document.createElement('input');
@@ -242,6 +303,14 @@ export default function StudentFormPage() {
             }
             if (!formData.info_nacionalidad.es_extranjero && (!formData.cedula || formData.cedula.length !== 10)) {
                 return toast.warning("Cédula inválida");
+            }
+
+            // Validación de documentos (Al menos uno requerido)
+            const cedulaPresent = hasCedula || pdfCedulaFile;
+            const partidaPresent = hasPartida || pdfPartidaFile;
+
+            if (!cedulaPresent && !partidaPresent) {
+                return toast.warning("Debe subir al menos un documento (Cédula o Partida de Nacimiento)");
             }
         }
         setCurrentStep(prev => prev + 1);
@@ -353,6 +422,28 @@ export default function StudentFormPage() {
                 setTempPhotoFile(null);
             }
 
+            // Subir Documentos PDF
+            const uploadPdf = async (file, type) => {
+                const b64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                await GuardarDocumentoPDF(savedStudent.id, type, b64);
+            };
+
+            if (pdfCedulaFile) {
+                try {
+                    await uploadPdf(pdfCedulaFile, 'cedula');
+                } catch (e) { console.error("Error guardando cédula pdf", e); toast.error("Error guardando cédula"); }
+            }
+            if (pdfPartidaFile) {
+                try {
+                    await uploadPdf(pdfPartidaFile, 'partida');
+                } catch (e) { console.error("Error guardando partida pdf", e); toast.error("Error guardando partida"); }
+            }
+
             if (studentId === 0) clearLocalStorage();
 
             toast.success("¡Guardado correctamente!");
@@ -366,6 +457,30 @@ export default function StudentFormPage() {
 
     return (
         <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans">
+            {viewPdfUrl && (
+                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full h-full max-w-6xl rounded-xl flex flex-col shadow-2xl overflow-hidden">
+                        <div className="flex justify-between items-center p-4 border-b border-slate-200 bg-slate-50">
+                            <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                <FileText className="w-5 h-5 text-blue-600" /> Visor de Documentos
+                            </h3>
+                            <button
+                                onClick={() => setViewPdfUrl(null)}
+                                className="px-4 py-2 text-sm font-bold text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                        <div className="flex-1 bg-slate-100 relative">
+                            <iframe
+                                title="Visor PDF"
+                                src={viewPdfUrl}
+                                className="w-full h-full absolute inset-0 border-none"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="max-w-7xl mx-auto">
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-8 p-6">
                     <div className="flex items-center justify-between">
@@ -438,6 +553,83 @@ export default function StudentFormPage() {
                                         )}
                                     </div>
                                     {studentId === 0 && <p className="text-xs text-slate-400 text-center mt-3">Guardado automático activado.</p>}
+
+                                    <div className="mt-8 border-t border-slate-200 pt-6">
+                                        <h3 className="text-sm font-bold text-slate-800 uppercase mb-4 flex items-center gap-2">
+                                            <FileText className="w-4 h-4" /> Documentación Digital
+                                        </h3>
+
+                                        {/* Cédula */}
+                                        <div className="mb-4">
+                                            <label className="block text-xs font-bold text-slate-600 mb-2">Cédula de Identidad (PDF)</label>
+                                            <div
+                                                onClick={() => handlePdfSelect('cedula')}
+                                                className={`p-3 rounded-lg border-2 border-dashed flex items-center gap-3 cursor-pointer transition-colors ${hasCedula || pdfCedulaFile ? 'border-green-300 bg-green-50' : 'border-slate-300 hover:border-blue-400'}`}
+                                            >
+                                                <div className={`p-2 rounded-full ${hasCedula || pdfCedulaFile ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
+                                                    <FileText className="w-5 h-5" />
+                                                </div>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <p className="text-sm font-bold text-slate-700 truncate">
+                                                        {pdfCedulaFile ? pdfCedulaFile.name : (hasCedula ? 'Documento cargado' : 'Subir archivo')}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500">
+                                                        {pdfCedulaFile ? 'Listo para guardar' : (hasCedula ? 'Disponible en servidor' : 'Click para seleccionar')}
+                                                    </p>
+                                                </div>
+                                                {(hasCedula || pdfCedulaFile) && (
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={(e) => handleViewPdf('cedula', e)}
+                                                            className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                                                            title="Ver Documento"
+                                                        >
+                                                            <FileText className="w-4 h-4" />
+                                                        </button>
+                                                        <Check className="w-5 h-5 text-green-600" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Partida */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-600 mb-2">Partida de Nacimiento (PDF)</label>
+                                            <div
+                                                onClick={() => handlePdfSelect('partida')}
+                                                className={`p-3 rounded-lg border-2 border-dashed flex items-center gap-3 cursor-pointer transition-colors ${hasPartida || pdfPartidaFile ? 'border-green-300 bg-green-50' : 'border-slate-300 hover:border-blue-400'}`}
+                                            >
+                                                <div className={`p-2 rounded-full ${hasPartida || pdfPartidaFile ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
+                                                    <FileText className="w-5 h-5" />
+                                                </div>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <p className="text-sm font-bold text-slate-700 truncate">
+                                                        {pdfPartidaFile ? pdfPartidaFile.name : (hasPartida ? 'Documento cargado' : 'Subir archivo')}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500">
+                                                        {pdfPartidaFile ? 'Listo para guardar' : (hasPartida ? 'Disponible en servidor' : 'Click para seleccionar')}
+                                                    </p>
+                                                </div>
+                                                {(hasPartida || pdfPartidaFile) && (
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={(e) => handleViewPdf('partida', e)}
+                                                            className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                                                            title="Ver Documento"
+                                                        >
+                                                            <FileText className="w-4 h-4" />
+                                                        </button>
+                                                        <Check className="w-5 h-5 text-green-600" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <p className="text-xs text-slate-400 mt-3 text-center bg-yellow-50  p-2 rounded">
+                                            <AlertCircle className="w-3 h-3 inline mr-1" />
+                                            Al menos uno es obligatorio.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                             <div className="md:col-span-2 space-y-6">

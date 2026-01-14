@@ -7,6 +7,8 @@ export function BuscarEstudiantes(arg1:string):Promise<Array<student.EstudianteL
 
 export function EliminarFamiliar(arg1:number):Promise<void>;
 
+export function GuardarDocumentoPDF(arg1:number,arg2:string,arg3:string):Promise<string>;
+
 export function GuardarEstudiante(arg1:student.GuardarEstudianteDTO):Promise<student.Estudiante>;
 
 export function GuardarFoto(arg1:number,arg2:string):Promise<string>;
@@ -14,6 +16,8 @@ export function GuardarFoto(arg1:number,arg2:string):Promise<string>;
 export function GuardarFotoBase64(arg1:number,arg2:string,arg3:string):Promise<string>;
 
 export function ImportarEstudiantes():Promise<number>;
+
+export function ObtenerDocumentoPDF(arg1:number,arg2:string):Promise<string>;
 
 export function ObtenerEstudiante(arg1:number):Promise<student.Estudiante>;
 

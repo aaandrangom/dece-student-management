@@ -10,6 +10,10 @@ export function EliminarFamiliar(arg1) {
   return window['go']['services']['StudentService']['EliminarFamiliar'](arg1);
 }
 
+export function GuardarDocumentoPDF(arg1, arg2, arg3) {
+  return window['go']['services']['StudentService']['GuardarDocumentoPDF'](arg1, arg2, arg3);
+}
+
 export function GuardarEstudiante(arg1) {
   return window['go']['services']['StudentService']['GuardarEstudiante'](arg1);
 }
@@ -24,6 +28,10 @@ export function GuardarFotoBase64(arg1, arg2, arg3) {
 
 export function ImportarEstudiantes() {
   return window['go']['services']['StudentService']['ImportarEstudiantes']();
+}
+
+export function ObtenerDocumentoPDF(arg1, arg2) {
+  return window['go']['services']['StudentService']['ObtenerDocumentoPDF'](arg1, arg2);
 }
 
 export function ObtenerEstudiante(arg1) {
