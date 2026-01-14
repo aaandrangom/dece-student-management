@@ -30,11 +30,11 @@ type GuardarMatriculaDTO struct {
 	DireccionActual    string `json:"direccion_actual"`
 	RutaCroquis        string `json:"ruta_croquis"`
 	RutaConsentimiento string `json:"ruta_consentimiento"`
+	Estado             string `json:"estado"`
 }
 
 // DTO de Respuesta Completa (Para cargar el formulario)
 // Es idéntico al de Guardar, pero podríamos agregar nombres del estudiante/curso si fuera necesario
 type MatriculaResponseDTO struct {
 	GuardarMatriculaDTO
-	Estado string `json:"estado"`
 }

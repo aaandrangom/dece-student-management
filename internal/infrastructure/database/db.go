@@ -58,6 +58,7 @@ func InitDB() *gorm.DB {
 		&faculty.Curso{},
 		&faculty.DistributivoMateria{},
 		&enrollment.Matricula{},
+		&enrollment.RetiroEstudiante{},
 		&tracking.LlamadoAtencion{},
 		&tracking.CasoSensible{},
 		&management.Convocatoria{},

@@ -168,8 +168,8 @@ func (s *EnrollmentService) ObtenerMatriculaActual(estudianteID uint) (*enrollme
 			DireccionActual:    matricula.DireccionActual,
 			RutaCroquis:        matricula.RutaCroquis,
 			RutaConsentimiento: matricula.RutaConsentimiento,
+			Estado:             matricula.Estado,
 		},
-		Estado: matricula.Estado,
 	}
 
 	return response, nil
@@ -319,4 +319,37 @@ func (s *EnrollmentService) RetirarEstudiante(matriculaID uint, motivo string) e
 		return fmt.Errorf("Error al retirar estudiante: %v", err)
 	}
 	return nil
+}
+
+func (s *EnrollmentService) RegistrarRetiroCompleto(matriculaID uint, fecha string, motivo string, nuevaInstitucion string, provinciaDestino string, observaciones string) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		var matricula domain.Matricula
+		if err := tx.First(&matricula, matriculaID).Error; err != nil {
+			return errors.New("Matrícula no encontrada")
+		}
+
+		if matricula.Estado == "Retirado" {
+			return errors.New("El estudiante ya se encuentra retirado")
+		}
+
+		matricula.Estado = "Retirado"
+		if err := tx.Save(&matricula).Error; err != nil {
+			return fmt.Errorf("Error al actualizar estado de matrícula: %v", err)
+		}
+
+		retiro := domain.RetiroEstudiante{
+			MatriculaID:      matriculaID,
+			FechaRetiro:      fecha,
+			Motivo:           motivo,
+			NuevaInstitucion: nuevaInstitucion,
+			ProvinciaDestino: provinciaDestino,
+			Observaciones:    observaciones,
+		}
+
+		if err := tx.Create(&retiro).Error; err != nil {
+			return fmt.Errorf("Error al registrar el retiro: %v", err)
+		}
+
+		return nil
+	})
 }

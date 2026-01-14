@@ -11,6 +11,8 @@ export function ObtenerHistorial(arg1:number):Promise<Array<enrollment.Historial
 
 export function ObtenerMatriculaActual(arg1:number):Promise<enrollment.MatriculaResponseDTO>;
 
+export function RegistrarRetiroCompleto(arg1:number,arg2:string,arg3:string,arg4:string,arg5:string,arg6:string):Promise<void>;
+
 export function RetirarEstudiante(arg1:number,arg2:string):Promise<void>;
 
 export function SeleccionarArchivo(arg1:string):Promise<string>;

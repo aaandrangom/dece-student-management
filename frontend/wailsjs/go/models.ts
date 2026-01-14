@@ -1102,6 +1102,7 @@ export namespace enrollment {
 	    direccion_actual: string;
 	    ruta_croquis: string;
 	    ruta_consentimiento: string;
+	    estado: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new GuardarMatriculaDTO(source);
@@ -1121,6 +1122,7 @@ export namespace enrollment {
 	        this.direccion_actual = source["direccion_actual"];
 	        this.ruta_croquis = source["ruta_croquis"];
 	        this.ruta_consentimiento = source["ruta_consentimiento"];
+	        this.estado = source["estado"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

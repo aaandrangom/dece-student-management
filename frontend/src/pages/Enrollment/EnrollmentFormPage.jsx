@@ -47,7 +47,7 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
 
                 if (studentId > 0) {
                     const data = await ObtenerMatriculaActual(studentId);
-                    console.log('Loaded enrollment data:', data.ruta_croquis);
+                    console.log('Loaded enrollment data:', data);
                     if (data) {
                         setFormData(prev => ({
                             ...prev,
@@ -72,7 +72,8 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                             condicion_genero: {
                                 ...prev.condicion_genero, ...(data.condicion_genero || {}),
                                 detalle_padres_pareja: { ...prev.condicion_genero.detalle_padres_pareja, ...(data.condicion_genero?.detalle_padres_pareja || {}) }
-                            }
+                            },
+                            estado: data.estado
                         }));
                     }
                 }

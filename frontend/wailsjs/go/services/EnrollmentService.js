@@ -18,6 +18,10 @@ export function ObtenerMatriculaActual(arg1) {
   return window['go']['services']['EnrollmentService']['ObtenerMatriculaActual'](arg1);
 }
 
+export function RegistrarRetiroCompleto(arg1, arg2, arg3, arg4, arg5, arg6) {
+  return window['go']['services']['EnrollmentService']['RegistrarRetiroCompleto'](arg1, arg2, arg3, arg4, arg5, arg6);
+}
+
 export function RetirarEstudiante(arg1, arg2) {
   return window['go']['services']['EnrollmentService']['RetirarEstudiante'](arg1, arg2);
 }

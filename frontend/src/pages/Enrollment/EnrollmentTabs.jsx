@@ -48,12 +48,14 @@ export const AcademicTab = ({ data, courses, onChange, onFileSelect, onPreview }
                     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm h-full">
                         <div className="flex justify-between items-center mb-5 pb-3 border-b border-slate-50">
                             <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Estado</span>
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${data.id > 0
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${data.id > 0 && data.estado === "Matriculado"
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-blue-50 text-blue-700 border-blue-200'
+                                : data.id > 0 && data.estado === "Retirado"
+                                    ? 'bg-red-50 text-red-700 border-red-200'
+                                    : 'bg-blue-50 text-blue-700 border-blue-200'
                                 }`}>
-                                <span className={`w-1.5 h-1.5 rounded-full ${data.id > 0 ? 'bg-emerald-500' : 'bg-blue-500'}`}></span>
-                                {data.id > 0 ? 'MATRICULADO' : 'NUEVO INGRESO'}
+                                <span className={`w-1.5 h-1.5 rounded-full ${data.id > 0 && data.estado === "Matriculado" ? 'bg-emerald-500' : data.id > 0 && data.estado === "Retirado" ? 'bg-red-500' : 'bg-blue-500'}`}></span>
+                                {data.id > 0 ? (data.estado || 'MATRICULADO').toUpperCase() : 'NUEVO INGRESO'}
                             </span>
                         </div>
 

@@ -118,3 +118,15 @@ type Matricula struct {
 	Estudiante student.Estudiante `gorm:"foreignKey:EstudianteID" json:"estudiante,omitempty"`
 	Curso      faculty.Curso      `gorm:"foreignKey:CursoID" json:"curso,omitempty"`
 }
+
+type RetiroEstudiante struct {
+	ID               uint   `gorm:"primaryKey" json:"id"`
+	MatriculaID      uint   `json:"matricula_id"`
+	FechaRetiro      string `json:"fecha_retiro"`
+	Motivo           string `json:"motivo"`
+	NuevaInstitucion string `json:"nueva_institucion"`
+	ProvinciaDestino string `json:"provincia_destino"`
+	Observaciones    string `json:"observaciones"`
+
+	Matricula Matricula `gorm:"foreignKey:MatriculaID" json:"matricula,omitempty"`
+}

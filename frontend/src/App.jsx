@@ -23,6 +23,7 @@ import CoursesPage from './pages/faculty/Courses';
 
 import StudentsPage from './pages/student/Student';
 import StudentFormPage from './pages/student/StudentFormPage';
+import StudentModifications from './pages/student/StudentModifications';
 
 import EnrollmentManager from './pages/Enrollment/EnrollmentManager';
 
@@ -67,6 +68,7 @@ const MainLayout = () => {
             <Route path="/estudiantes/nuevo" element={<StudentFormPage />} />
             <Route path="/estudiantes/editar/:id" element={<StudentFormPage />} />
             <Route path="/estudiantes/ficha-dece" element={<EnrollmentManager />} />
+            <Route path="/estudiantes/modificaciones" element={<StudentModifications />} />
 
             <Route path="/dece" element={<DisciplineManagerPage />} />
 
