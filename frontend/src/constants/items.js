@@ -99,30 +99,40 @@ export const menuOptions = [
         ]
     },
     {
+        title: "Reportes",
+        path: "/reportes",
+        icon: "FileWarning",
+        subOptions: [
+            {
+                title: "Ficha Acumulativa",
+                path: "/reportes/ficha-acumulativa",
+                icon: "FileWarning"
+            },
+            {
+                title: "Estadístico Problemáticas",
+                path: "/reportes/estadistico",
+                icon: "BarChart"
+            },
+            {
+                title: "Nómina Vulnerabilidad",
+                path: "/reportes/nomina-vulnerabilidad",
+                icon: "ClipboardList"
+            },
+            {
+                title: "Bitácora de Gestión",
+                path: "/reportes/bitacora-gestion",
+                icon: "History"
+            },
+            {
+                title: "Derivaciones",
+                path: "/reportes/derivaciones",
+                icon: "Building2"
+            }
+        ]
+    },
+    {
         title: "Configuración",
         path: "/configuraciones",
-        icon: "Settings",
-        /* subOptions: [
-             {
-                 title: "Años Lectivos",
-                 path: "/settings/school-years",
-                 icon: "History"
-             },
-             {
-                 title: "Cursos",
-                 path: "/settings/courses",
-                 icon: "Layers"
-             },
-             {
-                 title: "Paralelos",
-                 path: "/settings/parallels",
-                 icon: "Split"
-             },
-             {
-                 title: "Datos Institución",
-                 path: "/settings/institution",
-                 icon: "Building2"
-             }
-         ]*/
+        icon: "Settings"
     }
 ];

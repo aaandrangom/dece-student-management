@@ -58,7 +58,7 @@ func main() {
 	managementService := management.NewManagementService(db, telegramSyncService)
 	dashboardService := dashboard.NewDashboardService(db)
 	notificationsService := notifications.NewNotificationsService(db)
-	reportService := reports.NewReportService(institutionService, teacherService)
+	reportService := reports.NewReportService(db, institutionService, teacherService)
 	searchService := search.NewSearchService(db)
 	maintenanceService := system.NewMaintenanceService(db)
 

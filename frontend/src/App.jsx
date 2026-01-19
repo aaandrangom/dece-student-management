@@ -31,6 +31,11 @@ import DisciplineManagerPage from './pages/Tracking/DisciplineManagerPage';
 
 import MeetingManager from './pages/Management/MeetingManager';
 import TrainingManager from './pages/Management/TrainingManager';
+import FichaEstudiantilReport from './pages/Reports/FichaEstudiantilReport';
+import ReporteEstadistico from './pages/Reports/ReporteEstadistico';
+import ReporteNominaVulnerabilidad from './pages/Reports/ReporteNominaVulnerabilidad';
+import ReporteBitacoraGestion from './pages/Reports/ReporteBitacoraGestion';
+import ReporteDerivaciones from './pages/Reports/ReporteDerivaciones';
 
 
 const MainLayout = () => {
@@ -74,6 +79,12 @@ const MainLayout = () => {
 
             <Route path="/agenda/convocatorias" element={<MeetingManager />} />
             <Route path="/agenda/capacitaciones" element={<TrainingManager />} />
+
+            <Route path="/reportes/ficha-acumulativa" element={<FichaEstudiantilReport />} />
+            <Route path="/reportes/estadistico" element={<ReporteEstadistico />} />
+            <Route path="/reportes/nomina-vulnerabilidad" element={<ReporteNominaVulnerabilidad />} />
+            <Route path="/reportes/bitacora-gestion" element={<ReporteBitacoraGestion />} />
+            <Route path="/reportes/derivaciones" element={<ReporteDerivaciones />} />
           </Routes>
         </div>
       </main>

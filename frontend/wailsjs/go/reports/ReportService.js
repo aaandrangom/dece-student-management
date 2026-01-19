@@ -6,10 +6,50 @@ export function AbrirUbicacionReporte(arg1) {
   return window['go']['reports']['ReportService']['AbrirUbicacionReporte'](arg1);
 }
 
+export function GenerarReporteBitacoraGestionPDF(arg1, arg2) {
+  return window['go']['reports']['ReportService']['GenerarReporteBitacoraGestionPDF'](arg1, arg2);
+}
+
+export function GenerarReporteDerivacionesPDF(arg1, arg2) {
+  return window['go']['reports']['ReportService']['GenerarReporteDerivacionesPDF'](arg1, arg2);
+}
+
 export function GenerarReporteDocentes() {
   return window['go']['reports']['ReportService']['GenerarReporteDocentes']();
 }
 
+export function GenerarReporteEstadisticoPDF(arg1, arg2) {
+  return window['go']['reports']['ReportService']['GenerarReporteEstadisticoPDF'](arg1, arg2);
+}
+
+export function GenerarReporteFichaEstudiantil(arg1) {
+  return window['go']['reports']['ReportService']['GenerarReporteFichaEstudiantil'](arg1);
+}
+
 export function GenerarReporteInstitucional() {
   return window['go']['reports']['ReportService']['GenerarReporteInstitucional']();
+}
+
+export function GenerarReporteNominaVulnerabilidadPDF(arg1) {
+  return window['go']['reports']['ReportService']['GenerarReporteNominaVulnerabilidadPDF'](arg1);
+}
+
+export function ObtenerDatosFichaEstudiantil(arg1) {
+  return window['go']['reports']['ReportService']['ObtenerDatosFichaEstudiantil'](arg1);
+}
+
+export function ObtenerReporteBitacoraGestion(arg1, arg2) {
+  return window['go']['reports']['ReportService']['ObtenerReporteBitacoraGestion'](arg1, arg2);
+}
+
+export function ObtenerReporteDerivaciones(arg1, arg2) {
+  return window['go']['reports']['ReportService']['ObtenerReporteDerivaciones'](arg1, arg2);
+}
+
+export function ObtenerReporteEstadistico(arg1, arg2) {
+  return window['go']['reports']['ReportService']['ObtenerReporteEstadistico'](arg1, arg2);
+}
+
+export function ObtenerReporteNominaVulnerabilidad(arg1) {
+  return window['go']['reports']['ReportService']['ObtenerReporteNominaVulnerabilidad'](arg1);
 }

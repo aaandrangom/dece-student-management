@@ -467,6 +467,18 @@ export namespace common {
 		    return a;
 		}
 	}
+	export class JSONMap_map_string_interface____ {
+	    Data: Record<string, any>;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_map_string_interface____(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = source["Data"];
+	    }
+	}
 
 }
 
@@ -1888,6 +1900,369 @@ export namespace notifications {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.total = source["total"];
 	        this.items = this.convertValues(source["items"], CitaAlertaItem);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
+export namespace reports {
+	
+	export class BitacoraTallerDTO {
+	    fecha: string;
+	    tema: string;
+	    grupo: string;
+	    asistentes: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new BitacoraTallerDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.fecha = source["fecha"];
+	        this.tema = source["tema"];
+	        this.grupo = source["grupo"];
+	        this.asistentes = source["asistentes"];
+	    }
+	}
+	export class BitacoraKPIsDTO {
+	    citas_realizadas: number;
+	    talleres_dictados: number;
+	    personas_capacitadas: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new BitacoraKPIsDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.citas_realizadas = source["citas_realizadas"];
+	        this.talleres_dictados = source["talleres_dictados"];
+	        this.personas_capacitadas = source["personas_capacitadas"];
+	    }
+	}
+	export class BitacoraGestionDTO {
+	    kpis: BitacoraKPIsDTO;
+	    talleres: BitacoraTallerDTO[];
+	
+	    static createFrom(source: any = {}) {
+	        return new BitacoraGestionDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kpis = this.convertValues(source["kpis"], BitacoraKPIsDTO);
+	        this.talleres = this.convertValues(source["talleres"], BitacoraTallerDTO);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	
+	export class DatosCasoSensibleDTO {
+	    codigo_caso: string;
+	    fecha_deteccion: string;
+	    tipo_caso: string;
+	    estado: string;
+	    entidad_derivacion: string;
+	    descripcion: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatosCasoSensibleDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.codigo_caso = source["codigo_caso"];
+	        this.fecha_deteccion = source["fecha_deteccion"];
+	        this.tipo_caso = source["tipo_caso"];
+	        this.estado = source["estado"];
+	        this.entidad_derivacion = source["entidad_derivacion"];
+	        this.descripcion = source["descripcion"];
+	    }
+	}
+	export class DatosDisciplinaDTO {
+	    fecha: string;
+	    motivo: string;
+	    detalle_sancion: string;
+	    ruta_acta: string;
+	    estado: string;
+	    periodo_lectivo: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatosDisciplinaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.fecha = source["fecha"];
+	        this.motivo = source["motivo"];
+	        this.detalle_sancion = source["detalle_sancion"];
+	        this.ruta_acta = source["ruta_acta"];
+	        this.estado = source["estado"];
+	        this.periodo_lectivo = source["periodo_lectivo"];
+	    }
+	}
+	export class DatosFamiliarDTO {
+	    nombres_completos: string;
+	    parentesco: string;
+	    telefono_personal: string;
+	    es_representante_legal: boolean;
+	    vive_con_estudiante: boolean;
+	    datos_extendidos: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatosFamiliarDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.nombres_completos = source["nombres_completos"];
+	        this.parentesco = source["parentesco"];
+	        this.telefono_personal = source["telefono_personal"];
+	        this.es_representante_legal = source["es_representante_legal"];
+	        this.vive_con_estudiante = source["vive_con_estudiante"];
+	        this.datos_extendidos = source["datos_extendidos"];
+	    }
+	}
+	export class DatosPersonalesDTO {
+	    id: number;
+	    cedula: string;
+	    apellidos: string;
+	    nombres: string;
+	    fecha_nacimiento: string;
+	    genero_nacimiento: string;
+	    correo_electronico: string;
+	    ruta_foto: string;
+	    curso_actual: string;
+	    jornada: string;
+	    direccion_actual: string;
+	    info_nacionalidad: common.JSONMap_map_string_interface____;
+	    datos_salud: common.JSONMap_dece_internal_domain_enrollment_DatosSalud_;
+	    datos_sociales: common.JSONMap_dece_internal_domain_enrollment_DatosSociales_;
+	    antropometria: common.JSONMap_dece_internal_domain_enrollment_Antropometria_;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatosPersonalesDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.cedula = source["cedula"];
+	        this.apellidos = source["apellidos"];
+	        this.nombres = source["nombres"];
+	        this.fecha_nacimiento = source["fecha_nacimiento"];
+	        this.genero_nacimiento = source["genero_nacimiento"];
+	        this.correo_electronico = source["correo_electronico"];
+	        this.ruta_foto = source["ruta_foto"];
+	        this.curso_actual = source["curso_actual"];
+	        this.jornada = source["jornada"];
+	        this.direccion_actual = source["direccion_actual"];
+	        this.info_nacionalidad = this.convertValues(source["info_nacionalidad"], common.JSONMap_map_string_interface____);
+	        this.datos_salud = this.convertValues(source["datos_salud"], common.JSONMap_dece_internal_domain_enrollment_DatosSalud_);
+	        this.datos_sociales = this.convertValues(source["datos_sociales"], common.JSONMap_dece_internal_domain_enrollment_DatosSociales_);
+	        this.antropometria = this.convertValues(source["antropometria"], common.JSONMap_dece_internal_domain_enrollment_Antropometria_);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class DerivacionDTO {
+	    codigo_caso: string;
+	    fecha_deteccion: string;
+	    cedula: string;
+	    estudiante: string;
+	    curso: string;
+	    tipo_caso: string;
+	    entidad_derivacion: string;
+	    estado: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DerivacionDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.codigo_caso = source["codigo_caso"];
+	        this.fecha_deteccion = source["fecha_deteccion"];
+	        this.cedula = source["cedula"];
+	        this.estudiante = source["estudiante"];
+	        this.curso = source["curso"];
+	        this.tipo_caso = source["tipo_caso"];
+	        this.entidad_derivacion = source["entidad_derivacion"];
+	        this.estado = source["estado"];
+	    }
+	}
+	export class EstadisticaCursoConflictivoDTO {
+	    curso: string;
+	    total_faltas: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new EstadisticaCursoConflictivoDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.curso = source["curso"];
+	        this.total_faltas = source["total_faltas"];
+	    }
+	}
+	export class EstadisticaDerivacionDTO {
+	    entidad_derivacion: string;
+	    cantidad: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new EstadisticaDerivacionDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.entidad_derivacion = source["entidad_derivacion"];
+	        this.cantidad = source["cantidad"];
+	    }
+	}
+	export class EstadisticaTipoCasoDTO {
+	    tipo_caso: string;
+	    cantidad: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new EstadisticaTipoCasoDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tipo_caso = source["tipo_caso"];
+	        this.cantidad = source["cantidad"];
+	    }
+	}
+	export class FichaEstudiantilDTO {
+	    datos_personales: DatosPersonalesDTO;
+	    familiares: DatosFamiliarDTO[];
+	    disciplina: DatosDisciplinaDTO[];
+	    casos_sensibles: DatosCasoSensibleDTO[];
+	
+	    static createFrom(source: any = {}) {
+	        return new FichaEstudiantilDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.datos_personales = this.convertValues(source["datos_personales"], DatosPersonalesDTO);
+	        this.familiares = this.convertValues(source["familiares"], DatosFamiliarDTO);
+	        this.disciplina = this.convertValues(source["disciplina"], DatosDisciplinaDTO);
+	        this.casos_sensibles = this.convertValues(source["casos_sensibles"], DatosCasoSensibleDTO);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class NominaVulnerabilidadDTO {
+	    cedula: string;
+	    estudiante: string;
+	    curso: string;
+	    tipo_caso: string;
+	    codigo_caso: string;
+	    estado: string;
+	    fecha_deteccion: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NominaVulnerabilidadDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.cedula = source["cedula"];
+	        this.estudiante = source["estudiante"];
+	        this.curso = source["curso"];
+	        this.tipo_caso = source["tipo_caso"];
+	        this.codigo_caso = source["codigo_caso"];
+	        this.estado = source["estado"];
+	        this.fecha_deteccion = source["fecha_deteccion"];
+	    }
+	}
+	export class ReporteEstadisticoDTO {
+	    conteo_tipo_caso: EstadisticaTipoCasoDTO[];
+	    top_cursos_conflictivos: EstadisticaCursoConflictivoDTO[];
+	    derivaciones_externas: EstadisticaDerivacionDTO[];
+	    fecha_inicio: string;
+	    fecha_fin: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ReporteEstadisticoDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.conteo_tipo_caso = this.convertValues(source["conteo_tipo_caso"], EstadisticaTipoCasoDTO);
+	        this.top_cursos_conflictivos = this.convertValues(source["top_cursos_conflictivos"], EstadisticaCursoConflictivoDTO);
+	        this.derivaciones_externas = this.convertValues(source["derivaciones_externas"], EstadisticaDerivacionDTO);
+	        this.fecha_inicio = source["fecha_inicio"];
+	        this.fecha_fin = source["fecha_fin"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

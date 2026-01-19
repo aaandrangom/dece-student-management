@@ -6,7 +6,7 @@ import {
   FolderOpen, FileWarning, Activity, Library,
   School, Briefcase, BookOpen, CalendarDays, BellRing,
   Presentation, Settings, History, ShieldCheck, Building2, Layers, Split, ShieldAlert,
-  Building, Sliders, UserCog, Calendar, Database
+  Building, Sliders, UserCog, Calendar, Database, BarChart, ClipboardList
 } from 'lucide-react';
 import { menuOptions } from '../constants/items';
 
@@ -15,7 +15,7 @@ const iconMap = {
   HeartHandshake, FolderOpen, FileWarning, Activity, Library,
   School, Briefcase, BookOpen, CalendarDays, BellRing,
   Presentation, Settings, History, ShieldCheck, Building2, Layers, Split, ShieldAlert,
-  Building, Sliders, UserCog, Calendar, Database
+  Building, Sliders, UserCog, Calendar, Database, BarChart, ClipboardList
 };
 
 const Sidebar = () => {
