@@ -1081,7 +1081,7 @@ func (s *ReportService) GenerarReporteDerivacionesPDF(fechaInicio, fechaFin stri
 		}),
 	)
 	m.AddRow(5)
-	
+
 	m.AddRow(1, text.NewCol(12, "__________________________________________________________________________________________________________", props.Text{Size: 6}))
 	m.AddRow(5)
 
