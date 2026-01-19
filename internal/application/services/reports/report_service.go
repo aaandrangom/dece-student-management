@@ -146,7 +146,7 @@ func (s *ReportService) GenerarReporteInstitucional() (string, error) {
 		)
 	}
 
-	addAuthorityRow("Rector/a", configData.Autoridades.Rector.Nombres, "")
+	addAuthorityRow("Director/a", configData.Autoridades.Rector.Nombres, "")
 	addAuthorityRow("Subdirector/a Matutina", configData.Autoridades.SubdirectorMatutina.Nombres, "")
 	addAuthorityRow("Subdirector/a Vespertina", configData.Autoridades.SubdirectorVespertina.Nombres, "")
 	addAuthorityRow("Inspector General", configData.Autoridades.InspectorGeneral.Nombres, "")
