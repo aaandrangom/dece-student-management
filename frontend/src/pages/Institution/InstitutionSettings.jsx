@@ -342,29 +342,25 @@ const InstitutionSettings = () => {
 
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                             
-                            {/* Columna Izquierda: Dirección e Inspección */}
                             <div className="flex flex-col gap-8">
                                 
-                                {/* Sección Dirección */}
                                 <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                                     <div className="bg-slate-50 border-b border-slate-100 px-4 py-3">
                                         <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Dirección</h3>
                                     </div>
                                     <div className="divide-y divide-slate-100">
                                         <AutoridadForm
-                                            titulo="Rector/a"
+                                            titulo="Director/a"
                                             color="purple"
                                             autoridad={config.autoridades.rector}
                                             onChange={(field, value) => handleAutoridadChange('rector', field, value)}
                                             isOpen={openAuthoritySection === 'rector'}
                                             onToggle={() => toggleAuthority('rector')}
                                         />
-                                        <div className="bg-blue-50/30 px-4 py-2 border-l-4 border-blue-500 flex items-center gap-2">
-                                            <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Subdirección</span>
-                                        </div>
                                         <AutoridadForm
                                             titulo="Jornada Matutina"
                                             color="blue"
+                                            fixedJornada="Matutina"
                                             autoridad={config.autoridades.subdirector_matutina}
                                             onChange={(field, value) => handleAutoridadChange('subdirector_matutina', field, value)}
                                             isOpen={openAuthoritySection === 'subdirector_matutina'}
@@ -373,6 +369,7 @@ const InstitutionSettings = () => {
                                         <AutoridadForm
                                             titulo="Jornada Vespertina"
                                             color="blue"
+                                            fixedJornada="Vespertina"
                                             autoridad={config.autoridades.subdirector_vespertina}
                                             onChange={(field, value) => handleAutoridadChange('subdirector_vespertina', field, value)}
                                             isOpen={openAuthoritySection === 'subdirector_vespertina'}
@@ -454,7 +451,13 @@ const InstitutionSettings = () => {
     );
 };
 
-const AutoridadForm = ({ titulo, autoridad, onChange, isOpen, onToggle, color = 'purple' }) => {
+const AutoridadForm = ({ titulo, autoridad, onChange, isOpen, onToggle, color = 'purple', fixedJornada }) => {
+    useEffect(() => {
+        if (fixedJornada && autoridad.jornada !== fixedJornada) {
+            onChange('jornada', fixedJornada);
+        }
+    }, [fixedJornada, autoridad.jornada, onChange]);
+
     const colorClasses = {
         purple: { border: 'border-l-purple-500', bgOpen: 'bg-purple-50/20', icon: 'text-purple-600' },
         blue: { border: 'border-l-blue-500', bgOpen: 'bg-blue-50/20', icon: 'text-blue-600' },
@@ -527,9 +530,12 @@ const AutoridadForm = ({ titulo, autoridad, onChange, isOpen, onToggle, color = 
                             <div className="col-span-12">
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Jornada</label>
                                 <select
-                                    value={autoridad.jornada}
+                                    value={fixedJornada || autoridad.jornada}
                                     onChange={(e) => onChange('jornada', e.target.value)}
-                                    className="block w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-400 transition-all"
+                                    disabled={!!fixedJornada}
+                                    className={`block w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-400 transition-all ${
+                                        fixedJornada ? 'bg-slate-50 text-slate-500' : ''
+                                    }`}
                                 >
                                     <option value="">Seleccione jornada</option>
                                     <option value="Matutina">Matutina</option>
