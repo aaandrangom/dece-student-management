@@ -16,6 +16,7 @@ type Convocatoria struct {
 	FechaCita      string `json:"fecha_cita"`
 	DiasAlerta     int    `json:"dias_alerta"`
 	CitaCompletada bool   `json:"cita_completada"`
+	TelegramSynced bool   `json:"telegram_synced" gorm:"default:false"`
 
 	Matricula enrollment.Matricula `gorm:"foreignKey:MatriculaID" json:"matricula"`
 }

@@ -1733,6 +1733,7 @@ export namespace management {
 	    fecha_cita: string;
 	    dias_alerta: number;
 	    cita_completada: boolean;
+	    telegram_synced: boolean;
 	    matricula: enrollment.Matricula;
 	
 	    static createFrom(source: any = {}) {
@@ -1748,6 +1749,7 @@ export namespace management {
 	        this.fecha_cita = source["fecha_cita"];
 	        this.dias_alerta = source["dias_alerta"];
 	        this.cita_completada = source["cita_completada"];
+	        this.telegram_synced = source["telegram_synced"];
 	        this.matricula = this.convertValues(source["matricula"], enrollment.Matricula);
 	    }
 	
