@@ -37,6 +37,7 @@ import ReporteNominaVulnerabilidad from './pages/Reports/ReporteNominaVulnerabil
 import ReporteBitacoraGestion from './pages/Reports/ReporteBitacoraGestion';
 import ReporteDerivaciones from './pages/Reports/ReporteDerivaciones';
 
+import UpdateNotification from './components/UpdateNotification';
 
 const MainLayout = () => {
   const { isLocked } = useScreenLock();
@@ -88,6 +89,7 @@ const MainLayout = () => {
           </Routes>
         </div>
       </main>
+      <UpdateNotification />
     </div>
   );
 };
