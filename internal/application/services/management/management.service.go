@@ -58,7 +58,7 @@ func (s *ManagementService) AgendarCita(input dto.AgendarCitaDTO) (*management.C
 
 	// Sincronizar en segundo plano
 	if s.sync != nil {
-		go s.sync.SyncConvocatorias()
+		go s.sync.SyncNuevaCita(cita.ID)
 	}
 
 	return &cita, nil

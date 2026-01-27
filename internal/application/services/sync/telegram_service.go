@@ -30,16 +30,13 @@ type SyncPayload struct {
 }
 
 func (s *TelegramSyncService) SyncConvocatorias() {
-	// Verificar configuración
 	apiURL := config.AppConfig.TelegramAPIURL
 	apiKey := config.AppConfig.TelegramAPIKey
 
 	if apiURL == "" || apiKey == "" {
-		// Solo loguear si falta uno pero existe el otro, o para debug
 		return
 	}
 
-	// 1. Obtener Citas Futuras
 	var citas []management.Convocatoria
 	now := time.Now().Format("2006-01-02 15:04")
 
@@ -54,7 +51,6 @@ func (s *TelegramSyncService) SyncConvocatorias() {
 		return
 	}
 
-	// 2. Mapear a Payload
 	payload := make([]SyncPayload, 0)
 	for _, c := range citas {
 		nombreEst := "Desconocido"
@@ -70,17 +66,13 @@ func (s *TelegramSyncService) SyncConvocatorias() {
 			DiasAnticipacion: c.DiasAlerta,
 		})
 	}
-	
-	// Si no hay citas, enviar array vacío podría ser útil para que la API sepa que no hay nada pendiente.
 
-	// 3. Serializar
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		log.Printf("Error marshalling sync payload: %v\n", err)
 		return
 	}
 
-	// 4. Enviar Request
 	client := &http.Client{Timeout: 10 * time.Second}
 	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonData))
 	if err != nil {
@@ -99,9 +91,68 @@ func (s *TelegramSyncService) SyncConvocatorias() {
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		// Exito
 		log.Println("Sync: Sincronización con Telegram exitosa")
 	} else {
 		log.Printf("Sync: Falló con status: %d\n", resp.StatusCode)
+	}
+}
+
+func (s *TelegramSyncService) SyncNuevaCita(citaID uint) {
+	apiURL := config.AppConfig.TelegramAPIURL
+	apiKey := config.AppConfig.TelegramAPIKey
+
+	if apiURL == "" || apiKey == "" {
+		return
+	}
+
+	var cita management.Convocatoria
+	err := s.db.Preload("Matricula.Estudiante").First(&cita, citaID).Error
+	if err != nil {
+		log.Printf("SyncNuevaCita: Error buscando cita %d: %v", citaID, err)
+		return
+	}
+
+	nombreEst := "Desconocido"
+	if cita.Matricula.ID != 0 && cita.Matricula.Estudiante.ID != 0 {
+		nombreEst = fmt.Sprintf("%s %s", cita.Matricula.Estudiante.Nombres, cita.Matricula.Estudiante.Apellidos)
+	}
+
+	payload := []SyncPayload{
+		{
+			Estudiante:       nombreEst,
+			Entidad:          cita.Entidad,
+			FechaCita:        cita.FechaCita,
+			Motivo:           cita.Motivo,
+			DiasAnticipacion: cita.DiasAlerta,
+		},
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("SyncNuevaCita: Error marshalling payload: %v", err)
+		return
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Printf("SyncNuevaCita: Error creando request: %v", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-api-key", apiKey)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("SyncNuevaCita: Error enviando request: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		log.Printf("SyncNuevaCita: Enviado correctamente (ID: %d)", citaID)
+	} else {
+		log.Printf("SyncNuevaCita: Fallo al enviar (ID: %d, Status: %d)", citaID, resp.StatusCode)
 	}
 }

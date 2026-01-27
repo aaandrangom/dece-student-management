@@ -567,12 +567,13 @@ export default function MeetingManager() {
                                                         onChange={(e) => setFormData({ ...formData, entidad: e.target.value })}
                                                         className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm appearance-none"
                                                     >
-                                                        <option value="Representante">Representante</option>
+                                                        <option value="">-- Ninguna --</option>
                                                         <option value="Fiscalía">Fiscalía</option>
-                                                        <option value="UDAI">UDAI</option>
-                                                        <option value="MSP">MSP (Salud)</option>
-                                                        <option value="Rectorado">Rectorado</option>
-                                                        <option value="Otro">Otro</option>
+                                                        <option value="Junta Cantonal de Protección de Derechos">Junta Cantonal de Protección de Derechos</option>
+                                                        <option value="Ministerio de Salud Pública">Ministerio de Salud Pública</option>
+                                                        <option value="Patronato de Amparo Social">Patronato de Amparo Social</option>
+                                                        <option value="Distrito de Educación">Distrito de Educación</option>
+                                                        <option value="Otros">Otros</option>
                                                     </select>
                                                 </div>
                                             </div>
