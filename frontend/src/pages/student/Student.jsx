@@ -115,16 +115,6 @@ function StudentList({ onCreate, onEdit }) {
         }
     };
 
-    const getImageSrc = () => {
-        if (tempPhotoPath) return tempPhotoPath;
-        const rf = formData.ruta_foto || '';
-        if (!rf) return null;
-        if (/^[a-zA-Z]:\\\\|^[a-zA-Z]:\\|^[a-zA-Z]:\/|^file:|^\\\\|^\//.test(rf)) {
-            return null;
-        }
-        return rf;
-    };
-
     return (
         <div className="flex flex-col gap-6 animate-in fade-in duration-300">
             <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -222,7 +212,7 @@ function StudentList({ onCreate, onEdit }) {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-slate-600 font-mono text-sm font-medium">
-                                            {st.info_nacionalidad?.es_extranjero 
+                                            {st.info_nacionalidad?.es_extranjero
                                                 ? (st.info_nacionalidad.pasaporte_odni || 'S/N')
                                                 : (st.cedula || 'S/N')
                                             }
@@ -272,14 +262,14 @@ function StudentList({ onCreate, onEdit }) {
                             <h3 className="font-bold text-xl text-slate-800">Importando Estudiantes</h3>
                             <p className="text-slate-500 text-sm mt-1">Por favor espere, no cierre la aplicación...</p>
                         </div>
-                        
+
                         <div className="w-full bg-slate-100 rounded-full h-3 mb-4 overflow-hidden border border-slate-200">
-                            <div 
-                                className="bg-blue-600 h-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.5)]" 
+                            <div
+                                className="bg-blue-600 h-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.5)]"
                                 style={{ width: `${Math.round((importProgress.current / importProgress.total) * 100)}%` }}
                             ></div>
                         </div>
-                        
+
                         <div className="flex justify-between items-center text-sm font-medium">
                             <span className="text-slate-600">{importProgress.current} de {importProgress.total} procesados</span>
                             <span className="text-blue-600">{Math.round((importProgress.current / importProgress.total) * 100)}%</span>

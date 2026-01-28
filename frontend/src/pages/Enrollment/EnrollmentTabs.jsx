@@ -82,10 +82,10 @@ export const AcademicTab = ({ data, courses, onChange, onFileSelect, onPreview }
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
             <SectionTitle title="Documentación Legal" icon={FileText} />
             <div className="mt-6">
-                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
                     <h4 className="font-medium text-slate-800 mb-2">Consentimiento Informado</h4>
                     <p className="text-sm text-slate-500 mb-4">Documento firmado por el representante legal autorizando los procesos del DECE.</p>
-                     
+
                     <FileUploader
                         label="Subir PDF (Máx 5MB)"
                         path={data.ruta_consentimiento}
@@ -93,7 +93,7 @@ export const AcademicTab = ({ data, courses, onChange, onFileSelect, onPreview }
                         onPreview={() => onPreview(data.ruta_consentimiento)}
                         onDelete={() => onChange('ruta_consentimiento', '')}
                     />
-                 </div>
+                </div>
             </div>
         </div>
     </div>

@@ -25,8 +25,6 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 	data := &dtos.DashboardDataDTO{}
 	var err error
 
-	// 1. KPIs
-	// A. Total Estudiantes Activos
 	s.db.Raw(`
 		SELECT COUNT(*) 
 		FROM matriculas m
@@ -35,7 +33,6 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 		WHERE p.es_activo = 1 AND m.estado = 'Matriculado'
 	`).Scan(&data.KPI.TotalEstudiantes)
 
-	// B. Casos Sensibles Abiertos
 	s.db.Raw(`
 		SELECT COUNT(*) 
 		FROM caso_sensibles c
@@ -43,20 +40,16 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 		WHERE p.es_activo = 1 AND c.estado = 'Abierto'
 	`).Scan(&data.KPI.CasosAbiertos)
 
-	// C. Citas Pendientes
 	s.db.Raw(`
 		SELECT COUNT(*) FROM convocatoria WHERE cita_completada = 0
 	`).Scan(&data.KPI.CitasPendientes)
 
-	// D. Total Sanciones Este Mes
-	// Using SQLite strftime
 	s.db.Raw(`
 		SELECT COUNT(*) 
 		FROM llamado_atencions
 		WHERE strftime('%Y-%m', fecha) = strftime('%Y-%m', 'now')
 	`).Scan(&data.KPI.SancionesMes)
 
-	// 2. Próximas Citas (Agenda)
 	err = s.db.Raw(`
 		SELECT 
 			e.apellidos || ' ' || e.nombres as estudiante,
@@ -78,8 +71,6 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 		fmt.Printf("Error Agenda: %v\n", err)
 	}
 
-	// 3. Gráficos
-	// A. Top Cursos Conflictivos
 	s.db.Raw(`
 		SELECT 
 			ne.nombre || ' ' || c.paralelo as curso,
@@ -95,10 +86,6 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 		LIMIT 5
 	`).Scan(&data.CursosConflictivos)
 
-	// B. Casos Sensibles por Tipo
-	// Note: 'tipo_caso' column needs to exist in casos_sensibles.
-	// Last turn I added 'TipoCaso' to 'CasoSensible' struct. Check DB column name.
-	// Typically struct field TipoCaso -> snake_case 'tipo_caso'.
 	s.db.Raw(`
 		SELECT 
 			tipo_caso,
@@ -109,7 +96,6 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 		GROUP BY tipo_caso
 	`).Scan(&data.CasosPorTipo)
 
-	// C. Distribución por Género
 	s.db.Raw(`
 		SELECT 
 			e.genero_nacimiento as genero,
@@ -122,11 +108,6 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 		GROUP BY e.genero_nacimiento
 	`).Scan(&data.EstudiantesGenero)
 
-	// 4. Feed de Actividad
-	// Corrected table names in UNION
-	// Using common.JSONMap for capacitaciones might need specific handling but raw SQL json_extract works on TEXT column.
-	// 'detalle_audiencia' is TEXT.
-	// Note on SQLite dates: 'now' is UTC. Ensure dates are consistent.
 	err = s.db.Raw(`
 		SELECT * FROM (
 			-- Llamados
@@ -165,11 +146,9 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 	`).Scan(&data.ActividadReciente).Error
 	if err != nil {
 		fmt.Printf("Error Feed: %v\n", err)
-		// Don't fail the whole dashboard if feed fails (e.g. json_extract issues)
 		data.ActividadReciente = []dtos.ActividadDTO{}
 	}
 
-	// ensure slices are not nil
 	if data.CitasProximas == nil {
 		data.CitasProximas = []dtos.CitaProximaDTO{}
 	}

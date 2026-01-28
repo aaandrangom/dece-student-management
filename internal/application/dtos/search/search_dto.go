@@ -10,13 +10,12 @@ const (
 
 type GlobalSearchResultDTO struct {
 	Type        SearchResultType `json:"type"`
-	ID          uint             `json:"id"`          // ID del estudiante o nulo
-	Title       string           `json:"title"`       // Nombre estudiante o titulo menu
-	Description string           `json:"description"` // Cedula/Curso o descripcion menu
-	Route       string           `json:"route"`       // Ruta para navegar
-	Icon        string           `json:"icon"`        // Nombre del icono para frontend
+	ID          uint             `json:"id"`
+	Title       string           `json:"title"`
+	Description string           `json:"description"`
+	Route       string           `json:"route"`
+	Icon        string           `json:"icon"`
 
-	// Flags especificos para estudiantes
 	TieneCasoSensible bool `json:"tiene_caso_sensible"`
 	TieneDisciplina   bool `json:"tiene_disciplina"`
 }

@@ -7,12 +7,8 @@ import {
 } from 'lucide-react';
 
 import {
-    ListarLlamados,
-    ObtenerLlamado,
-    CrearLlamado,
-    SubirDocumentoDisciplina,
-    SeleccionarArchivo,
-    LeerArchivoParaVista
+    ListarLlamados, ObtenerLlamado, CrearLlamado, SubirDocumentoDisciplina,
+    SeleccionarArchivo, LeerArchivoParaVista
 } from '../../../wailsjs/go/services/TrackingService';
 
 export default function LlamadosAtencion({ matriculaId, nombreEstudiante, onBack }) {

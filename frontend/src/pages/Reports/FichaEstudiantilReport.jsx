@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Search, FileText, User, Users, ShieldAlert, 
+import {
+    Search, FileText, User, Users, ShieldAlert,
     AlertTriangle, Download, Loader2, Printer, FileWarning
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -122,7 +122,7 @@ const FichaEstudiantilReport = () => {
 
     const handleExportPDF = async () => {
         if (!selectedStudent) return;
-        
+
         toast.promise(
             async () => {
                 const path = await GenerarReporteFichaEstudiantil(selectedStudent.cedula);
@@ -139,7 +139,6 @@ const FichaEstudiantilReport = () => {
 
     return (
         <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-6 min-h-screen">
-            {/* Header Card */}
             <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                     <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 shadow-sm">
@@ -150,10 +149,10 @@ const FichaEstudiantilReport = () => {
                         <p className="text-slate-500 text-sm font-medium">Historial académico y comportamental</p>
                     </div>
                 </div>
-                
+
                 {reportData && (
-                     <div className="flex gap-3 w-full sm:w-auto">
-                        <button 
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <button
                             onClick={handleExportPDF}
                             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-bold shadow-md hover:shadow-blue-200 active:scale-95"
                         >
@@ -164,7 +163,6 @@ const FichaEstudiantilReport = () => {
                 )}
             </div>
 
-            {/* Search Card */}
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-4 relative z-20">
                 <div className="relative w-full">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -175,14 +173,13 @@ const FichaEstudiantilReport = () => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                     {loadingSearch && (
+                    {loadingSearch && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
                         </div>
                     )}
                 </div>
 
-                {/* Dropdown Results */}
                 {students.length > 0 && (
                     <div className="absolute top-16 left-0 right-0 z-50 bg-white rounded-xl shadow-xl border border-slate-200 max-h-80 overflow-y-auto mx-4">
                         {students.map((student) => (
@@ -204,9 +201,8 @@ const FichaEstudiantilReport = () => {
                 )}
             </div>
 
-            {/* Selected Student Profile */}
             {selectedStudent && (
-                 <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col md:flex-row items-center md:items-start gap-6 animate-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col md:flex-row items-center md:items-start gap-6 animate-in slide-in-from-bottom-4 duration-500">
                     <div className="w-24 h-24 rounded-full bg-slate-100 border-4 border-slate-50 shadow-inner overflow-hidden shrink-0">
                         {studentPhoto ? (
                             <img src={studentPhoto} alt="Student" className="w-full h-full object-cover" />
@@ -221,9 +217,9 @@ const FichaEstudiantilReport = () => {
                             <h2 className="text-2xl font-bold text-slate-800">{selectedStudent.apellidos} {selectedStudent.nombres}</h2>
                             <p className="text-slate-500 font-medium">Cédula: <span className="font-mono text-slate-700">{selectedStudent.cedula}</span></p>
                         </div>
-                        
+
                         <div className="pt-2 flex justify-center md:justify-start">
-                             <button
+                            <button
                                 onClick={handleGenerateReport}
                                 disabled={loadingReport}
                                 className="flex items-center gap-2 px-6 py-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md active:scale-95 font-bold text-sm"
@@ -245,13 +241,11 @@ const FichaEstudiantilReport = () => {
                 </div>
             )}
 
-            {/* Report Content */}
             {reportData && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-20">
-                    
-                    {/* A. Datos Personales */}
+
                     <SectionCard title="A. Datos Personales" icon={User}>
-                        <DataTable 
+                        <DataTable
                             data={reportData.datos_personales ? [reportData.datos_personales] : []}
                             columns={[
                                 { header: 'Estudiante', render: (row) => `${row.apellidos} ${row.nombres}` },
@@ -265,9 +259,8 @@ const FichaEstudiantilReport = () => {
                         />
                     </SectionCard>
 
-                    {/* B. Datos Familiares */}
                     <SectionCard title="B. Datos Familiares" icon={Users}>
-                        <DataTable 
+                        <DataTable
                             data={reportData.familiares || []}
                             columns={[
                                 { header: 'Parentesco', accessor: 'parentesco' },
@@ -279,9 +272,8 @@ const FichaEstudiantilReport = () => {
                         />
                     </SectionCard>
 
-                    {/* C. Historial Disciplinario */}
                     <SectionCard title="C. Historial Disciplinario" icon={AlertTriangle}>
-                        <DataTable 
+                        <DataTable
                             data={reportData.disciplina || []}
                             columns={[
                                 { header: 'Año Lectivo', accessor: 'periodo_lectivo' },
@@ -293,9 +285,8 @@ const FichaEstudiantilReport = () => {
                         />
                     </SectionCard>
 
-                    {/* D. Casos Sensibles / Seguimiento */}
                     <SectionCard title="D. Casos Sensibles (Seguimiento)" icon={ShieldAlert}>
-                        <DataTable 
+                        <DataTable
                             data={reportData.casos_sensibles || []}
                             columns={[
                                 { header: 'Código Caso', accessor: 'codigo_caso' },

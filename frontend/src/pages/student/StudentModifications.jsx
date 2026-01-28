@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
 import {
-    Search,
-    UserMinus,
-    Building,
-    MapPin,
-    Calendar,
-    FileText,
-    AlertTriangle,
-    Loader2,
-    Save,
-    X,
-    User,
-    School
+    Search, UserMinus, Building, MapPin, Calendar, FileText, AlertTriangle, Loader2,
+    Save, X, User, School
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
@@ -72,7 +62,7 @@ const StudentModifications = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!formData.motivo) {
             toast.error("El motivo es obligatorio");
             return;
@@ -92,7 +82,6 @@ const StudentModifications = () => {
         if (result.isConfirmed) {
             setIsSaving(true);
             try {
-                // RegistrarRetiroCompleto(matriculaID uint, fecha, motivo, institucion, provincia, observaciones string)
                 await RegistrarRetiroCompleto(
                     selectedStudent.matricula_id,
                     formData.fecha,
@@ -128,8 +117,7 @@ const StudentModifications = () => {
     return (
         <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans">
             <div className="space-y-6">
-                
-                {/* Header */}
+
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
                     <div className="flex items-center gap-5 z-10">
                         <div className="p-4 bg-red-50 rounded-2xl border border-red-100 text-red-600 shadow-sm">
@@ -142,7 +130,6 @@ const StudentModifications = () => {
                     </div>
                 </div>
 
-                {/* Search & List */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-6">
                     <div className="max-w-xl">
                         <label className="block text-sm font-medium text-slate-700 mb-2">Buscar Estudiante Activo</label>
@@ -216,7 +203,6 @@ const StudentModifications = () => {
 
             </div>
 
-            {/* Modal de Baja */}
             {isModalOpen && selectedStudent && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">

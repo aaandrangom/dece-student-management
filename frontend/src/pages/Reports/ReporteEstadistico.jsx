@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { 
-    BarChart2, FileText, Calendar, ShieldAlert, 
+import {
+    BarChart2, FileText, Calendar, ShieldAlert,
     AlertTriangle, Download, Loader2, PieChart, Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -87,7 +87,7 @@ const ReporteEstadistico = () => {
 
     const handleExportPDF = async () => {
         if (!startDate || !endDate) return;
-        
+
         setGeneratingPDF(true);
         toast.promise(
             async () => {
@@ -105,7 +105,6 @@ const ReporteEstadistico = () => {
 
     return (
         <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-6 min-h-screen pb-20">
-            {/* Header Card */}
             <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                     <div className="p-3 bg-purple-50 rounded-xl border border-purple-100 shadow-sm">
@@ -116,10 +115,10 @@ const ReporteEstadistico = () => {
                         <p className="text-slate-500 text-sm font-medium">Análisis cuantitativo por periodo</p>
                     </div>
                 </div>
-                
+
                 {reportData && (
-                     <div className="flex gap-3 w-full sm:w-auto">
-                        <button 
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <button
                             onClick={handleExportPDF}
                             disabled={generatingPDF}
                             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95 disabled:opacity-50"
@@ -131,7 +130,6 @@ const ReporteEstadistico = () => {
                 )}
             </div>
 
-            {/* Filter Card */}
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-end gap-6 relative z-20">
                 <div className="flex-1 w-full">
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Fecha Inicio</label>
@@ -160,7 +158,7 @@ const ReporteEstadistico = () => {
                 </div>
 
                 <div className="w-full md:w-auto">
-                     <button
+                    <button
                         onClick={handleGenerate}
                         disabled={loading || !startDate || !endDate}
                         className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md active:scale-95 font-bold text-sm"
@@ -180,13 +178,11 @@ const ReporteEstadistico = () => {
                 </div>
             </div>
 
-            {/* Results */}
             {reportData && (
                 <div className="grid grid-cols-1 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                    
-                    {/* A. Conteo por Tipo de Caso */}
+
                     <SectionCard title="A. Frecuencia por Tipo de Caso" icon={PieChart}>
-                        <DataTable 
+                        <DataTable
                             data={reportData.conteo_tipo_caso || []}
                             columns={[
                                 { header: 'Tipo de Caso', accessor: 'tipo_caso' },
@@ -196,9 +192,8 @@ const ReporteEstadistico = () => {
                     </SectionCard>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* B. Top 5 Cursos */}
                         <SectionCard title="B. Top 5 Cursos Conflictivos" icon={AlertTriangle}>
-                            <DataTable 
+                            <DataTable
                                 data={reportData.top_cursos_conflictivos || []}
                                 columns={[
                                     { header: 'Curso / Paralelo', accessor: 'curso' },
@@ -207,9 +202,8 @@ const ReporteEstadistico = () => {
                             />
                         </SectionCard>
 
-                        {/* C. Derivaciones Externas */}
                         <SectionCard title="C. Derivaciones Externas" icon={ShieldAlert}>
-                            <DataTable 
+                            <DataTable
                                 data={reportData.derivaciones_externas || []}
                                 columns={[
                                     { header: 'Entidad', accessor: 'entidad_derivacion' },

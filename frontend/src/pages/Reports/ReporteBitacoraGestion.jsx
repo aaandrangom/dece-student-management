@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { 
+import {
     ClipboardList, FileText, Calendar, Download, Loader2,
     CheckCircle2, Users, Presentation, Search, History
 } from 'lucide-react';
@@ -99,7 +99,7 @@ const ReporteBitacoraGestion = () => {
 
     const handleExportPDF = async () => {
         if (!startDate || !endDate) return;
-        
+
         setGeneratingPDF(true);
         toast.promise(
             async () => {
@@ -125,7 +125,6 @@ const ReporteBitacoraGestion = () => {
 
     return (
         <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-6 min-h-screen pb-20">
-            {/* Header Card */}
             <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                     <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 shadow-sm">
@@ -136,22 +135,21 @@ const ReporteBitacoraGestion = () => {
                         <p className="text-slate-500 text-sm font-medium">Reporte de actividades de citas y capacitaciones</p>
                     </div>
                 </div>
-                
+
                 {reportData && (
-                     <div className="flex gap-3 w-full sm:w-auto">
-                        <button 
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <button
                             onClick={handleExportPDF}
                             disabled={generatingPDF}
                             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-bold shadow-md hover:shadow-blue-200 active:scale-95 disabled:opacity-50"
                         >
-                             {generatingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                            {generatingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                             <span>Exportar Bitácora PDF</span>
                         </button>
                     </div>
                 )}
             </div>
 
-            {/* Filter Card */}
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-end gap-6 relative z-20">
                 <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -181,7 +179,7 @@ const ReporteBitacoraGestion = () => {
                 </div>
 
                 <div className="w-full md:w-auto">
-                     <button
+                    <button
                         onClick={handleGenerate}
                         disabled={loading}
                         className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md active:scale-95 font-bold text-sm"
@@ -203,34 +201,32 @@ const ReporteBitacoraGestion = () => {
 
             {reportData && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                    {/* KPIs Section */}
                     <div>
-                         <h2 className="text-lg font-bold text-slate-800 mb-4 px-1 border-l-4 border-blue-600 pl-3">
+                        <h2 className="text-lg font-bold text-slate-800 mb-4 px-1 border-l-4 border-blue-600 pl-3">
                             Resumen Ejecutivo
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <KPICard 
-                                title="Citas Realizadas" 
-                                value={reportData.kpis.citas_realizadas} 
-                                icon={CheckCircle2} 
+                            <KPICard
+                                title="Citas Realizadas"
+                                value={reportData.kpis.citas_realizadas}
+                                icon={CheckCircle2}
                                 colorClass="text-emerald-600"
                             />
-                            <KPICard 
-                                title="Talleres Dictados" 
-                                value={reportData.kpis.talleres_dictados} 
-                                icon={Presentation} 
+                            <KPICard
+                                title="Talleres Dictados"
+                                value={reportData.kpis.talleres_dictados}
+                                icon={Presentation}
                                 colorClass="text-blue-600"
                             />
-                            <KPICard 
-                                title="Personas Capacitadas" 
-                                value={reportData.kpis.personas_capacitadas} 
-                                icon={Users} 
+                            <KPICard
+                                title="Personas Capacitadas"
+                                value={reportData.kpis.personas_capacitadas}
+                                icon={Users}
                                 colorClass="text-purple-600"
                             />
                         </div>
                     </div>
 
-                    {/* Detailed List */}
                     <SectionCard title="Detalle de Capacitaciones" icon={ClipboardList}>
                         <DataTable data={reportData.talleres} columns={columns} />
                     </SectionCard>

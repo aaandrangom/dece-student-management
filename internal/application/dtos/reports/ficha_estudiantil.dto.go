@@ -25,7 +25,6 @@ type DatosPersonalesDTO struct {
 	Jornada           string `json:"jornada"`
 	DireccionActual   string `json:"direccion_actual"`
 
-	// JSON Columns
 	InfoNacionalidad common.JSONMap[map[string]interface{}]   `json:"info_nacionalidad" gorm:"type:text"`
 	DatosSalud       common.JSONMap[enrollment.DatosSalud]    `json:"datos_salud" gorm:"type:text"`
 	DatosSociales    common.JSONMap[enrollment.DatosSociales] `json:"datos_sociales" gorm:"type:text"`
@@ -38,7 +37,7 @@ type DatosFamiliarDTO struct {
 	TelefonoPersonal     string `json:"telefono_personal"`
 	EsRepresentanteLegal bool   `json:"es_representante_legal"`
 	ViveConEstudiante    bool   `json:"vive_con_estudiante"`
-	DatosExtendidos      string `json:"datos_extendidos"` // JSON string
+	DatosExtendidos      string `json:"datos_extendidos"`
 }
 
 type DatosDisciplinaDTO struct {

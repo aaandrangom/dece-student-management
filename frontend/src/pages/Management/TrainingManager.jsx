@@ -144,7 +144,7 @@ export default function TrainingManager() {
     };
 
     const handleUpload = async (id) => {
-        try {  
+        try {
             const path = await SeleccionarArchivo('pdf');
             if (!path) return;
 
@@ -483,7 +483,6 @@ export default function TrainingManager() {
                         <div className="p-6 bg-slate-50/50 flex-1 overflow-y-auto">
                             <form onSubmit={handleSave} className="flex flex-col h-full">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
-                                    {/* Columna Izquierda: Datos Generales */}
                                     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 h-fit">
                                         <div className="border-b border-slate-100 pb-2 mb-2">
                                             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
@@ -526,7 +525,6 @@ export default function TrainingManager() {
                                         </div>
                                     </div>
 
-                                    {/* Columna Derecha: Audiencia */}
                                     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 h-fit">
                                         <div className="border-b border-slate-100 pb-2 mb-2">
                                             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
@@ -570,11 +568,11 @@ export default function TrainingManager() {
                                                     Seleccionar Aulas
                                                 </label>
                                                 <div className="relative">
-                                                    <div 
+                                                    <div
                                                         className="w-full border border-slate-200 rounded-lg p-2.5 bg-white min-h-10.5 cursor-pointer hover:border-indigo-300 transition-colors flex flex-wrap gap-1 items-center"
                                                         onClick={() => setIsMultiSelectOpen(!isMultiSelectOpen)}
                                                     >
-                                                        {formData.cursos_ids?.length > 0 
+                                                        {formData.cursos_ids?.length > 0
                                                             ? formData.cursos_ids.map(id => {
                                                                 const aula = aulas.find(a => a.id === id);
                                                                 return aula ? (
@@ -598,15 +596,15 @@ export default function TrainingManager() {
                                                                     <div className="px-4 py-3 text-sm text-slate-400">Cargando aulas...</div>
                                                                 ) : (
                                                                     aulas.map(aula => (
-                                                                        <div 
-                                                                            key={aula.id} 
+                                                                        <div
+                                                                            key={aula.id}
                                                                             className="flex items-center px-3 py-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors"
                                                                             onClick={() => {
                                                                                 const ids = formData.cursos_ids || [];
-                                                                                const newIds = ids.includes(aula.id) 
+                                                                                const newIds = ids.includes(aula.id)
                                                                                     ? ids.filter(i => i !== aula.id)
                                                                                     : [...ids, aula.id];
-                                                                                setFormData({...formData, cursos_ids: newIds});
+                                                                                setFormData({ ...formData, cursos_ids: newIds });
                                                                             }}
                                                                         >
                                                                             <div className={`w-4 h-4 rounded border flex items-center justify-center mr-3 transition-colors ${(formData.cursos_ids || []).includes(aula.id) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}`}>

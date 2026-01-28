@@ -6,8 +6,8 @@ export const confirmAction = async ({
   confirmButtonText = 'Sí, continuar',
   cancelButtonText = 'Cancelar',
   icon = 'warning',
-  confirmButtonColor = '#7c3aed', // Purple-600
-  cancelButtonColor = '#64748b', // Slate-500
+  confirmButtonColor = '#7c3aed',
+  cancelButtonColor = '#64748b',
 }) => {
   const result = await Swal.fire({
     title,

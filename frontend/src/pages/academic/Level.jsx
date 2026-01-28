@@ -2,23 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
 import Swal from 'sweetalert2';
 import {
-    Layers,
-    Plus,
-    Search,
-    Trash2,
-    X,
-    Save,
-    Loader2,
-    Pencil,
-    ArrowDownAZ,
-    SortAsc
+    Layers, Plus, Search, Trash2, X, Loader2, Pencil, ArrowDownAZ, SortAsc
 } from 'lucide-react';
 
 import {
-    ListarNiveles,
-    CrearNivel,
-    ActualizarNivel,
-    EliminarNivel
+    ListarNiveles, CrearNivel, ActualizarNivel, EliminarNivel
 } from '../../../wailsjs/go/academic/LevelService';
 
 export default function LevelsPage() {

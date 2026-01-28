@@ -1,7 +1,5 @@
 package dtos
 
-// FechaActualizacion se expone como string RFC3339 para bindings
-
 type AutoridadDTO struct {
 	Cedula    string `json:"cedula"`
 	Nombres   string `json:"nombres"`

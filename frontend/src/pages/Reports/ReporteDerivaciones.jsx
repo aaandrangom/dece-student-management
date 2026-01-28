@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { 
+import {
     Network, FileText, Calendar, Download, Loader2,
     Search, Building2, ExternalLink
 } from 'lucide-react';
@@ -87,7 +87,7 @@ const ReporteDerivaciones = () => {
 
     const handleExportPDF = async () => {
         if (!startDate || !endDate) return;
-        
+
         setGeneratingPDF(true);
         toast.promise(
             async () => {
@@ -106,8 +106,8 @@ const ReporteDerivaciones = () => {
 
     const columns = [
         { header: 'Fecha', accessor: 'fecha_deteccion' },
-        { 
-            header: 'Estudiante', 
+        {
+            header: 'Estudiante',
             accessor: 'estudiante',
             render: (row) => (
                 <div className="flex flex-col">
@@ -117,8 +117,8 @@ const ReporteDerivaciones = () => {
             )
         },
         { header: 'Curso', accessor: 'curso' },
-        { 
-            header: 'Entidad Derivación', 
+        {
+            header: 'Entidad Derivación',
             accessor: 'entidad_derivacion',
             render: (row) => (
                 <span className="flex items-center gap-1 font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded-md border border-blue-100">
@@ -127,20 +127,19 @@ const ReporteDerivaciones = () => {
                 </span>
             )
         },
-        { 
-            header: 'Tipo Caso', 
+        {
+            header: 'Tipo Caso',
             accessor: 'tipo_caso',
             render: (row) => <span className="text-xs uppercase font-semibold text-slate-500">{row.tipo_caso}</span>
         },
-        { 
-            header: 'Estado', 
+        {
+            header: 'Estado',
             accessor: 'estado',
             render: (row) => (
-                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    row.estado === 'Cerrado' 
-                        ? 'bg-emerald-100 text-emerald-700' 
-                        : 'bg-amber-100 text-amber-700'
-                }`}>
+                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${row.estado === 'Cerrado'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-amber-100 text-amber-700'
+                    }`}>
                     {row.estado}
                 </span>
             )
@@ -149,7 +148,6 @@ const ReporteDerivaciones = () => {
 
     return (
         <div className="flex flex-col gap-6 animate-in fade-in duration-300 p-6 min-h-screen pb-20">
-            {/* Header Card */}
             <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                     <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100 shadow-sm">
@@ -160,22 +158,21 @@ const ReporteDerivaciones = () => {
                         <p className="text-slate-500 text-sm font-medium">Registro de derivaciones a entidades externas</p>
                     </div>
                 </div>
-                
+
                 {reportData && reportData.length > 0 && (
-                     <div className="flex gap-3 w-full sm:w-auto">
-                        <button 
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <button
                             onClick={handleExportPDF}
                             disabled={generatingPDF}
                             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all text-sm font-bold shadow-md hover:shadow-indigo-200 active:scale-95 disabled:opacity-50"
                         >
-                             {generatingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                            {generatingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                             <span>Exportar Derivaciones PDF</span>
                         </button>
                     </div>
                 )}
             </div>
 
-            {/* Filter Card */}
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-end gap-6 relative z-20">
                 <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -205,7 +202,7 @@ const ReporteDerivaciones = () => {
                 </div>
 
                 <div className="w-full md:w-auto">
-                     <button
+                    <button
                         onClick={handleGenerate}
                         disabled={loading}
                         className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md active:scale-95 font-bold text-sm"
@@ -225,10 +222,9 @@ const ReporteDerivaciones = () => {
                 </div>
             </div>
 
-            {/* Results */}
             {reportData && (
                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-                     <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4 flex items-center gap-3 text-indigo-800 text-sm">
+                    <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4 flex items-center gap-3 text-indigo-800 text-sm">
                         <ExternalLink className="w-5 h-5 shrink-0" />
                         <p>Listado de estudiantes derivados a organismos externos para seguimiento especializado.</p>
                     </div>

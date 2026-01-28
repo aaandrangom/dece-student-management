@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-    MapPin,
-    Users,
-    Save,
-    Loader2,
-    School,
-    Hash,
-    ChevronDown,
-    ChevronUp,
-    UserCog,
-    LayoutDashboard,
+    MapPin, Users, Save, Loader2, School, Hash, ChevronDown, ChevronUp, UserCog, LayoutDashboard,
     FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -163,7 +154,7 @@ const InstitutionSettings = () => {
                     <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
                     <p className="text-slate-500 font-medium">Cargando configuración...</p>
                 </div>
-</div>
+            </div>
         );
     }
 
@@ -341,9 +332,9 @@ const InstitutionSettings = () => {
                         </div>
 
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                            
+
                             <div className="flex flex-col gap-8">
-                                
+
                                 <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                                     <div className="bg-slate-50 border-b border-slate-100 px-4 py-3">
                                         <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Dirección</h3>
@@ -378,7 +369,6 @@ const InstitutionSettings = () => {
                                     </div>
                                 </div>
 
-                                {/* Sección Inspección */}
                                 <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                                     <div className="bg-slate-50 border-b border-slate-100 px-4 py-3">
                                         <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Inspección</h3>
@@ -404,7 +394,6 @@ const InstitutionSettings = () => {
                                 </div>
                             </div>
 
-                            {/* Columna Derecha: DECE */}
                             <div className="flex flex-col gap-8">
                                 <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm h-full">
                                     <div className="bg-slate-50 border-b border-slate-100 px-4 py-3">
@@ -533,9 +522,8 @@ const AutoridadForm = ({ titulo, autoridad, onChange, isOpen, onToggle, color = 
                                     value={fixedJornada || autoridad.jornada}
                                     onChange={(e) => onChange('jornada', e.target.value)}
                                     disabled={!!fixedJornada}
-                                    className={`block w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-400 transition-all ${
-                                        fixedJornada ? 'bg-slate-50 text-slate-500' : ''
-                                    }`}
+                                    className={`block w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-400 transition-all ${fixedJornada ? 'bg-slate-50 text-slate-500' : ''
+                                        }`}
                                 >
                                     <option value="">Seleccione jornada</option>
                                     <option value="Matutina">Matutina</option>

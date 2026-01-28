@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import {
-    Settings,
-    Database,
-    Download,
-    Upload,
-    ShieldAlert,
-    FileArchive,
-    Loader2
+    Settings, Database, Download, Upload, ShieldAlert, FileArchive, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { GenerarRespaldo, RestaurarRespaldo } from "../../../wailsjs/go/system/MaintenanceService";
@@ -86,8 +80,7 @@ const SystemSettings = () => {
     return (
         <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans">
             <div className="space-y-6">
-                
-                {/* Header */}
+
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
                     <div className="flex items-center gap-5 z-10">
                         <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100 text-purple-600 shadow-sm">
@@ -98,11 +91,9 @@ const SystemSettings = () => {
                             <p className="text-slate-500 mt-1">Gestión y mantenimiento avanzado de la base de datos</p>
                         </div>
                     </div>
-                    {/* Decorative Background Pattern */}
                     <div className="absolute right-0 top-0 h-full w-1/3 bg-linear-to-l from-purple-50/50 to-transparent pointer-events-none" />
                 </div>
 
-                {/* Progress Bar (Visible when active) */}
                 {(isBackupLoading || isRestoreLoading) && (
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 animate-in fade-in duration-300">
                         <div className="flex items-center justify-between mb-2">
@@ -112,7 +103,7 @@ const SystemSettings = () => {
                             <span className="text-xs font-mono text-slate-500">{Math.round(progress)}%</span>
                         </div>
                         <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                            <div 
+                            <div
                                 className="h-full bg-linear-to-r from-purple-500 to-indigo-500 transition-all duration-300 ease-out"
                                 style={{ width: `${progress}%` }}
                             />
@@ -123,10 +114,8 @@ const SystemSettings = () => {
                     </div>
                 )}
 
-                {/* Main Content Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    {/* Backup Card */}
                     <div className={`bg-white rounded-2xl shadow-sm border transition-all duration-300 overflow-hidden relative group
                         ${isBackupLoading ? 'border-purple-300 ring-2 ring-purple-100' : 'border-slate-200 hover:border-purple-200 hover:shadow-md'}
                     `}>
@@ -137,7 +126,7 @@ const SystemSettings = () => {
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-800">Copia de Seguridad</h3>
                             </div>
-                            
+
                             <div className="space-y-4 flex-1">
                                 <p className="text-sm text-slate-600 leading-relaxed">
                                     Genera un archivo comprimido (.zip) que contiene toda la información vital del sistema:
@@ -167,7 +156,6 @@ const SystemSettings = () => {
                         </div>
                     </div>
 
-                    {/* Restore Card */}
                     <div className={`bg-white rounded-2xl shadow-sm border transition-all duration-300 overflow-hidden relative group
                         ${isRestoreLoading ? 'border-amber-300 ring-2 ring-amber-100' : 'border-slate-200 hover:border-amber-200 hover:shadow-md'}
                     `}>
@@ -178,7 +166,7 @@ const SystemSettings = () => {
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-800">Restaurar Sistema</h3>
                             </div>
-                            
+
                             <div className="space-y-4 flex-1">
                                 <p className="text-sm text-slate-600 leading-relaxed">
                                     Recupera el sistema a un estado anterior utilizando un archivo de respaldo generado previamente.
@@ -207,7 +195,6 @@ const SystemSettings = () => {
                     </div>
                 </div>
 
-                {/* Footer Info */}
                 <div className="text-center py-8">
                     <p className="text-xs text-slate-400">
                         Sistema Integrado de Gestión DECE v1.0.0 • Módulo de Mantenimiento

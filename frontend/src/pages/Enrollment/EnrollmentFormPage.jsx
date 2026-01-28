@@ -77,7 +77,7 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                         }));
                     }
                 }
-            } catch (error) { 
+            } catch (error) {
                 console.warn("No se encontraron datos de matrícula previos o error:", error);
             } finally { setIsLoading(false); }
         };
@@ -146,7 +146,6 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
         <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans">
             {previewFile && <PreviewModal fileBase64={previewFile} onClose={() => setPreviewFile(null)} />}
             <div className="">
-                {/* Header */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 p-5 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-lg"><ArrowLeft className="w-5 h-5 text-slate-600" /></button>
@@ -155,7 +154,6 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                     <button onClick={handleSave} disabled={isLoading} className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 shadow-sm transition-all"><Save className="w-4 h-4" /> {isLoading ? 'Guardando...' : 'Guardar'}</button>
                 </div>
 
-                {/* Tabs Nav */}
                 <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
                     {tabs.map(tab => (
                         <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}>
@@ -163,8 +161,6 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                         </button>
                     ))}
                 </div>
-
-                {/* Content */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 min-h-150">
                     {activeTab === 'academico' && <AcademicTab data={formData} courses={courses} onChange={(field, val) => updateRoot(field, val)} onFileSelect={handleFileSelect} onPreview={handlePreview} />}
                     {activeTab === 'fisico' && <PhysicalTab data={formData.antropometria} onChange={(field, val) => updateField('antropometria', field, val)} />}

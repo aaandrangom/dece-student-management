@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
-    Search,
-    User,
-    Loader2,
-    FileText,
-    AlertCircle,
-    ShieldAlert,
-    Gavel,
-    ArrowLeft
+    Search, User, Loader2, FileText, AlertCircle, ShieldAlert, Gavel,
 } from 'lucide-react';
 
 import { BuscarEstudiantesActivos } from '../../../wailsjs/go/services/TrackingService';
@@ -119,7 +112,7 @@ export default function DisciplineManagerPage() {
         return () => clearTimeout(timeoutId);
     }, [query]);
 
- 
+
     useEffect(() => {
         if (activeView === 'discipline' && !selectedStudentName && selectedMatriculaId) {
             const found = results.find(r => r.matricula_id === selectedMatriculaId || r.matriculaId === selectedMatriculaId);

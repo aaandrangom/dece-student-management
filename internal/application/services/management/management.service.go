@@ -56,7 +56,6 @@ func (s *ManagementService) AgendarCita(input dto.AgendarCitaDTO) (*management.C
 		return nil, fmt.Errorf("Error al agendar cita: %v", err)
 	}
 
-	// Sincronizar en segundo plano
 	if s.sync != nil {
 		go s.sync.SyncNuevaCita(cita.ID)
 	}
@@ -308,7 +307,6 @@ func (s *ManagementService) RegistrarCapacitacion(input dto.GuardarCapacitacionD
 		return nil, errors.New("Debe configurar un periodo lectivo activo antes de registrar capacitaciones")
 	}
 
-	// Lógica para procesar múltiples cursos
 	var gradoEspecificoFinal string
 	var paraleloEspecificoFinal string
 
@@ -331,7 +329,6 @@ func (s *ManagementService) RegistrarCapacitacion(input dto.GuardarCapacitacionD
 			paraleloEspecificoFinal = "Varios"
 		}
 	} else if input.CursoID > 0 {
-		// Compatibilidad con un solo curso (si el frontend envía solo uno)
 		var cursoSeleccionado faculty.Curso
 		if err := s.db.Preload("Nivel").
 			Where("id = ? AND periodo_id = ?", input.CursoID, periodoActivo.ID).
@@ -349,7 +346,6 @@ func (s *ManagementService) RegistrarCapacitacion(input dto.GuardarCapacitacionD
 			paraleloEspecificoFinal = suffix
 		}
 	} else {
-		// Manual
 		gradoEspecificoFinal = input.GradoEspecifico
 		paraleloEspecificoFinal = input.ParaleloEspecifico
 	}

@@ -203,11 +203,9 @@ func (s *ReportService) AbrirUbicacionReporte(path string) error {
 	return cmd.Start()
 }
 
-// ObtenerDatosFichaEstudiantil recupera toda la información del estudiante para el reporte
 func (s *ReportService) ObtenerDatosFichaEstudiantil(cedula string) (*dtos.FichaEstudiantilDTO, error) {
 	ficha := &dtos.FichaEstudiantilDTO{}
 
-	// A. Datos Personales
 	queryA := `
 		SELECT 
 			e.id, 
@@ -228,7 +226,6 @@ func (s *ReportService) ObtenerDatosFichaEstudiantil(cedula string) (*dtos.Ficha
 		return nil, fmt.Errorf("Error obteniendo datos personales: %v", err)
 	}
 
-	// B. Datos Familiares
 	queryB := `
 		SELECT 
 			f.nombres_completos, 
@@ -245,7 +242,6 @@ func (s *ReportService) ObtenerDatosFichaEstudiantil(cedula string) (*dtos.Ficha
 		return nil, fmt.Errorf("Error obteniendo familiares: %v", err)
 	}
 
-	// C. Historial Disciplinario
 	queryC := `
 		SELECT 
 			la.fecha, 
@@ -266,7 +262,6 @@ func (s *ReportService) ObtenerDatosFichaEstudiantil(cedula string) (*dtos.Ficha
 		return nil, fmt.Errorf("Error obteniendo disciplina: %v", err)
 	}
 
-	// D. Historial de Casos Sensibles
 	queryD := `
 		SELECT 
 			cs.codigo_caso, 
@@ -287,14 +282,12 @@ func (s *ReportService) ObtenerDatosFichaEstudiantil(cedula string) (*dtos.Ficha
 	return ficha, nil
 }
 
-// ObtenerReporteEstadistico genera datos estadísticos basados en un rango de fechas
 func (s *ReportService) ObtenerReporteEstadistico(fechaInicio, fechaFin string) (*dtos.ReporteEstadisticoDTO, error) {
 	reporte := &dtos.ReporteEstadisticoDTO{
 		FechaInicio: fechaInicio,
 		FechaFin:    fechaFin,
 	}
 
-	// A. Conteo por Tipo de Caso
 	queryA := `
 		SELECT 
 			tipo_caso,
@@ -308,7 +301,6 @@ func (s *ReportService) ObtenerReporteEstadistico(fechaInicio, fechaFin string) 
 		return nil, fmt.Errorf("error en conteo por tipo de caso: %v", err)
 	}
 
-	// B. Top 5 Cursos con Mayor Conflictividad
 	queryB := `
 		SELECT 
 			ne.nombre || ' ' || c.paralelo as curso,
@@ -326,7 +318,6 @@ func (s *ReportService) ObtenerReporteEstadistico(fechaInicio, fechaFin string) 
 		return nil, fmt.Errorf("error en top cursos conflictivos: %v", err)
 	}
 
-	// C. Derivaciones Externas Realizadas
 	queryC := `
 		SELECT 
 			entidad_derivacion,
@@ -344,15 +335,12 @@ func (s *ReportService) ObtenerReporteEstadistico(fechaInicio, fechaFin string) 
 	return reporte, nil
 }
 
-// GenerarReporteEstadisticoPDF genera un PDF con los datos estadísticos
 func (s *ReportService) GenerarReporteEstadisticoPDF(fechaInicio, fechaFin string) (string, error) {
-	// 1. Obtener datos
 	data, err := s.ObtenerReporteEstadistico(fechaInicio, fechaFin)
 	if err != nil {
 		return "", err
 	}
 
-	// 2. Configurar Maroto
 	cfg := config.NewBuilder().
 		WithPageNumber().
 		WithLeftMargin(15).
@@ -362,7 +350,6 @@ func (s *ReportService) GenerarReporteEstadisticoPDF(fechaInicio, fechaFin strin
 
 	m := maroto.New(cfg)
 
-	// --- ENCABEZADO ---
 	m.AddRow(12,
 		text.NewCol(12, "REPORTE ESTADÍSTICO DE PROBLEMÁTICAS", props.Text{
 			Size:  16,
@@ -379,7 +366,6 @@ func (s *ReportService) GenerarReporteEstadisticoPDF(fechaInicio, fechaFin strin
 	)
 	m.AddRow(5)
 
-	// --- A. CONTEO POR TIPO DE CASO ---
 	m.AddRow(10,
 		text.NewCol(12, "A. Conteo por Tipo de Caso", props.Text{
 			Size:  12,
@@ -408,7 +394,6 @@ func (s *ReportService) GenerarReporteEstadisticoPDF(fechaInicio, fechaFin strin
 	}
 	m.AddRow(10)
 
-	// --- B. TOP 5 CURSOS CONFLICTIVOS ---
 	m.AddRow(10,
 		text.NewCol(12, "B. Top 5 Cursos con Mayor Conflictividad", props.Text{
 			Size:  12,
@@ -437,7 +422,6 @@ func (s *ReportService) GenerarReporteEstadisticoPDF(fechaInicio, fechaFin strin
 	}
 	m.AddRow(10)
 
-	// --- C. DERIVACIONES EXTERNAS ---
 	m.AddRow(10,
 		text.NewCol(12, "C. Derivaciones Externas Realizadas", props.Text{
 			Size:  12,
@@ -465,7 +449,6 @@ func (s *ReportService) GenerarReporteEstadisticoPDF(fechaInicio, fechaFin strin
 		m.AddRow(6, text.NewCol(12, "Sin derivaciones registradas", props.Text{Style: fontstyle.Italic}))
 	}
 
-	// Footer
 	m.RegisterFooter(text.NewRow(10, fmt.Sprintf("Generado el: %s | DECE - Gestión Estudiantil", time.Now().Format("2006-01-02 15:04")), props.Text{
 		Size:  8,
 		Align: align.Center,
@@ -473,7 +456,6 @@ func (s *ReportService) GenerarReporteEstadisticoPDF(fechaInicio, fechaFin strin
 		Color: &props.Color{Red: 100, Green: 100, Blue: 100},
 	}))
 
-	// Guardar
 	document, err := m.Generate()
 	if err != nil {
 		return "", err
@@ -499,15 +481,12 @@ func (s *ReportService) GenerarReporteEstadisticoPDF(fechaInicio, fechaFin strin
 	return fullPath, nil
 }
 
-// GenerarReporteFichaEstudiantil genera un PDF bien estructurado con la información del estudiante
 func (s *ReportService) GenerarReporteFichaEstudiantil(cedula string) (string, error) {
-	// 1. Obtener datos
 	ficha, err := s.ObtenerDatosFichaEstudiantil(cedula)
 	if err != nil {
 		return "", err
 	}
 
-	// 2. Configurar Maroto
 	cfg := config.NewBuilder().
 		WithPageNumber().
 		WithLeftMargin(15).
@@ -517,8 +496,6 @@ func (s *ReportService) GenerarReporteFichaEstudiantil(cedula string) (string, e
 
 	m := maroto.New(cfg)
 
-	// --- ENCABEZADO ---
-	// Podríamos incluir logo o datos institucionales si los quisiéramos
 	m.AddRow(12,
 		text.NewCol(12, "FICHA ACUMULATIVA ESTUDIANTIL", props.Text{
 			Size:  16,
@@ -533,9 +510,8 @@ func (s *ReportService) GenerarReporteFichaEstudiantil(cedula string) (string, e
 			Align: align.Center,
 		}),
 	)
-	m.AddRow(5) // Espacio
+	m.AddRow(5)
 
-	// --- A. DATOS PERSONALES ---
 	m.AddRow(10,
 		text.NewCol(12, "A. DATOS PERSONALES", props.Text{
 			Size:  12,
@@ -546,36 +522,31 @@ func (s *ReportService) GenerarReporteFichaEstudiantil(cedula string) (string, e
 	m.AddRow(1, text.NewCol(12, "__________________________________________________________________________________________________________", props.Text{Size: 6}))
 	m.AddRow(5)
 
-	// Fila 1: Nombres y Cédula
 	m.AddRow(8,
 		text.NewCol(2, "Estudiante:", props.Text{Style: fontstyle.Bold}),
 		text.NewCol(6, fmt.Sprintf("%s %s", ficha.DatosPersonales.Apellidos, ficha.DatosPersonales.Nombres)),
 		text.NewCol(2, "Cédula:", props.Text{Style: fontstyle.Bold}),
 		text.NewCol(2, ficha.DatosPersonales.Cedula),
 	)
-	// Fila 2: Nacimiento y Edad
 	m.AddRow(8,
 		text.NewCol(2, "F. Nacimiento:", props.Text{Style: fontstyle.Bold}),
 		text.NewCol(6, ficha.DatosPersonales.FechaNacimiento), // Deberíamos calcular edad si fuese necesario
 		text.NewCol(2, "Curso:", props.Text{Style: fontstyle.Bold}),
 		text.NewCol(2, ficha.DatosPersonales.CursoActual),
 	)
-	// Fila 3: Dirección y Jornada
 	m.AddRow(8,
 		text.NewCol(2, "Dirección:", props.Text{Style: fontstyle.Bold}),
 		text.NewCol(6, ficha.DatosPersonales.DireccionActual),
 		text.NewCol(2, "Jornada:", props.Text{Style: fontstyle.Bold}),
 		text.NewCol(2, ficha.DatosPersonales.Jornada),
 	)
-	// Fila 4: Contacto
 	m.AddRow(8,
 		text.NewCol(2, "Email:", props.Text{Style: fontstyle.Bold}),
 		text.NewCol(10, ficha.DatosPersonales.CorreoElectronico),
 	)
 
-	m.AddRow(10) // Espacio entre secciones
+	m.AddRow(10)
 
-	// --- B. DATOS FAMILIARES ---
 	m.AddRow(10,
 		text.NewCol(12, "B. DATOS FAMILIARES", props.Text{
 			Size:  12,
@@ -610,7 +581,7 @@ func (s *ReportService) GenerarReporteFichaEstudiantil(cedula string) (string, e
 				text.NewCol(3, "Vive con Est.:", props.Text{Style: fontstyle.Italic}),
 				text.NewCol(9, viveCon),
 			)
-			m.AddRow(2) // Separador pequeño
+			m.AddRow(2)
 		}
 	} else {
 		m.AddRow(8, text.NewCol(12, "No se registraron datos familiares.", props.Text{Style: fontstyle.Italic}))
@@ -618,7 +589,6 @@ func (s *ReportService) GenerarReporteFichaEstudiantil(cedula string) (string, e
 
 	m.AddRow(10)
 
-	// --- C. HISTORIAL DISCIPLINARIO ---
 	m.AddRow(10,
 		text.NewCol(12, "C. HISTORIAL DISCIPLINARIO", props.Text{
 			Size:  12,
@@ -651,7 +621,6 @@ func (s *ReportService) GenerarReporteFichaEstudiantil(cedula string) (string, e
 
 	m.AddRow(10)
 
-	// --- D. CASOS SENSIBLES ---
 	m.AddRow(10,
 		text.NewCol(12, "D. CASOS SENSIBLES (Seguimiento DECE)", props.Text{
 			Size:  12,
@@ -684,7 +653,6 @@ func (s *ReportService) GenerarReporteFichaEstudiantil(cedula string) (string, e
 		m.AddRow(8, text.NewCol(12, "No se registran casos sensibles.", props.Text{Style: fontstyle.Italic}))
 	}
 
-	// Footer
 	m.RegisterFooter(text.NewRow(10, fmt.Sprintf("Generado el: %s | DECE - Gestión Estudiantil", time.Now().Format("2006-01-02 15:04")), props.Text{
 		Size:  8,
 		Align: align.Center,
@@ -692,7 +660,6 @@ func (s *ReportService) GenerarReporteFichaEstudiantil(cedula string) (string, e
 		Color: &props.Color{Red: 100, Green: 100, Blue: 100},
 	}))
 
-	// --- GUARDAR ---
 	document, err := m.Generate()
 	if err != nil {
 		return "", err
@@ -718,11 +685,9 @@ func (s *ReportService) GenerarReporteFichaEstudiantil(cedula string) (string, e
 	return fullPath, nil
 }
 
-// ObtenerReporteNominaVulnerabilidad genera el listado de vulnerabilidad / NEE
 func (s *ReportService) ObtenerReporteNominaVulnerabilidad(filtroTipoCaso string) ([]dtos.NominaVulnerabilidadDTO, error) {
 	var reporte []dtos.NominaVulnerabilidadDTO
 
-	// Si el filtro viene vacío, usar comodines para traer todo
 	param := "%" + filtroTipoCaso + "%"
 
 	query := `
@@ -752,21 +717,17 @@ func (s *ReportService) ObtenerReporteNominaVulnerabilidad(filtroTipoCaso string
 	return reporte, nil
 }
 
-// GenerarReporteNominaVulnerabilidadPDF genera el PDF del listado
 func (s *ReportService) GenerarReporteNominaVulnerabilidadPDF(filtroTipoCaso string) (string, error) {
-	// 1. Data
 	data, err := s.ObtenerReporteNominaVulnerabilidad(filtroTipoCaso)
 	if err != nil {
 		return "", err
 	}
 
-	// 2. Format title
 	tituloFiltro := "TODOS"
 	if filtroTipoCaso != "" {
 		tituloFiltro = fmt.Sprintf("COINCIDENCIA: '%s'", filtroTipoCaso)
 	}
 
-	// 3. Maroto Config
 	cfg := config.NewBuilder().
 		WithPageNumber().
 		WithLeftMargin(15).
@@ -776,7 +737,6 @@ func (s *ReportService) GenerarReporteNominaVulnerabilidadPDF(filtroTipoCaso str
 
 	m := maroto.New(cfg)
 
-	// Header
 	m.AddRow(12,
 		text.NewCol(12, "REPORTE DE VULNERABILIDAD / NEE", props.Text{
 			Size:  16,
@@ -796,7 +756,6 @@ func (s *ReportService) GenerarReporteNominaVulnerabilidadPDF(filtroTipoCaso str
 	m.AddRow(1, text.NewCol(12, "__________________________________________________________________________________________________________", props.Text{Size: 6}))
 	m.AddRow(5)
 
-	// Columns
 	m.AddRow(8,
 		text.NewCol(3, "Estudiante (Cédula)", props.Text{Style: fontstyle.Bold, Size: 9}),
 		text.NewCol(2, "Curso", props.Text{Style: fontstyle.Bold, Size: 9}),
@@ -820,7 +779,6 @@ func (s *ReportService) GenerarReporteNominaVulnerabilidadPDF(filtroTipoCaso str
 		m.AddRow(10, text.NewCol(12, "No se encontraron registros.", props.Text{Style: fontstyle.Italic, Align: align.Center}))
 	}
 
-	// Footer
 	m.RegisterFooter(text.NewRow(10, fmt.Sprintf("Generado el: %s | DECE - Gestión Estudiantil", time.Now().Format("2006-01-02 15:04")), props.Text{
 		Size:  8,
 		Align: align.Center,
@@ -828,7 +786,6 @@ func (s *ReportService) GenerarReporteNominaVulnerabilidadPDF(filtroTipoCaso str
 		Color: &props.Color{Red: 100, Green: 100, Blue: 100},
 	}))
 
-	// Save
 	document, err := m.Generate()
 	if err != nil {
 		return "", err
@@ -854,13 +811,11 @@ func (s *ReportService) GenerarReporteNominaVulnerabilidadPDF(filtroTipoCaso str
 	return fullPath, nil
 }
 
-// ObtenerReporteBitacoraGestion genera el reporte de gestión del DECE
 func (s *ReportService) ObtenerReporteBitacoraGestion(fechaInicio, fechaFin string) (*dtos.BitacoraGestionDTO, error) {
 	reporte := &dtos.BitacoraGestionDTO{
 		Talleres: []dtos.BitacoraTallerDTO{},
 	}
 
-	// A. Resumen Ejecutivo (KPIs)
 	queryA := `
 	SELECT
 		(SELECT COUNT(*) FROM convocatoria 
@@ -879,7 +834,6 @@ func (s *ReportService) ObtenerReporteBitacoraGestion(fechaInicio, fechaFin stri
 		return nil, fmt.Errorf("error obteniendo KPIs bitácora: %v", err)
 	}
 
-	// B. Detalle de Talleres Impartidos
 	queryB := `
 	SELECT 
 		fecha,
@@ -897,15 +851,12 @@ func (s *ReportService) ObtenerReporteBitacoraGestion(fechaInicio, fechaFin stri
 	return reporte, nil
 }
 
-// GenerarReporteBitacoraGestionPDF genera el PDF de la Bitácora de Gestión
 func (s *ReportService) GenerarReporteBitacoraGestionPDF(fechaInicio, fechaFin string) (string, error) {
-	// 1. Data
 	data, err := s.ObtenerReporteBitacoraGestion(fechaInicio, fechaFin)
 	if err != nil {
 		return "", err
 	}
 
-	// 2. Maroto Config
 	cfg := config.NewBuilder().
 		WithPageNumber().
 		WithLeftMargin(15).
@@ -915,7 +866,6 @@ func (s *ReportService) GenerarReporteBitacoraGestionPDF(fechaInicio, fechaFin s
 
 	m := maroto.New(cfg)
 
-	// Header
 	m.AddRow(12,
 		text.NewCol(12, "BITÁCORA DE GESTIÓN DECE", props.Text{
 			Size:  16,
@@ -935,7 +885,6 @@ func (s *ReportService) GenerarReporteBitacoraGestionPDF(fechaInicio, fechaFin s
 	m.AddRow(1, text.NewCol(12, "__________________________________________________________________________________________________________", props.Text{Size: 6}))
 	m.AddRow(5)
 
-	// Section A: Resumen Ejecutivo (KPIs)
 	m.AddRow(10, text.NewCol(12, "A. RESUMEN EJECUTIVO (KPIs)", props.Text{Style: fontstyle.Bold, Size: 11, Color: &props.Color{Red: 0, Green: 50, Blue: 150}}))
 
 	m.AddRow(20,
@@ -951,10 +900,8 @@ func (s *ReportService) GenerarReporteBitacoraGestionPDF(fechaInicio, fechaFin s
 	)
 	m.AddRow(10)
 
-	// Section B: Detalle Talleres
 	m.AddRow(10, text.NewCol(12, "B. DETALLE DE TALLERES IMPARTIDOS", props.Text{Style: fontstyle.Bold, Size: 11, Color: &props.Color{Red: 0, Green: 50, Blue: 150}}))
 
-	// Headers
 	m.AddRow(8,
 		text.NewCol(2, "Fecha", props.Text{Style: fontstyle.Bold, Size: 9}),
 		text.NewCol(5, "Tema", props.Text{Style: fontstyle.Bold, Size: 9}),
@@ -976,7 +923,6 @@ func (s *ReportService) GenerarReporteBitacoraGestionPDF(fechaInicio, fechaFin s
 		m.AddRow(10, text.NewCol(12, "No se encontraron registros de talleres en este periodo.", props.Text{Style: fontstyle.Italic, Align: align.Center}))
 	}
 
-	// Footer
 	m.RegisterFooter(text.NewRow(10, fmt.Sprintf("Generado el: %s | DECE - Gestión Estudiantil", time.Now().Format("2006-01-02 15:04")), props.Text{
 		Size:  8,
 		Align: align.Center,
@@ -984,7 +930,6 @@ func (s *ReportService) GenerarReporteBitacoraGestionPDF(fechaInicio, fechaFin s
 		Color: &props.Color{Red: 100, Green: 100, Blue: 100},
 	}))
 
-	// Save
 	document, err := m.Generate()
 	if err != nil {
 		return "", err
@@ -1010,7 +955,6 @@ func (s *ReportService) GenerarReporteBitacoraGestionPDF(fechaInicio, fechaFin s
 	return fullPath, nil
 }
 
-// ObtenerReporteDerivaciones lista los estudiantes derivados a entidades externas
 func (s *ReportService) ObtenerReporteDerivaciones(fechaInicio, fechaFin string) ([]dtos.DerivacionDTO, error) {
 	var derivaciones []dtos.DerivacionDTO
 
@@ -1046,15 +990,12 @@ func (s *ReportService) ObtenerReporteDerivaciones(fechaInicio, fechaFin string)
 	return derivaciones, nil
 }
 
-// GenerarReporteDerivacionesPDF genera el PDF de Articulación Interinstitucional
 func (s *ReportService) GenerarReporteDerivacionesPDF(fechaInicio, fechaFin string) (string, error) {
-	// 1. Data
 	data, err := s.ObtenerReporteDerivaciones(fechaInicio, fechaFin)
 	if err != nil {
 		return "", err
 	}
 
-	// 2. Maroto Config
 	cfg := config.NewBuilder().
 		WithPageNumber().
 		WithLeftMargin(15).
@@ -1064,13 +1005,12 @@ func (s *ReportService) GenerarReporteDerivacionesPDF(fechaInicio, fechaFin stri
 
 	m := maroto.New(cfg)
 
-	// Header
 	m.AddRow(12,
 		text.NewCol(12, "ARTICULACIÓN INTERINSTITUCIONAL (DERIVACIONES)", props.Text{
 			Size:  14,
 			Style: fontstyle.Bold,
 			Align: align.Center,
-			Color: &props.Color{Red: 0, Green: 102, Blue: 204}, // Blue header
+			Color: &props.Color{Red: 0, Green: 102, Blue: 204},
 		}),
 	)
 	m.AddRow(8,
@@ -1085,7 +1025,6 @@ func (s *ReportService) GenerarReporteDerivacionesPDF(fechaInicio, fechaFin stri
 	m.AddRow(1, text.NewCol(12, "__________________________________________________________________________________________________________", props.Text{Size: 6}))
 	m.AddRow(5)
 
-	// Columns
 	m.AddRow(10,
 		text.NewCol(2, "Fecha", props.Text{Style: fontstyle.Bold, Size: 8}),
 		text.NewCol(3, "Estudiante", props.Text{Style: fontstyle.Bold, Size: 8}),
@@ -1111,7 +1050,6 @@ func (s *ReportService) GenerarReporteDerivacionesPDF(fechaInicio, fechaFin stri
 		m.AddRow(10, text.NewCol(12, "No se encontraron derivaciones en este periodo.", props.Text{Style: fontstyle.Italic, Align: align.Center}))
 	}
 
-	// Footer
 	m.RegisterFooter(text.NewRow(10, fmt.Sprintf("Generado el: %s | DECE - Gestión Estudiantil", time.Now().Format("2006-01-02 15:04")), props.Text{
 		Size:  8,
 		Align: align.Center,
@@ -1119,7 +1057,6 @@ func (s *ReportService) GenerarReporteDerivacionesPDF(fechaInicio, fechaFin stri
 		Color: &props.Color{Red: 100, Green: 100, Blue: 100},
 	}))
 
-	// Save
 	document, err := m.Generate()
 	if err != nil {
 		return "", err

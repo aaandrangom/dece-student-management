@@ -376,7 +376,7 @@ export default function CoursesPage() {
                                                         className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all ml-1"
                                                         title="Gestionar Carga Horaria"
                                                     >
-                                                        <BookOpen className="w-4 h-4" /> {/* Asegúrate de importar BookOpen */}
+                                                        <BookOpen className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             </td>

@@ -41,7 +41,6 @@ func (s *TelegramSyncService) SyncConvocatorias() {
 	var citas []management.Convocatoria
 	now := time.Now().Format("2006-01-02 15:04")
 
-	// Modificación: Filtrar solo las no sincronizadas
 	err := s.db.Preload("Matricula.Estudiante").
 		Where("fecha_cita >= ?", now).
 		Where("cita_completada = ?", false).
@@ -54,7 +53,6 @@ func (s *TelegramSyncService) SyncConvocatorias() {
 		return
 	}
 
-	// Si no hay citas nuevas para sincronizar, salimos
 	if len(citas) == 0 {
 		log.Println("Sync: No hay citas pendientes para sincronizar.")
 		return
@@ -102,7 +100,6 @@ func (s *TelegramSyncService) SyncConvocatorias() {
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		log.Println("Sync: Sincronización con Telegram exitosa")
 
-		// Modificación: Marcar como sincronizadas
 		ids := make([]uint, len(citas))
 		for i, c := range citas {
 			ids[i] = c.ID
@@ -133,7 +130,6 @@ func (s *TelegramSyncService) SyncNuevaCita(citaID uint) {
 		return
 	}
 
-	// Opcional: Verificar si ya está sincronizada, aunque SyncNuevaCita suele ser para eventos puntuales.
 	if cita.TelegramSynced {
 		log.Printf("SyncNuevaCita: La cita %d ya está sincronizada", citaID)
 		return
@@ -179,7 +175,6 @@ func (s *TelegramSyncService) SyncNuevaCita(citaID uint) {
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		log.Printf("SyncNuevaCita: Enviado correctamente (ID: %d)", citaID)
-		// Marca como sincronizada
 		s.db.Model(&management.Convocatoria{}).Where("id = ?", citaID).Update("telegram_synced", true)
 	} else {
 		log.Printf("SyncNuevaCita: Fallo al enviar (ID: %d, Status: %d)", citaID, resp.StatusCode)

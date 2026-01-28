@@ -27,16 +27,13 @@ func (s *MaintenanceService) SetContext(ctx context.Context) {
 	s.ctx = ctx
 }
 
-// Helper to get paths
 func (s *MaintenanceService) getPaths() (string, string, error) {
-	// DB Path
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", "", err
 	}
 	dbPath := filepath.Join(configDir, "SigDECE", "sigdece.db")
 
-	// Documents Path
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", "", err
@@ -47,7 +44,6 @@ func (s *MaintenanceService) getPaths() (string, string, error) {
 }
 
 func (s *MaintenanceService) GenerarRespaldo() (string, error) {
-	// 1. Ask user where to save
 	destPath, err := runtime.SaveFileDialog(s.ctx, runtime.SaveDialogOptions{
 		Title:           "Guardar Copia de Seguridad",
 		DefaultFilename: fmt.Sprintf("RESPALDO_DECE_%s.zip", time.Now().Format("20060102_150405")),
@@ -57,7 +53,7 @@ func (s *MaintenanceService) GenerarRespaldo() (string, error) {
 	})
 
 	if err != nil || destPath == "" {
-		return "", nil // Cancelled
+		return "", nil
 	}
 
 	dbPath, docsPath, err := s.getPaths()
@@ -65,7 +61,6 @@ func (s *MaintenanceService) GenerarRespaldo() (string, error) {
 		return "", err
 	}
 
-	// 2. Create ZIP
 	outFile, err := os.Create(destPath)
 	if err != nil {
 		return "", err
@@ -75,22 +70,18 @@ func (s *MaintenanceService) GenerarRespaldo() (string, error) {
 	w := zip.NewWriter(outFile)
 	defer w.Close()
 
-	// 3. Add DB
 	if err := addFileToZip(w, dbPath, "sigdece.db"); err != nil {
 		return "", fmt.Errorf("Error respaldando BD: %v", err)
 	}
 
-	// 4. Add Documents
 	if err := addDirToZip(w, docsPath, "documents"); err != nil {
 		fmt.Printf("Warning: Documents folder not found or empty: %v\n", err)
-		// Non-critical if docs folder doesn't exist yet
 	}
 
 	return destPath, nil
 }
 
 func (s *MaintenanceService) RestaurarRespaldo() (bool, error) {
-	// 1. Ask user for file
 	srcPath, err := runtime.OpenFileDialog(s.ctx, runtime.OpenDialogOptions{
 		Title: "Seleccionar Respaldo",
 		Filters: []runtime.FileFilter{
@@ -102,7 +93,6 @@ func (s *MaintenanceService) RestaurarRespaldo() (bool, error) {
 		return false, nil
 	}
 
-	// 2. Warn User
 	selection, err := runtime.MessageDialog(s.ctx, runtime.MessageDialogOptions{
 		Type:          runtime.QuestionDialog,
 		Title:         "Confirmar Restauración",
@@ -121,13 +111,11 @@ func (s *MaintenanceService) RestaurarRespaldo() (bool, error) {
 		return false, err
 	}
 
-	// 3. Close DB Connection to release lock
 	sqlDB, err := s.db.DB()
 	if err == nil {
 		sqlDB.Close()
 	}
 
-	// 4. Extract ZIP
 	r, err := zip.OpenReader(srcPath)
 	if err != nil {
 		return false, err
@@ -141,8 +129,6 @@ func (s *MaintenanceService) RestaurarRespaldo() (bool, error) {
 		}
 
 		if f.Name == "sigdece.db" {
-			// Restore DB
-			// Backup current just in case? Maybe a .bak file
 			os.Rename(dbPath, dbPath+".bak")
 
 			outFile, err := os.Create(dbPath)
@@ -153,7 +139,6 @@ func (s *MaintenanceService) RestaurarRespaldo() (bool, error) {
 			_, err = io.Copy(outFile, rc)
 			outFile.Close()
 		} else if strings.HasPrefix(f.Name, "documents/") {
-			// Restore Document
 			relPath := strings.TrimPrefix(f.Name, "documents/")
 			if relPath == "" || relPath == "/" {
 				rc.Close()
@@ -177,12 +162,9 @@ func (s *MaintenanceService) RestaurarRespaldo() (bool, error) {
 		rc.Close()
 	}
 
-	// 5. Force Quit app to ensure clean reload on next start
 	runtime.Quit(s.ctx)
 	return true, nil
 }
-
-// Helpers
 
 func addFileToZip(w *zip.Writer, path string, zipPath string) error {
 	file, err := os.Open(path)
@@ -214,7 +196,6 @@ func addDirToZip(w *zip.Writer, src string, rootDest string) error {
 			return err
 		}
 
-		// Ensure forward slashes for zip
 		zipPath := filepath.Join(rootDest, rel)
 		zipPath = strings.ReplaceAll(zipPath, "\\", "/")
 

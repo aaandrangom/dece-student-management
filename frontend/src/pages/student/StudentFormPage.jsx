@@ -29,7 +29,6 @@ export default function StudentFormPage() {
     const navigate = useNavigate();
     const studentId = id ? parseInt(id) : 0;
 
-    // Función helper para regresar
     const onBack = () => navigate('/estudiantes/listado-general');
 
     const [currentStep, setCurrentStep] = useState(1);
@@ -230,7 +229,7 @@ export default function StudentFormPage() {
             const files = input.files;
             if (!files || files.length === 0) return;
             const file = files[0];
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit example
+            if (file.size > 5 * 1024 * 1024) {
                 return toast.warning("El archivo es demasiado grande (Máx 5MB)");
             }
 
@@ -247,7 +246,6 @@ export default function StudentFormPage() {
     const handleViewPdf = async (type, e) => {
         if (e) e.stopPropagation();
 
-        // Prioridad: archivo recién seleccionado
         if (type === 'cedula' && pdfCedulaFile) {
             setViewPdfUrl(URL.createObjectURL(pdfCedulaFile));
             return;
@@ -257,7 +255,6 @@ export default function StudentFormPage() {
             return;
         }
 
-        // Si no hay archivo nuevo, intentar cargar del backend
         if (studentId > 0) {
             if ((type === 'cedula' && !hasCedula) || (type === 'partida' && !hasPartida)) {
                 return toast.info("No hay documento cargado para visualizar");
@@ -305,7 +302,6 @@ export default function StudentFormPage() {
                 return toast.warning("Cédula inválida");
             }
 
-            // Validación de documentos (Al menos uno requerido)
             const cedulaPresent = hasCedula || pdfCedulaFile;
             const partidaPresent = hasPartida || pdfPartidaFile;
 
@@ -422,7 +418,6 @@ export default function StudentFormPage() {
                 setTempPhotoFile(null);
             }
 
-            // Subir Documentos PDF
             const uploadPdf = async (file, type) => {
                 const b64 = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -559,7 +554,6 @@ export default function StudentFormPage() {
                                             <FileText className="w-4 h-4" /> Documentación Digital
                                         </h3>
 
-                                        {/* Cédula */}
                                         <div className="mb-4">
                                             <label className="block text-xs font-bold text-slate-600 mb-2">Cédula de Identidad (PDF)</label>
                                             <div
@@ -592,7 +586,6 @@ export default function StudentFormPage() {
                                             </div>
                                         </div>
 
-                                        {/* Partida */}
                                         <div>
                                             <label className="block text-xs font-bold text-slate-600 mb-2">Partida de Nacimiento (PDF)</label>
                                             <div

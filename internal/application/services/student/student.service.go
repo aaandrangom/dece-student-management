@@ -98,7 +98,6 @@ func (s *StudentService) ImportarEstudiantes() (int, error) {
 	count := 0
 	for i := headerRowIndex + 1; i < len(rows); i++ {
 		processedCount++
-		// Emitir evento de progreso cada 5 registros o al final
 		if processedCount%5 == 0 || processedCount == totalTotal {
 			runtime.EventsEmit(s.ctx, "student:import_progress", map[string]int{
 				"current": processedCount,
@@ -125,14 +124,12 @@ func (s *StudentService) ImportarEstudiantes() (int, error) {
 		}
 
 		var resultados []student.Estudiante
-		// Usamos Find con Limit 1 para evitar el error "record not found" en los logs cuando es nuevo
 		if err := s.db.Where("cedula = ?", cedula).Limit(1).Find(&resultados).Error; err != nil {
 			fmt.Printf("Error consultando cédula %s: %v\n", cedula, err)
 			continue
 		}
 
 		if len(resultados) > 0 {
-			// Actualizar existente
 			existe := resultados[0]
 			existe.Nombres = nombres
 			existe.Apellidos = apellidos
@@ -145,7 +142,6 @@ func (s *StudentService) ImportarEstudiantes() (int, error) {
 				fmt.Printf("Error al actualizar estudiante %s: %v\n", cedula, err)
 			}
 		} else {
-			// Crear nuevo
 			nuevo := student.Estudiante{
 				Cedula:            cedula,
 				Nombres:           nombres,
@@ -500,7 +496,6 @@ func (s *StudentService) GuardarDocumentoPDF(id uint, tipoDocumento string, base
 		return "", fmt.Errorf("Error al decodificar base64: %v", err)
 	}
 
-	// tipoDocumento expected: "cedula", "partida"
 	safeTipo := strings.ToLower(tipoDocumento)
 	nuevoNombre := fmt.Sprintf("%s_%s_%d.pdf", est.Cedula, safeTipo, time.Now().Unix())
 	rutaDestinoCompleta := filepath.Join(destinoDir, nuevoNombre)
@@ -509,7 +504,6 @@ func (s *StudentService) GuardarDocumentoPDF(id uint, tipoDocumento string, base
 		return "", fmt.Errorf("Error al escribir documento destino: %v", err)
 	}
 
-	// Update DB
 	updates := map[string]interface{}{}
 	var oldPath string
 

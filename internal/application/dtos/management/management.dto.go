@@ -10,8 +10,6 @@ type AgendarCitaDTO struct {
 	DiasAlerta int    `json:"dias_alerta"`
 }
 
-// ActualizarCitaDTO permite actualizar los datos principales de una cita existente.
-// Nota: el cambio de estado (completada) se maneja por separado en MarcarCompletada.
 type ActualizarCitaDTO struct {
 	ID          uint   `json:"id" validate:"required"`
 	MatriculaID uint   `json:"matricula_id" validate:"required"`
@@ -23,7 +21,6 @@ type ActualizarCitaDTO struct {
 	DiasAlerta int    `json:"dias_alerta"`
 }
 
-// CitaDetalleDTO devuelve el detalle de una cita para edición/visualización.
 type CitaDetalleDTO struct {
 	ID             uint   `json:"id"`
 	MatriculaID    uint   `json:"matricula_id"`
