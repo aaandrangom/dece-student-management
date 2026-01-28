@@ -3,9 +3,12 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"os"      // <--- AGREGADO: Para obtener la ruta del ejecutable
+	"os/exec" // <--- AGREGADO: Para ejecutar el comando de reinicio
 
 	"github.com/hashicorp/go-version"
 	"github.com/minio/selfupdate"
+	"github.com/wailsapp/wails/v2/pkg/runtime" // <--- AGREGADO: Para usar runtime.Quit
 )
 
 // Constante con tu versión actual (esto lo cambiarás antes de compilar cada update)
@@ -28,7 +31,6 @@ type UpdateCheckResult struct {
 // CheckUpdate revisa si hay una versión superior en R2
 func (a *App) CheckUpdate() UpdateCheckResult {
 	// 1. URL de tu archivo version.json en R2
-	// REEMPLAZA ESTO CON TU URL DE R2
 	const versionURL = "https://pub-5f8dc7e2cbc145af89c5cfe85612a8c7.r2.dev/version.json"
 
 	// 2. Descargar el JSON
@@ -65,8 +67,6 @@ func (a *App) CheckUpdate() UpdateCheckResult {
 
 // DoUpdate realiza la actualización física
 func (a *App) DoUpdate() string {
-	// 1. Volvemos a pedir la URL (o podrías pasarla como argumento desde el front)
-	// Para simplificar, repetimos la lógica rápida
 	const versionURL = "https://pub-5f8dc7e2cbc145af89c5cfe85612a8c7.r2.dev/version.json"
 
 	resp, err := http.Get(versionURL)
@@ -86,12 +86,37 @@ func (a *App) DoUpdate() string {
 	defer exeResp.Body.Close()
 
 	// 3. Magia: Aplicar la actualización sobre sí mismo
-	// selfupdate se encarga de renombrar el .exe actual a .old en Windows
 	err = selfupdate.Apply(exeResp.Body, selfupdate.Options{})
 	if err != nil {
-		// En caso de error, selfupdate suele restaurar el original
 		return "Error al aplicar actualización: " + err.Error()
 	}
 
 	return "SUCCESS"
+}
+
+// ---------------------------------------------------------
+//
+//	NUEVA FUNCIÓN AGREGADA PARA REINICIAR LA APP
+//
+// ---------------------------------------------------------
+func (a *App) RestartApp() {
+	// 1. Obtener la ruta del ejecutable actual (que ya es el nuevo)
+	executable, err := os.Executable()
+	if err != nil {
+		runtime.LogError(a.ctx, "Error obteniendo ejecutable: "+err.Error())
+		return
+	}
+
+	// 2. Crear el comando para abrirse a sí mismo
+	cmd := exec.Command(executable)
+
+	// 3. Soltar el proceso (Start no bloquea, lanza el proceso aparte)
+	err = cmd.Start()
+	if err != nil {
+		runtime.LogError(a.ctx, "Error al reiniciar: "+err.Error())
+		return
+	}
+
+	// 4. Cerrar la instancia actual
+	runtime.Quit(a.ctx)
 }

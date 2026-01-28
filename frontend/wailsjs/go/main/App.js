@@ -9,3 +9,7 @@ export function CheckUpdate() {
 export function DoUpdate() {
   return window['go']['main']['App']['DoUpdate']();
 }
+
+export function RestartApp() {
+  return window['go']['main']['App']['RestartApp']();
+}

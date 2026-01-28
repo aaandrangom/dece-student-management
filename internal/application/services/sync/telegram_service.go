@@ -34,6 +34,7 @@ func (s *TelegramSyncService) SyncConvocatorias() {
 	apiKey := config.AppConfig.TelegramAPIKey
 
 	if apiURL == "" || apiKey == "" {
+		log.Printf("Sync: API URL o Key no configurados. (URL: %s, Key Configurada: %v)", apiURL, apiKey != "")
 		return
 	}
 
@@ -55,6 +56,7 @@ func (s *TelegramSyncService) SyncConvocatorias() {
 
 	// Si no hay citas nuevas para sincronizar, salimos
 	if len(citas) == 0 {
+		log.Println("Sync: No hay citas pendientes para sincronizar.")
 		return
 	}
 

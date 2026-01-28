@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { CheckUpdate, DoUpdate } from "../../wailsjs/go/main/App";
-import { Quit } from "../../wailsjs/runtime/runtime";
-import { Download, RefreshCw, CheckCircle, XCircle, Sparkles, ArrowRight } from 'lucide-react';
+// Importamos RestartApp que creamos en Go
+import { CheckUpdate, DoUpdate, RestartApp } from "../../wailsjs/go/main/App";
+import { Download, RefreshCw, CheckCircle, XCircle, Sparkles } from 'lucide-react';
 
 export default function UpdateNotification() {
     const [status, setStatus] = useState('idle'); // idle, available, downloading, success, error
@@ -9,6 +9,7 @@ export default function UpdateNotification() {
     const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
+        // Comprobamos actualizaciones al montar el componente
         CheckUpdate().then((result) => {
             if (result.available) {
                 setVersionInfo({ version: result.version, current: result.current });
@@ -19,12 +20,17 @@ export default function UpdateNotification() {
 
     const handleUpdateClick = async () => {
         setStatus('downloading');
+
+        // Llamamos a la función de actualización en Go
         const result = await DoUpdate();
 
         if (result === "SUCCESS") {
             setStatus('success');
+
+            // Esperamos 3 segundos para que el usuario vea el mensaje de éxito
+            // y luego reiniciamos la aplicación automáticamente.
             setTimeout(() => {
-                Quit();
+                RestartApp();
             }, 3000);
         } else {
             setErrorMessage(result);
@@ -77,7 +83,7 @@ export default function UpdateNotification() {
                             </div>
                             <div>
                                 <h3 className="text-white font-medium">Descargando actualización...</h3>
-                                <p className="text-slate-400 text-xs mt-1">La aplicación se cerrará automáticamente.</p>
+                                <p className="text-slate-400 text-xs mt-1">La aplicación se reiniciará automáticamente.</p>
                             </div>
                         </div>
                     )}
@@ -97,7 +103,10 @@ export default function UpdateNotification() {
                     {status === 'error' && (
                         <div className="space-y-3">
                             <div className="flex items-start gap-3">
-                                <XCircle className="w-6 h-6 text-red-400 shrink-0 mt-0.5" />
+                                <div className="relative">
+                                    <XCircle className="w-6 h-6 text-red-400 shrink-0 mt-0.5 relative z-10" />
+                                    <div className="absolute inset-0 bg-red-500/20 blur-md rounded-full"></div>
+                                </div>
                                 <div>
                                     <h3 className="text-white font-medium">Error al actualizar</h3>
                                     <p className="text-red-300/70 text-sm mt-1 leading-relaxed">

@@ -5,3 +5,5 @@ import {main} from '../models';
 export function CheckUpdate():Promise<main.UpdateCheckResult>;
 
 export function DoUpdate():Promise<string>;
+
+export function RestartApp():Promise<void>;
