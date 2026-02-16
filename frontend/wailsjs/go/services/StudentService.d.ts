@@ -16,7 +16,7 @@ export function GuardarFoto(arg1:number,arg2:string):Promise<string>;
 
 export function GuardarFotoBase64(arg1:number,arg2:string,arg3:string):Promise<string>;
 
-export function ImportarEstudiantes():Promise<services.ImportResult>;
+export function ImportarEstudiantes(arg1:number):Promise<services.ImportResult>;
 
 export function ObtenerDocumentoPDF(arg1:number,arg2:string):Promise<string>;
 

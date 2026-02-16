@@ -4,6 +4,7 @@ import (
 	"context"
 	studentDTO "dece/internal/application/dtos/student"
 	"dece/internal/domain/common"
+	"dece/internal/domain/enrollment"
 	"dece/internal/domain/student"
 	"encoding/base64"
 	"errors"
@@ -76,7 +77,7 @@ func separarNombresCompletos(nombresCompletos string) (apellidos, nombres string
 	}
 }
 
-func (s *StudentService) ImportarEstudiantes() (*ImportResult, error) {
+func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error) {
 	if s.ctx == nil {
 		return nil, errors.New("contexto no inicializado")
 	}
@@ -91,7 +92,7 @@ func (s *StudentService) ImportarEstudiantes() (*ImportResult, error) {
 		return nil, err
 	}
 	if filePath == "" {
-		return nil, nil
+		return nil, nil // Usuario canceló
 	}
 
 	f, err := excelize.OpenFile(filePath)
@@ -218,11 +219,13 @@ func (s *StudentService) ImportarEstudiantes() (*ImportResult, error) {
 		}
 
 		// --- UPSERT: Buscar por cédula y crear o actualizar ---
+		var estudianteID uint
 		var existente student.Estudiante
 		dbErr := s.db.Where("cedula = ?", cedula).First(&existente).Error
 
 		if dbErr == nil {
-			// Ya existe → Actualizar solo si hay datos nuevos relevantes
+			// Ya existe -> Actualizar
+			estudianteID = existente.ID
 			updates := map[string]interface{}{}
 			if apellidos != "" {
 				updates["apellidos"] = apellidos
@@ -241,13 +244,14 @@ func (s *StudentService) ImportarEstudiantes() (*ImportResult, error) {
 						Cedula:  cedula,
 						Detalle: fmt.Sprintf("Error al actualizar: %v", err),
 					})
-					continue
+					// A pesar del error de actualización, intentamos continuar si tenemos ID,
+					// pero si falló update es riesgoso. Continuemos.
 				}
 			}
 			result.Actualizados++
 
 		} else if errors.Is(dbErr, gorm.ErrRecordNotFound) {
-			// No existe → Crear
+			// No existe -> Crear
 			nuevo := student.Estudiante{
 				Cedula:            cedula,
 				Apellidos:         apellidos,
@@ -264,16 +268,44 @@ func (s *StudentService) ImportarEstudiantes() (*ImportResult, error) {
 				})
 				continue
 			}
+			estudianteID = nuevo.ID
 			result.Creados++
 
 		} else {
-			// Error de BD inesperado
+			// Error inesperado
 			result.Errores = append(result.Errores, ImportRowError{
 				Fila:    filaExcel,
 				Cedula:  cedula,
 				Detalle: fmt.Sprintf("Error de consulta: %v", dbErr),
 			})
 			continue
+		}
+
+		// --- MATRICULACIÓN AUTOMÁTICA (Si se seleccionó curso) ---
+		if cursoID > 0 && estudianteID > 0 {
+			var matriculaExistente enrollment.Matricula
+			// Verificar si ya está matriculado en ESTE curso
+			errMat := s.db.Where("estudiante_id = ? AND curso_id = ?", estudianteID, cursoID).First(&matriculaExistente).Error
+
+			if errors.Is(errMat, gorm.ErrRecordNotFound) {
+				// Crear matrícula
+				nuevaMatricula := enrollment.Matricula{
+					EstudianteID:  estudianteID,
+					CursoID:       cursoID,
+					Estado:        "Matriculado",
+					FechaRegistro: time.Now().Format("2006-01-02 15:04:05"),
+				}
+				if err := s.db.Create(&nuevaMatricula).Error; err != nil {
+					// No bloqueamos el proceso, pero registramos el error como warning o error de fila
+					// Podríamos agregarlo a errores, aunque el estudiante se creó bien.
+					// Decisión: Agregarlo como error con detalle "Estudiante OK pero falló matriculación"
+					result.Errores = append(result.Errores, ImportRowError{
+						Fila:    filaExcel,
+						Cedula:  cedula,
+						Detalle: fmt.Sprintf("Estudiante procesado pero error al matricular: %v", err),
+					})
+				}
+			}
 		}
 	}
 

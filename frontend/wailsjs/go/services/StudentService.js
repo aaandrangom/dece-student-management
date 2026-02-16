@@ -26,8 +26,8 @@ export function GuardarFotoBase64(arg1, arg2, arg3) {
   return window['go']['services']['StudentService']['GuardarFotoBase64'](arg1, arg2, arg3);
 }
 
-export function ImportarEstudiantes() {
-  return window['go']['services']['StudentService']['ImportarEstudiantes']();
+export function ImportarEstudiantes(arg1) {
+  return window['go']['services']['StudentService']['ImportarEstudiantes'](arg1);
 }
 
 export function ObtenerDocumentoPDF(arg1, arg2) {
