@@ -302,12 +302,7 @@ export default function StudentFormPage() {
                 return toast.warning("Cédula inválida");
             }
 
-            const cedulaPresent = hasCedula || pdfCedulaFile;
-            const partidaPresent = hasPartida || pdfPartidaFile;
 
-            if (!cedulaPresent && !partidaPresent) {
-                return toast.warning("Debe subir al menos un documento (Cédula o Partida de Nacimiento)");
-            }
         }
         setCurrentStep(prev => prev + 1);
     };
@@ -618,10 +613,7 @@ export default function StudentFormPage() {
                                             </div>
                                         </div>
 
-                                        <p className="text-xs text-slate-400 mt-3 text-center bg-yellow-50  p-2 rounded">
-                                            <AlertCircle className="w-3 h-3 inline mr-1" />
-                                            Al menos uno es obligatorio.
-                                        </p>
+
                                     </div>
                                 </div>
                             </div>
