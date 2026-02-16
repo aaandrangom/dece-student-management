@@ -60,3 +60,25 @@ func (s *UserService) CambiarMiClave(id uint, claveActual string, claveNueva str
 
 	return s.db.Model(&user).Update("clave_hash", string(nuevoHash)).Error
 }
+
+func (s *UserService) ActualizarUsuario(id uint, nombreUsuario string, nombreCompleto string) error {
+	// Validar que el nombre de usuario no esté duplicado (excluyendo al usuario actual)
+	var existing security.Usuario
+	if err := s.db.Where("nombre_usuario = ? AND id != ?", nombreUsuario, id).First(&existing).Error; err == nil {
+		return errors.New("El nombre de usuario ya está en uso por otro usuario")
+	}
+
+	result := s.db.Model(&security.Usuario{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"nombre_usuario":  nombreUsuario,
+		"nombre_completo": nombreCompleto,
+	})
+
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("Usuario no encontrado")
+	}
+
+	return nil
+}

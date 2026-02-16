@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
 import {
     Users, Save, Key, Eye, EyeOff, Shield,
-    CheckCircle2, XCircle, Loader2, X, UserCog
+    CheckCircle2, XCircle, Loader2, X, UserCog, Edit
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ListarUsuarios, CambiarMiClave } from "../../../wailsjs/go/services/UserService";
+import { ListarUsuarios, CambiarMiClave, ActualizarUsuario } from "../../../wailsjs/go/services/UserService";
+import { useState, useEffect } from 'react';
 
 const UserSystem = () => {
     const [usuarios, setUsuarios] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [showUserModal, setShowUserModal] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
+    const [currentUserToEdit, setCurrentUserToEdit] = useState(null);
 
     useEffect(() => {
         cargarUsuarios();
@@ -32,6 +34,17 @@ const UserSystem = () => {
     const handleOpenPasswordModal = (userId) => {
         setCurrentUserId(userId);
         setShowPasswordModal(true);
+    };
+
+    const handleOpenUserModal = (user) => {
+        setCurrentUserToEdit(user);
+        setShowUserModal(true);
+    };
+
+    const handleUserUpdated = () => {
+        cargarUsuarios();
+        setShowUserModal(false);
+        setCurrentUserToEdit(null);
     };
 
     const getRolBadge = (rol) => {
@@ -92,7 +105,7 @@ const UserSystem = () => {
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Rol</th>
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Registro</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Seguridad</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
@@ -125,13 +138,24 @@ const UserSystem = () => {
                                                 {new Date(user.fecha_creacion).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button
-                                                    onClick={() => handleOpenPasswordModal(user.id)}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:text-purple-600 hover:border-purple-200 rounded-lg transition-colors text-xs font-bold shadow-sm"
-                                                >
-                                                    <Key className="w-3.5 h-3.5" />
-                                                    Cambiar Clave
-                                                </button>
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleOpenUserModal(user)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 rounded-lg transition-colors text-xs font-bold shadow-sm"
+                                                        title="Editar datos"
+                                                    >
+                                                        <Edit className="w-3.5 h-3.5" />
+                                                        Editar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleOpenPasswordModal(user.id)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:text-purple-600 hover:border-purple-200 rounded-lg transition-colors text-xs font-bold shadow-sm"
+                                                        title="Cambiar clave"
+                                                    >
+                                                        <Key className="w-3.5 h-3.5" />
+                                                        Clave
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -142,6 +166,17 @@ const UserSystem = () => {
                 </div>
             </div>
 
+            {showUserModal && (
+                <UserEditModal
+                    user={currentUserToEdit}
+                    onClose={() => {
+                        setShowUserModal(false);
+                        setCurrentUserToEdit(null);
+                    }}
+                    onSuccess={handleUserUpdated}
+                />
+            )}
+
             {showPasswordModal && (
                 <PasswordChangeModal
                     userId={currentUserId}
@@ -151,6 +186,93 @@ const UserSystem = () => {
                     }}
                 />
             )}
+        </div>
+    );
+};
+
+const UserEditModal = ({ user, onClose, onSuccess }) => {
+    const [nombreCompleto, setNombreCompleto] = useState(user?.nombre_completo || '');
+    const [nombreUsuario, setNombreUsuario] = useState(user?.nombre_usuario || '');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSubmit = async () => {
+        if (!nombreCompleto.trim() || !nombreUsuario.trim()) {
+            toast.error('Todos los campos son obligatorios');
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+            await ActualizarUsuario(user.id, nombreUsuario, nombreCompleto);
+            toast.success('Usuario actualizado correctamente');
+            onSuccess();
+        } catch (error) {
+            console.error('Error al actualizar usuario:', error);
+            toast.error(typeof error === 'string' ? error : 'Error al actualizar usuario');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all animate-in fade-in">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 scale-100 transform transition-all">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-50 rounded-lg text-blue-600 border border-blue-100">
+                            <UserCog className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-800">Editar Usuario</h2>
+                            <p className="text-xs text-slate-500">Actualizar información básica</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-4">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">Nombre Completo</label>
+                        <input
+                            type="text"
+                            value={nombreCompleto}
+                            onChange={(e) => setNombreCompleto(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                            placeholder="Ej: Juan Pérez"
+                        />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">Usuario (Login)</label>
+                        <input
+                            type="text"
+                            value={nombreUsuario}
+                            onChange={(e) => setNombreUsuario(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                            placeholder="Ej: jperez"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex gap-3 mt-8 pt-2">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors text-sm"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={isSaving}
+                        className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-md shadow-blue-200 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-70"
+                    >
+                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        Guardar Cambios
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };
