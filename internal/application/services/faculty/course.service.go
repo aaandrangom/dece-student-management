@@ -2,6 +2,7 @@ package services
 
 import (
 	courseDTO "dece/internal/application/dtos/faculty"
+	"dece/internal/domain/academic"
 	"dece/internal/domain/faculty"
 	"errors"
 	"fmt"
@@ -163,4 +164,84 @@ func (s *CourseService) EliminarCurso(id uint) error {
 	}
 
 	return nil
+}
+
+func (s *CourseService) GenerarCursosMasivos() (string, error) {
+	// 1. Obtener periodo activo
+	var periodo academic.PeriodoLectivo
+	if err := s.db.Where("es_activo = ?", true).First(&periodo).Error; err != nil {
+		return "", errors.New("No se encontró ningún periodo lectivo activo. Por favor active uno primero.")
+	}
+
+	// 2. Definir niveles requeridos (según la tabla proporcionada por el usuario)
+	nivelesRequeridos := []struct {
+		Nombre         string
+		NombreCompleto string
+		Orden          int
+	}{
+		{Nombre: "1ro EGB", NombreCompleto: "Primero de Educación General Básica", Orden: 1},
+		{Nombre: "2do EGB", NombreCompleto: "Segundo de Educación General Básica", Orden: 2},
+		{Nombre: "3ro EGB", NombreCompleto: "Tercero de Educación General Básica", Orden: 3},
+		{Nombre: "4to EGB", NombreCompleto: "Cuarto de Educación General Básica", Orden: 4},
+		{Nombre: "5to EGB", NombreCompleto: "Quinto de Educación General Básica", Orden: 5},
+		{Nombre: "6to EGB", NombreCompleto: "Sexto de Educación General Básica", Orden: 6},
+		{Nombre: "7mo EGB", NombreCompleto: "Séptimo de Educación General Básica", Orden: 7},
+		{Nombre: "8vo EGB", NombreCompleto: "Octavo de Educación General Básica", Orden: 8},
+		{Nombre: "9no EGB", NombreCompleto: "Noveno de Educación General Básica", Orden: 9},
+		{Nombre: "10mo EGB", NombreCompleto: "Décimo de Educación General Básica", Orden: 10},
+	}
+
+	creados := 0
+	omitidos := 0
+
+	// 3. Iterar y Asegurar Niveles + Crear Cursos
+	for _, req := range nivelesRequeridos {
+		var nivel academic.NivelEducativo
+
+		// Buscar nivel por nombre, si no existe, crearlo
+		if err := s.db.Where("nombre = ?", req.Nombre).First(&nivel).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// Crear nivel si no existe
+				nivel = academic.NivelEducativo{
+					Nombre:         req.Nombre,
+					NombreCompleto: req.NombreCompleto,
+					Orden:          req.Orden,
+				}
+				if errCreate := s.db.Create(&nivel).Error; errCreate != nil {
+					return "", fmt.Errorf("Error al crear nivel %s: %v", req.Nombre, errCreate) // Return early on error
+				}
+			} else {
+				return "", fmt.Errorf("Error al buscar nivel %s: %v", req.Nombre, err)
+			}
+		}
+
+		// Definir paralelos A-E
+		paralelos := []string{"A", "B", "C", "D", "E"}
+
+		for _, p := range paralelos {
+			// Verificar si ya existe este curso para este periodo y nivel
+			var count int64
+			s.db.Model(&faculty.Curso{}).
+				Where("periodo_id = ? AND nivel_id = ? AND paralelo = ? AND jornada = ?",
+					periodo.ID, nivel.ID, p, "Matutina").
+				Count(&count)
+
+			if count == 0 {
+				nuevoCurso := faculty.Curso{
+					PeriodoID: periodo.ID,
+					NivelID:   nivel.ID,
+					Paralelo:  p,
+					Jornada:   "Matutina", // Default a Matutina comom se solicito en otra ocasion o estandar
+				}
+				if errCreate := s.db.Create(&nuevoCurso).Error; errCreate != nil {
+					return "", fmt.Errorf("Error creando curso %s %s: %v", req.Nombre, p, errCreate)
+				}
+				creados++
+			} else {
+				omitidos++
+			}
+		}
+	}
+
+	return fmt.Sprintf("Proceso completado para el periodo %s.\nCursos creados: %d\nCursos ya existentes (omitidos): %d", periodo.Nombre, creados, omitidos), nil
 }

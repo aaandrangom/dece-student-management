@@ -8,7 +8,7 @@ import {
     ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Edit3
 } from 'lucide-react';
 
-import { ListarCursos, CrearCurso, ActualizarCurso, EliminarCurso } from '../../../wailsjs/go/services/CourseService';
+import { ListarCursos, CrearCurso, ActualizarCurso, EliminarCurso, GenerarCursosMasivos } from '../../../wailsjs/go/services/CourseService';
 import { ListarNiveles } from '../../../wailsjs/go/academic/LevelService';
 import { ListarDocentes } from '../../../wailsjs/go/services/TeacherService';
 import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
@@ -143,6 +143,42 @@ export default function CoursesPage() {
         }
     };
 
+    const handleGenerarMasivo = async () => {
+        if (!activePeriod) return;
+
+        const result = await Swal.fire({
+            title: 'Generar Cursos Automáticamente',
+            html: `Se crearán cursos de <b>1ro a 10mo EGB</b> con paralelos <b>A, B, C, D, E</b> para el periodo <b>${activePeriod.nombre}</b>.<br><br>Los cursos existentes se omitirán.`,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, generar cursos',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#3b82f6',
+        });
+
+        if (!result.isConfirmed) return;
+
+        const loadingToast = toast.loading("Generando cursos...");
+        try {
+            const msg = await GenerarCursosMasivos();
+            toast.dismiss(loadingToast);
+
+            // Show formatted result in SweetAlert
+            await Swal.fire({
+                title: 'Proceso Finalizado',
+                text: msg,
+                icon: 'success'
+            });
+
+            loadCourses(activePeriod.id);
+        } catch (err) {
+            toast.dismiss(loadingToast);
+            console.error(err);
+            toast.error("Error: " + err);
+            Swal.fire('Error', String(err), 'error');
+        }
+    };
+
     const closeModal = () => {
         setIsCreateModalOpen(false);
         setFormData({ nivel_id: '', paralelo: '', jornada: 'Matutina', tutor_id: '' });
@@ -251,14 +287,28 @@ export default function CoursesPage() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={openCreateModal}
-                        disabled={!activePeriod}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Nuevo Curso
-                    </button>
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <button
+                            onClick={handleGenerarMasivo}
+                            disabled={!activePeriod}
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-bold shadow-md hover:shadow-blue-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Generar 1ro-10mo (A-E)"
+                        >
+                            <BookOpen className="w-4 h-4" />
+                            <span className="hidden md:inline">Generar Automático</span>
+                            <span className="md:hidden">Auto</span>
+                        </button>
+
+                        <button
+                            onClick={openCreateModal}
+                            disabled={!activePeriod}
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Plus className="w-4 h-4" />
+                            <span className="hidden md:inline">Nuevo Curso</span>
+                            <span className="md:hidden">Nuevo</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">

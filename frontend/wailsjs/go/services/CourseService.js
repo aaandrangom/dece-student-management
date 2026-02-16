@@ -14,6 +14,10 @@ export function EliminarCurso(arg1) {
   return window['go']['services']['CourseService']['EliminarCurso'](arg1);
 }
 
+export function GenerarCursosMasivos() {
+  return window['go']['services']['CourseService']['GenerarCursosMasivos']();
+}
+
 export function ListarCursos(arg1) {
   return window['go']['services']['CourseService']['ListarCursos'](arg1);
 }

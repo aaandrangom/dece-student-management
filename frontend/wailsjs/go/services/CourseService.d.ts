@@ -8,4 +8,6 @@ export function CrearCurso(arg1:faculty.GuardarCursoDTO):Promise<void>;
 
 export function EliminarCurso(arg1:number):Promise<void>;
 
+export function GenerarCursosMasivos():Promise<string>;
+
 export function ListarCursos(arg1:number):Promise<Array<faculty.CursoResponseDTO>>;
