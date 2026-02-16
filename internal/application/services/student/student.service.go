@@ -33,76 +33,143 @@ func (s *StudentService) SetContext(ctx context.Context) {
 	s.ctx = ctx
 }
 
-func (s *StudentService) ImportarEstudiantes() (int, error) {
+// ImportRowError representa un error en una fila específica del Excel
+type ImportRowError struct {
+	Fila    int    `json:"fila"`
+	Cedula  string `json:"cedula"`
+	Detalle string `json:"detalle"`
+}
+
+// ImportResult contiene el resultado detallado de la importación
+type ImportResult struct {
+	TotalFilas   int              `json:"totalFilas"`
+	Creados      int              `json:"creados"`
+	Actualizados int              `json:"actualizados"`
+	Omitidos     int              `json:"omitidos"`
+	Errores      []ImportRowError `json:"errores"`
+}
+
+// separarNombresCompletos separa "APELLIDO1 APELLIDO2 NOMBRE1 NOMBRE2" en (apellidos, nombres).
+// Aplica la convención ecuatoriana: si hay 4+ palabras → 2 primeras son apellidos, resto nombres.
+// Si hay 3 palabras → 1ra apellido, 2da y 3ra nombres (caso de apellido simple).
+// Si hay 2 → 1ra apellido, 2da nombre.
+// Si hay 1 → todo va a apellidos.
+func separarNombresCompletos(nombresCompletos string) (apellidos, nombres string) {
+	cleaned := strings.TrimSpace(nombresCompletos)
+	if cleaned == "" {
+		return "", ""
+	}
+
+	parts := strings.Fields(cleaned) // divide por cualquier espacio
+
+	switch len(parts) {
+	case 1:
+		return strings.ToUpper(parts[0]), ""
+	case 2:
+		return strings.ToUpper(parts[0]), strings.ToUpper(parts[1])
+	case 3:
+		// Convención: 1 apellido + 2 nombres
+		return strings.ToUpper(parts[0]), strings.ToUpper(strings.Join(parts[1:], " "))
+	default:
+		// 4+ palabras: 2 apellidos + resto nombres
+		return strings.ToUpper(strings.Join(parts[:2], " ")), strings.ToUpper(strings.Join(parts[2:], " "))
+	}
+}
+
+func (s *StudentService) ImportarEstudiantes() (*ImportResult, error) {
 	if s.ctx == nil {
-		return 0, errors.New("contexto no inicializado")
+		return nil, errors.New("contexto no inicializado")
 	}
 
 	filePath, err := runtime.OpenFileDialog(s.ctx, runtime.OpenDialogOptions{
 		Title: "Seleccionar Archivo Excel",
 		Filters: []runtime.FileFilter{
-			{DisplayName: "Arrchivos Excel", Pattern: "*.xlsx;*.xlsm"},
+			{DisplayName: "Archivos Excel", Pattern: "*.xlsx;*.xlsm"},
 		},
 	})
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	if filePath == "" {
-		return 0, nil
+		return nil, nil
 	}
 
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
-		return 0, err
+		return nil, fmt.Errorf("error al abrir el archivo Excel: %v", err)
 	}
 	defer f.Close()
 
 	sheetName := f.GetSheetName(0)
 	rows, err := f.GetRows(sheetName)
 	if err != nil {
-		return 0, err
+		return nil, fmt.Errorf("error al leer las filas del Excel: %v", err)
 	}
 
-	idxCedula, idxNombres, idxApellidos, idxCorreo := -1, -1, -1, -1
+	// === DETECCIÓN FLEXIBLE DE COLUMNAS ===
+	idxCedula, idxNombresCompletos, idxNombres, idxApellidos, idxCorreo := -1, -1, -1, -1, -1
 	headerRowIndex := -1
 
 	for i, row := range rows {
-		foundCedula, foundNombres, foundApellidos := false, false, false
+		foundCedula := false
 		for j, cell := range row {
 			val := strings.ToLower(strings.TrimSpace(cell))
-			if strings.Contains(val, "cedula") || strings.Contains(val, "cédula") {
+			// Quitar tildes para comparación
+			valNorm := strings.NewReplacer("á", "a", "é", "e", "í", "i", "ó", "o", "ú", "u").Replace(val)
+
+			switch {
+			case strings.Contains(valNorm, "cedula"):
 				idxCedula = j
 				foundCedula = true
-			} else if val == "nombres" {
+			case valNorm == "nombres completos" || valNorm == "nombre completo" || valNorm == "nombres y apellidos" || valNorm == "apellidos y nombres":
+				idxNombresCompletos = j
+			case valNorm == "nombres" || valNorm == "nombre":
 				idxNombres = j
-				foundNombres = true
-			} else if val == "apellidos" {
+			case valNorm == "apellidos" || valNorm == "apellido":
 				idxApellidos = j
-				foundApellidos = true
-			} else if strings.Contains(val, "correo") || val == "email" {
+			case strings.Contains(valNorm, "correo") || valNorm == "email" || valNorm == "cuenta" || valNorm == "e-mail" || valNorm == "mail":
 				idxCorreo = j
 			}
 		}
-		if foundCedula && foundNombres && foundApellidos {
+
+		// Validamos que al menos tengamos cédula y algún campo de nombre
+		tieneNombreSeparado := idxNombres >= 0 && idxApellidos >= 0
+		tieneNombreUnido := idxNombresCompletos >= 0
+
+		if foundCedula && (tieneNombreSeparado || tieneNombreUnido) {
 			headerRowIndex = i
 			break
 		}
 	}
 
 	if headerRowIndex == -1 {
-		return 0, errors.New("no se encontraron las columnas: Cedula, Nombres, Apellidos")
+		colsRequeridas := "CÉDULA + (NOMBRES COMPLETOS | NOMBRES + APELLIDOS)"
+		return nil, fmt.Errorf("no se encontraron las columnas requeridas: %s. Verifique los encabezados del Excel", colsRequeridas)
 	}
 
-	totalTotal := len(rows) - (headerRowIndex + 1)
+	modoUnido := idxNombresCompletos >= 0 && (idxNombres < 0 || idxApellidos < 0)
+
+	// === PROCESAMIENTO DE FILAS ===
+	totalFilas := len(rows) - (headerRowIndex + 1)
+	result := &ImportResult{
+		TotalFilas: totalFilas,
+		Errores:    make([]ImportRowError, 0),
+	}
+
 	processedCount := 0
-	count := 0
+
 	for i := headerRowIndex + 1; i < len(rows); i++ {
 		processedCount++
-		if processedCount%5 == 0 || processedCount == totalTotal {
+		filaExcel := i + 1 // Número de fila visible en Excel (1-indexed)
+
+		// Emitir progreso cada 5 filas o en la última
+		if processedCount%5 == 0 || processedCount == totalFilas {
 			runtime.EventsEmit(s.ctx, "student:import_progress", map[string]int{
-				"current": processedCount,
-				"total":   totalTotal,
-				"success": count,
+				"current":      processedCount,
+				"total":        totalFilas,
+				"creados":      result.Creados,
+				"actualizados": result.Actualizados,
+				"errores":      len(result.Errores),
 			})
 		}
 
@@ -115,50 +182,111 @@ func (s *StudentService) ImportarEstudiantes() (int, error) {
 		}
 
 		cedula := getVal(idxCedula)
-		nombres := getVal(idxNombres)
-		apellidos := getVal(idxApellidos)
 		correo := getVal(idxCorreo)
 
+		// --- Validación: Cédula vacía → omitir (fila vacía) ---
 		if cedula == "" {
+			result.Omitidos++
 			continue
 		}
 
-		var resultados []student.Estudiante
-		if err := s.db.Where("cedula = ?", cedula).Limit(1).Find(&resultados).Error; err != nil {
-			fmt.Printf("Error consultando cédula %s: %v\n", cedula, err)
-			continue
-		}
-
-		if len(resultados) > 0 {
-			existe := resultados[0]
-			existe.Nombres = nombres
-			existe.Apellidos = apellidos
-			if correo != "" {
-				existe.CorreoElectronico = correo
+		// --- Resolver apellidos y nombres ---
+		var apellidos, nombres string
+		if modoUnido {
+			nombresCompletos := getVal(idxNombresCompletos)
+			if nombresCompletos == "" {
+				result.Errores = append(result.Errores, ImportRowError{
+					Fila:    filaExcel,
+					Cedula:  cedula,
+					Detalle: "El campo 'Nombres Completos' está vacío",
+				})
+				continue
 			}
-			if err := s.db.Save(&existe).Error; err == nil {
-				count++
-			} else {
-				fmt.Printf("Error al actualizar estudiante %s: %v\n", cedula, err)
-			}
+			apellidos, nombres = separarNombresCompletos(nombresCompletos)
 		} else {
+			apellidos = strings.ToUpper(strings.TrimSpace(getVal(idxApellidos)))
+			nombres = strings.ToUpper(strings.TrimSpace(getVal(idxNombres)))
+		}
+
+		if apellidos == "" && nombres == "" {
+			result.Errores = append(result.Errores, ImportRowError{
+				Fila:    filaExcel,
+				Cedula:  cedula,
+				Detalle: "No se pudo obtener nombres ni apellidos",
+			})
+			continue
+		}
+
+		// --- UPSERT: Buscar por cédula y crear o actualizar ---
+		var existente student.Estudiante
+		dbErr := s.db.Where("cedula = ?", cedula).First(&existente).Error
+
+		if dbErr == nil {
+			// Ya existe → Actualizar solo si hay datos nuevos relevantes
+			updates := map[string]interface{}{}
+			if apellidos != "" {
+				updates["apellidos"] = apellidos
+			}
+			if nombres != "" {
+				updates["nombres"] = nombres
+			}
+			if correo != "" {
+				updates["correo_electronico"] = correo
+			}
+
+			if len(updates) > 0 {
+				if err := s.db.Model(&existente).Updates(updates).Error; err != nil {
+					result.Errores = append(result.Errores, ImportRowError{
+						Fila:    filaExcel,
+						Cedula:  cedula,
+						Detalle: fmt.Sprintf("Error al actualizar: %v", err),
+					})
+					continue
+				}
+			}
+			result.Actualizados++
+
+		} else if errors.Is(dbErr, gorm.ErrRecordNotFound) {
+			// No existe → Crear
 			nuevo := student.Estudiante{
 				Cedula:            cedula,
-				Nombres:           nombres,
 				Apellidos:         apellidos,
+				Nombres:           nombres,
 				CorreoElectronico: correo,
 				InfoNacionalidad:  common.JSONMap[student.InfoNacionalidad]{Data: student.InfoNacionalidad{EsExtranjero: false}},
 				GeneroNacimiento:  "M",
 			}
-			if err := s.db.Create(&nuevo).Error; err == nil {
-				count++
-			} else {
-				fmt.Printf("Error al crear estudiante %s: %v\n", cedula, err)
+			if err := s.db.Create(&nuevo).Error; err != nil {
+				result.Errores = append(result.Errores, ImportRowError{
+					Fila:    filaExcel,
+					Cedula:  cedula,
+					Detalle: fmt.Sprintf("Error al crear: %v", err),
+				})
+				continue
 			}
+			result.Creados++
+
+		} else {
+			// Error de BD inesperado
+			result.Errores = append(result.Errores, ImportRowError{
+				Fila:    filaExcel,
+				Cedula:  cedula,
+				Detalle: fmt.Sprintf("Error de consulta: %v", dbErr),
+			})
+			continue
 		}
 	}
 
-	return count, nil
+	// Emitir progreso final
+	runtime.EventsEmit(s.ctx, "student:import_progress", map[string]int{
+		"current":      totalFilas,
+		"total":        totalFilas,
+		"creados":      result.Creados,
+		"actualizados": result.Actualizados,
+		"errores":      len(result.Errores),
+	})
+
+	return result, nil
 }
 
 func CaclularEdad(fechaNacimiento string) int {

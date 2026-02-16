@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
     Search, Plus, User, Edit3, Users,
-    ChevronLeft, ChevronRight, Upload
+    ChevronLeft, ChevronRight, Upload,
+    CheckCircle2, AlertTriangle, XCircle, X, RefreshCw
 } from 'lucide-react';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
 
@@ -34,6 +35,7 @@ function StudentList({ onCreate, onEdit }) {
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [imageCache, setImageCache] = useState({});
     const [importProgress, setImportProgress] = useState(null);
+    const [importResult, setImportResult] = useState(null);
 
     useEffect(() => {
         const cancel = EventsOn("student:import_progress", (data) => {
@@ -60,7 +62,6 @@ function StudentList({ onCreate, onEdit }) {
     const search = async (q) => {
         try {
             const data = await BuscarEstudiantes(q);
-            console.log('BuscarEstudiantes', { q, data });
             setStudents(data || []);
             setCurrentPage(1);
             try {
@@ -93,26 +94,41 @@ function StudentList({ onCreate, onEdit }) {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = students.slice(indexOfFirstItem, indexOfLastItem);
-    console.log({ students, currentItems });
     const totalPages = Math.ceil(students.length / itemsPerPage);
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const handleImport = async () => {
-        setImportProgress({ current: 0, total: 100, success: 0 });
+        setImportProgress({ current: 0, total: 100, creados: 0, actualizados: 0, errores: 0 });
+        setImportResult(null);
         try {
-            const count = await ImportarEstudiantes();
-            if (count > 0) {
-                toast.success(`Se importaron ${count} estudiantes.`);
-                search(query);
+            const result = await ImportarEstudiantes();
+            if (!result) {
+                // Usuario canceló el diálogo
+                toast.info("Importación cancelada.");
+                setImportProgress(null);
+                return;
+            }
+
+            setImportProgress(null);
+            setImportResult(result);
+            search(query);
+
+            if (result.errores && result.errores.length > 0) {
+                toast.warning(`Importación completada con ${result.errores.length} error(es).`);
+            } else if (result.creados > 0 || result.actualizados > 0) {
+                toast.success(`Importación exitosa: ${result.creados} creados, ${result.actualizados} actualizados.`);
             } else {
-                toast.info("Proceso finalizado (0 importados o cancelado).");
+                toast.info("No hubo cambios en la base de datos.");
             }
         } catch (err) {
             console.error(err);
-            toast.error("Error al importar estudiantes");
-        } finally {
+            toast.error(String(err) || "Error al importar estudiantes");
             setImportProgress(null);
         }
+    };
+
+    const closeImportResult = () => {
+        setImportResult(null);
     };
 
     return (
@@ -188,7 +204,7 @@ function StudentList({ onCreate, onEdit }) {
                         <tbody className="divide-y divide-slate-100">
                             {students.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="py-16 text-center text-slate-400">
+                                    <td colSpan={6} className="py-16 text-center text-slate-400">
                                         No se encontraron resultados
                                     </td>
                                 </tr>
@@ -252,12 +268,13 @@ function StudentList({ onCreate, onEdit }) {
                 )}
             </div>
 
-            {importProgress && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-100">
+            {/* Modal de progreso */}
+            {importProgress && !importResult && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100]">
                     <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
                         <div className="flex flex-col items-center mb-6">
-                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 animate-pulse">
-                                <Upload className="w-8 h-8 text-blue-600" />
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                                <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
                             </div>
                             <h3 className="font-bold text-xl text-slate-800">Importando Estudiantes</h3>
                             <p className="text-slate-500 text-sm mt-1">Por favor espere, no cierre la aplicación...</p>
@@ -266,13 +283,123 @@ function StudentList({ onCreate, onEdit }) {
                         <div className="w-full bg-slate-100 rounded-full h-3 mb-4 overflow-hidden border border-slate-200">
                             <div
                                 className="bg-blue-600 h-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.5)]"
-                                style={{ width: `${Math.round((importProgress.current / importProgress.total) * 100)}%` }}
+                                style={{ width: `${importProgress.total > 0 ? Math.round((importProgress.current / importProgress.total) * 100) : 0}%` }}
                             ></div>
                         </div>
 
                         <div className="flex justify-between items-center text-sm font-medium">
                             <span className="text-slate-600">{importProgress.current} de {importProgress.total} procesados</span>
-                            <span className="text-blue-600">{Math.round((importProgress.current / importProgress.total) * 100)}%</span>
+                            <span className="text-blue-600">{importProgress.total > 0 ? Math.round((importProgress.current / importProgress.total) * 100) : 0}%</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de resultados */}
+            {importResult && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100]">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="p-6 border-b border-slate-200 flex items-center justify-between shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${importResult.errores?.length > 0
+                                    ? 'bg-amber-100'
+                                    : 'bg-green-100'
+                                    }`}>
+                                    {importResult.errores?.length > 0
+                                        ? <AlertTriangle className="w-6 h-6 text-amber-600" />
+                                        : <CheckCircle2 className="w-6 h-6 text-green-600" />
+                                    }
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg text-slate-800">Resultado de Importación</h3>
+                                    <p className="text-slate-500 text-sm">{importResult.totalFilas} filas procesadas</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={closeImportResult}
+                                className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Stats */}
+                        <div className="p-6 border-b border-slate-200 shrink-0">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-center">
+                                    <div className="text-2xl font-bold text-slate-800">{importResult.totalFilas}</div>
+                                    <div className="text-xs font-medium text-slate-500 mt-1">Total Filas</div>
+                                </div>
+                                <div className="bg-green-50 rounded-xl p-4 border border-green-200 text-center">
+                                    <div className="text-2xl font-bold text-green-700">{importResult.creados}</div>
+                                    <div className="text-xs font-medium text-green-600 mt-1">Creados</div>
+                                </div>
+                                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 text-center">
+                                    <div className="text-2xl font-bold text-blue-700">{importResult.actualizados}</div>
+                                    <div className="text-xs font-medium text-blue-600 mt-1">Actualizados</div>
+                                </div>
+                                <div className={`rounded-xl p-4 border text-center ${importResult.errores?.length > 0
+                                    ? 'bg-red-50 border-red-200'
+                                    : 'bg-slate-50 border-slate-200'
+                                    }`}>
+                                    <div className={`text-2xl font-bold ${importResult.errores?.length > 0 ? 'text-red-700' : 'text-slate-400'}`}>
+                                        {importResult.errores?.length || 0}
+                                    </div>
+                                    <div className={`text-xs font-medium mt-1 ${importResult.errores?.length > 0 ? 'text-red-600' : 'text-slate-500'}`}>
+                                        Errores
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Error table */}
+                        {importResult.errores && importResult.errores.length > 0 && (
+                            <div className="flex-1 overflow-auto p-6">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <XCircle className="w-4 h-4 text-red-500" />
+                                    <h4 className="font-bold text-sm text-slate-700">Detalle de Errores</h4>
+                                    <span className="text-xs text-slate-400 ml-1">Corrija estos registros en el Excel y vuelva a importar (no se duplicarán)</span>
+                                </div>
+                                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="bg-red-50 border-b border-red-100">
+                                                <th className="px-4 py-2.5 text-left font-bold text-red-700 text-xs uppercase">Fila</th>
+                                                <th className="px-4 py-2.5 text-left font-bold text-red-700 text-xs uppercase">Cédula</th>
+                                                <th className="px-4 py-2.5 text-left font-bold text-red-700 text-xs uppercase">Detalle del Error</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {importResult.errores.map((err, idx) => (
+                                                <tr key={idx} className="hover:bg-red-50/30">
+                                                    <td className="px-4 py-2.5 font-mono text-slate-600 font-bold">{err.fila}</td>
+                                                    <td className="px-4 py-2.5 font-mono text-slate-700">{err.cedula || '-'}</td>
+                                                    <td className="px-4 py-2.5 text-red-600">{err.detalle}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Footer */}
+                        <div className="p-6 border-t border-slate-200 flex justify-end gap-3 shrink-0">
+                            {importResult.errores?.length > 0 && (
+                                <button
+                                    onClick={() => { closeImportResult(); handleImport(); }}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-sm font-bold"
+                                >
+                                    <RefreshCw size={16} /> Re-importar
+                                </button>
+                            )}
+                            <button
+                                onClick={closeImportResult}
+                                className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-all text-sm font-bold"
+                            >
+                                Cerrar
+                            </button>
                         </div>
                     </div>
                 </div>
