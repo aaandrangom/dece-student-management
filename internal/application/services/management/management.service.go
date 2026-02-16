@@ -35,7 +35,7 @@ func (s *ManagementService) Startup(ctx context.Context) {
 
 func (s *ManagementService) AgendarCita(input dto.AgendarCitaDTO) (*management.Convocatoria, error) {
 	layout := "2006-01-02 15:04"
-	fechaParsed, err := time.Parse(layout, input.FechaCita)
+	fechaParsed, err := time.ParseInLocation(layout, input.FechaCita, time.Local)
 
 	if err == nil {
 		if fechaParsed.Before(time.Now().Add(-5 * time.Minute)) {
@@ -217,7 +217,7 @@ func (s *ManagementService) ObtenerCita(id uint) (*dto.CitaDetalleDTO, error) {
 
 func (s *ManagementService) ActualizarCita(input dto.ActualizarCitaDTO) (*management.Convocatoria, error) {
 	layout := "2006-01-02 15:04"
-	fechaParsed, err := time.Parse(layout, input.FechaCita)
+	fechaParsed, err := time.ParseInLocation(layout, input.FechaCita, time.Local)
 	if err == nil {
 		if fechaParsed.Before(time.Now().Add(-5 * time.Minute)) {
 			return nil, errors.New("No se puede agendar una cita en el pasado")

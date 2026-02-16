@@ -31,6 +31,7 @@ import DisciplineManagerPage from './pages/Tracking/DisciplineManagerPage';
 
 import MeetingManager from './pages/Management/MeetingManager';
 import TrainingManager from './pages/Management/TrainingManager';
+import TemplateManager from './pages/Management/TemplateManager';
 import FichaEstudiantilReport from './pages/Reports/FichaEstudiantilReport';
 import ReporteEstadistico from './pages/Reports/ReporteEstadistico';
 import ReporteNominaVulnerabilidad from './pages/Reports/ReporteNominaVulnerabilidad';
@@ -80,6 +81,9 @@ const MainLayout = () => {
 
             <Route path="/agenda/convocatorias" element={<MeetingManager />} />
             <Route path="/agenda/capacitaciones" element={<TrainingManager />} />
+
+            <Route path="/herramientas/plantillas" element={<TemplateManager />} />
+
 
             <Route path="/reportes/ficha-acumulativa" element={<FichaEstudiantilReport />} />
             <Route path="/reportes/estadistico" element={<ReporteEstadistico />} />

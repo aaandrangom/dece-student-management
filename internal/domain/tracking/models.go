@@ -54,3 +54,11 @@ type CasoSensible struct {
 	Estudiante student.Estudiante      `gorm:"foreignKey:EstudianteID" json:"estudiante"`
 	Periodo    academic.PeriodoLectivo `gorm:"foreignKey:PeriodoID" json:"periodo"`
 }
+
+func (LlamadoAtencion) TableName() string {
+	return "llamados_atencion"
+}
+
+func (CasoSensible) TableName() string {
+	return "casos_sensibles"
+}

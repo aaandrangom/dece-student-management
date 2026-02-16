@@ -347,6 +347,36 @@ export namespace common {
 		    return a;
 		}
 	}
+	export class JSONMap_dece_internal_domain_management_PlantillaTags_ {
+	    Data: management.PlantillaTags;
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_management_PlantillaTags_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], management.PlantillaTags);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class JSONMap_dece_internal_domain_notifications_NotificacionMetadata_ {
 	    Data: notifications.NotificacionMetadata;
 	
@@ -1836,6 +1866,60 @@ export namespace management {
 	        this.grado_especifico = source["grado_especifico"];
 	        this.paralelo_especifico = source["paralelo_especifico"];
 	        this.cantidad_beneficiarios = source["cantidad_beneficiarios"];
+	    }
+	}
+	export class Plantilla {
+	    id: number;
+	    nombre: string;
+	    descripcion: string;
+	    ruta_archivo: string;
+	    tags: common.JSONMap_dece_internal_domain_management_PlantillaTags_;
+	    fecha_creacion: string;
+	    fecha_modificacion: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Plantilla(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nombre = source["nombre"];
+	        this.descripcion = source["descripcion"];
+	        this.ruta_archivo = source["ruta_archivo"];
+	        this.tags = this.convertValues(source["tags"], common.JSONMap_dece_internal_domain_management_PlantillaTags_);
+	        this.fecha_creacion = source["fecha_creacion"];
+	        this.fecha_modificacion = source["fecha_modificacion"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class PlantillaTags {
+	    tags: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new PlantillaTags(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tags = source["tags"];
 	    }
 	}
 

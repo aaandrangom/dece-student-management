@@ -131,6 +131,18 @@ export const menuOptions = [
         ]
     },
     {
+        title: "Herramientas",
+        path: "/herramientas",
+        icon: "Database",
+        subOptions: [
+            {
+                title: "Plantillas Word",
+                path: "/herramientas/plantillas",
+                icon: "FolderOpen"
+            }
+        ]
+    },
+    {
         title: "Configuración",
         path: "/configuraciones",
         icon: "Settings"

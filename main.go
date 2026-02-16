@@ -56,13 +56,14 @@ func main() {
 
 	telegramSyncService := telegramSync.NewTelegramSyncService(db)
 	managementService := management.NewManagementService(db, telegramSyncService)
+	templateService := management.NewTemplateService(db)
 	dashboardService := dashboard.NewDashboardService(db)
 	notificationsService := notifications.NewNotificationsService(db)
 	reportService := reports.NewReportService(db, institutionService, teacherService)
 	searchService := search.NewSearchService(db)
 	maintenanceService := system.NewMaintenanceService(db)
 
-	app := NewApp(enrollmentService, trackingService, notificationsService, telegramSyncService, studentService, searchService, maintenanceService)
+	app := NewApp(enrollmentService, trackingService, notificationsService, telegramSyncService, studentService, searchService, maintenanceService, templateService)
 
 	err := wails.Run(&options.App{
 		Title:            "SIGDECE",
@@ -101,6 +102,7 @@ func main() {
 			reportService,
 			searchService,
 			maintenanceService,
+			templateService,
 		},
 	})
 

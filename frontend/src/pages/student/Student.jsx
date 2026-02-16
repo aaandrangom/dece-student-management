@@ -4,13 +4,17 @@ import { toast } from 'sonner';
 import {
     Search, Plus, User, Edit3, Users,
     ChevronLeft, ChevronRight, Upload,
-    CheckCircle2, AlertTriangle, XCircle, X, RefreshCw
+    CheckCircle2, AlertTriangle, XCircle, X, RefreshCw,
+    FileText, Loader2
 } from 'lucide-react';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
 
 import { BuscarEstudiantes, ObtenerFotoBase64, ImportarEstudiantes } from '../../../wailsjs/go/services/StudentService';
 import { ListarCursos } from '../../../wailsjs/go/services/CourseService';
 import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
+import {
+    ListarPlantillas, ObtenerDatosCertificado, GenerarCertificado
+} from '../../../wailsjs/go/services/TemplateService';
 
 export default function StudentsPage() {
     const navigate = useNavigate();
@@ -45,6 +49,15 @@ function StudentList({ onCreate, onEdit }) {
     const [selectedCourseID, setSelectedCourseID] = useState("");
     const [isLoadingCourses, setIsLoadingCourses] = useState(false);
     const [activePeriodName, setActivePeriodName] = useState("");
+
+    // Certificate Modal State
+    const [isCertModalOpen, setIsCertModalOpen] = useState(false);
+    const [certStudent, setCertStudent] = useState(null);
+    const [certTemplates, setCertTemplates] = useState([]);
+    const [certSelectedTemplate, setCertSelectedTemplate] = useState(null);
+    const [certTagValues, setCertTagValues] = useState({});
+    const [isLoadingCert, setIsLoadingCert] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
         const cancel = EventsOn("student:import_progress", (data) => {
@@ -163,6 +176,67 @@ function StudentList({ onCreate, onEdit }) {
         setImportResult(null);
     };
 
+    // === Certificate Generation ===
+    const openCertificateModal = async (student) => {
+        setCertStudent(student);
+        setIsCertModalOpen(true);
+        setCertSelectedTemplate(null);
+        setCertTagValues({});
+        try {
+            const templates = await ListarPlantillas();
+            setCertTemplates((templates || []).filter(t => t.ruta_archivo));
+        } catch (err) {
+            toast.error("Error cargando plantillas: " + String(err));
+        }
+    };
+
+    const handleSelectTemplate = async (templateId) => {
+        if (!templateId || !certStudent) return;
+        const tpl = certTemplates.find(t => t.id === Number(templateId));
+        setCertSelectedTemplate(tpl);
+        setIsLoadingCert(true);
+        try {
+            const datos = await ObtenerDatosCertificado(Number(templateId), certStudent.id);
+            setCertTagValues(datos || {});
+        } catch (err) {
+            toast.error("Error cargando datos: " + String(err));
+            setCertTagValues({});
+        } finally {
+            setIsLoadingCert(false);
+        }
+    };
+
+    const handleGenerateCert = async () => {
+        if (!certSelectedTemplate || !certStudent) return;
+        setIsGenerating(true);
+        try {
+            await GenerarCertificado(certSelectedTemplate.id, certStudent.id, certTagValues);
+            toast.success("Certificado generado y abierto correctamente");
+            setIsCertModalOpen(false);
+        } catch (err) {
+            toast.error("Error generando certificado: " + String(err));
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const getTagLabel = (tag) => {
+        const labels = {
+            nombre_de_quien_suscribe: 'Nombre de quien suscribe',
+            en_calidad_de: 'Cargo / En calidad de',
+            nombres_completos_estudiante: 'Nombres completos del estudiante',
+            cedula_estudiante: 'Cédula del estudiante',
+            curso_actual_del_estudiante: 'Curso actual',
+            paralelo_actual: 'Paralelo',
+            check_registra: 'Check REGISTRA',
+            check_no_registra: 'Check NO REGISTRA',
+            fecha_dias: 'Día',
+            fecha_mes: 'Mes',
+            fecha_anio: 'Año'
+        };
+        return labels[tag] || tag.replace(/_/g, ' ');
+    };
+
     return (
         <div className="flex flex-col gap-6 animate-in fade-in duration-300">
             <div className="bg-white rounded-xl shadow-sm p-5 border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -269,12 +343,22 @@ function StudentList({ onCreate, onEdit }) {
                                         <td className="px-6 py-4 text-slate-700 font-medium text-sm uppercase">{st.nombres}</td>
                                         <td className="px-6 py-4 text-slate-500 text-sm">{st.correo_electronico || '-'}</td>
                                         <td className="px-6 py-4 text-center">
-                                            <button
-                                                onClick={() => onEdit(st.id)}
-                                                className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
-                                            >
-                                                <Edit3 className="w-4 h-4" />
-                                            </button>
+                                            <div className="flex items-center justify-center gap-1">
+                                                <button
+                                                    onClick={() => onEdit(st.id)}
+                                                    className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
+                                                    title="Editar"
+                                                >
+                                                    <Edit3 className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); openCertificateModal(st); }}
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                    title="Generar Certificado"
+                                                >
+                                                    <FileText className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -511,6 +595,129 @@ function StudentList({ onCreate, onEdit }) {
                                 className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-all text-sm font-bold"
                             >
                                 Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Certificate Generation Modal */}
+            {isCertModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-200 max-h-[90vh] flex flex-col">
+                        {/* Header */}
+                        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between shrink-0">
+                            <div>
+                                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-blue-600" /> Generar Certificado
+                                </h3>
+                                {certStudent && (
+                                    <p className="text-sm text-slate-500 mt-0.5">
+                                        Estudiante: <span className="font-medium text-slate-700">{certStudent.apellidos} {certStudent.nombres}</span>
+                                    </p>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => setIsCertModalOpen(false)}
+                                className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                            {/* Template Selector */}
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                    Seleccionar Plantilla <span className="text-red-400">*</span>
+                                </label>
+                                <select
+                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700"
+                                    value={certSelectedTemplate?.id || ''}
+                                    onChange={(e) => handleSelectTemplate(e.target.value)}
+                                >
+                                    <option value="">-- Seleccione una plantilla --</option>
+                                    {certTemplates.map(tpl => (
+                                        <option key={tpl.id} value={tpl.id}>
+                                            {tpl.nombre} {tpl.descripcion ? `(${tpl.descripcion})` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {certTemplates.length === 0 && (
+                                    <p className="text-xs text-amber-600 mt-2 font-medium flex items-center gap-1">
+                                        <AlertTriangle className="w-3 h-3" /> No hay plantillas disponibles con archivo. Suba una en Herramientas → Plantillas Word.
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Loading */}
+                            {isLoadingCert && (
+                                <div className="flex items-center justify-center py-12">
+                                    <div className="flex flex-col items-center gap-3">
+                                        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                                        <span className="text-sm font-medium text-slate-500">Cargando datos del estudiante...</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Tag Values Editor */}
+                            {certSelectedTemplate && !isLoadingCert && Object.keys(certTagValues).length > 0 && (
+                                <div>
+                                    <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                            <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Datos del Documento</h4>
+                                        </div>
+                                        <span className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                                            {Object.keys(certTagValues).length} campos editables
+                                        </span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                                        {Object.entries(certTagValues).map(([tag, value]) => (
+                                            <div key={tag} className="group">
+                                                <label className="block text-xs font-bold text-slate-500 mb-1.5 ml-1 group-focus-within:text-blue-600 transition-colors">
+                                                    {getTagLabel(tag)}
+                                                </label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="text"
+                                                        value={value}
+                                                        onChange={(e) => setCertTagValues(prev => ({ ...prev, [tag]: e.target.value }))}
+                                                        className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all placeholder:text-slate-300"
+                                                        placeholder={`Valor para {{${tag}}}`}
+                                                    />
+                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-white px-1">
+                                                        {`{{${tag}}}`}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-6 py-4 border-t border-slate-100 flex gap-3 shrink-0">
+                            <button
+                                onClick={() => setIsCertModalOpen(false)}
+                                disabled={isGenerating}
+                                className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors text-sm disabled:opacity-50"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleGenerateCert}
+                                disabled={!certSelectedTemplate || isGenerating || isLoadingCert}
+                                className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-md shadow-blue-200 transition-all text-sm flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isGenerating ? (
+                                    <><Loader2 className="w-4 h-4 animate-spin" /> Generando...</>
+                                ) : (
+                                    <><FileText className="w-4 h-4" /> Generar Certificado</>
+                                )}
                             </button>
                         </div>
                     </div>
