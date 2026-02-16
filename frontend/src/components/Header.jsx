@@ -147,11 +147,13 @@ const Header = () => {
               <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)}></div>
               <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
                 <div className="p-2">
-                  <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-left">
-                    <User className="w-4 h-4 text-slate-600" />
-                    <span className="text-sm text-slate-700 font-medium">Mi Perfil</span>
-                  </button>
-                  <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-left">
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      navigate('/configuraciones');
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-left"
+                  >
                     <Settings className="w-4 h-4 text-slate-600" />
                     <span className="text-sm text-slate-700 font-medium">Configuración</span>
                   </button>

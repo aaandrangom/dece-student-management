@@ -18,10 +18,13 @@ const iconMap = {
   Building, Sliders, UserCog, Calendar, Database, BarChart, ClipboardList
 };
 
+import { useScreenLock } from '../context/ScreenLockContext';
+
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const { logout } = useScreenLock();
 
   const toggleCollapse = useCallback(() => {
     setIsCollapsed(prev => !prev);
@@ -72,16 +75,16 @@ const Sidebar = () => {
       </nav>
 
       <div className="p-4 border-t border-white/10 shrink-0">
-        <Link
-          to="/"
-          className={`flex items-center gap-3 px-3 py-3 rounded-xl text-indigo-100 hover:bg-white/10 hover:text-white transition-colors duration-200 group overflow-hidden ${isCollapsed ? 'justify-center' : ''}`}
+        <button
+          onClick={logout}
+          className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-indigo-100 hover:bg-white/10 hover:text-white transition-colors duration-200 group overflow-hidden ${isCollapsed ? 'justify-center' : ''}`}
         >
           <LogOut className="w-5 h-5 shrink-0 text-red-300 group-hover:text-red-200 transition-colors" />
           <span className={`text-sm font-semibold whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100 ml-1'
             }`}>
             Cerrar Sesión
           </span>
-        </Link>
+        </button>
       </div>
 
       {isCollapsed && hoveredItem && hoveredItem.subOptions && (
