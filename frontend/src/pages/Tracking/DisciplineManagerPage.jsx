@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
-    Search, User, Loader2, FileText, AlertCircle, ShieldAlert, Gavel,
+    Search, User, Loader2, FileText, AlertCircle, ShieldAlert, Gavel, Shield
 } from 'lucide-react';
 
 import { BuscarEstudiantesActivos } from '../../../wailsjs/go/services/TrackingService';
 import { ObtenerFotoBase64 } from '../../../wailsjs/go/services/StudentService';
+import { ObtenerConfiguracion } from '../../../wailsjs/go/services/SecurityConfigService';
+import ModuleAuthGate from '../../components/ModuleAuthGate';
 
 import LlamadosAtencion from './Warning';
 import SensitiveManager from './SensitiveManager';
@@ -89,6 +91,22 @@ export default function DisciplineManagerPage() {
     const [selectedStudentName, setSelectedStudentName] = useState('');
     const [activeView, setActiveView] = useState(null);
 
+    // ── Control de acceso ──
+    const [requiresAuth, setRequiresAuth] = useState(null); // null = cargando, true/false
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    useEffect(() => {
+        const checkSecurity = async () => {
+            try {
+                const required = await ObtenerConfiguracion('seguimiento_requiere_clave');
+                setRequiresAuth(required);
+            } catch {
+                setRequiresAuth(false);
+            }
+        };
+        checkSecurity();
+    }, []);
+
     const hasActiveSearch = query.trim().length > 0;
 
     useEffect(() => {
@@ -149,6 +167,21 @@ export default function DisciplineManagerPage() {
         setSelectedStudentName('');
     };
 
+    // ── Loading state ──
+    if (requiresAuth === null) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full bg-slate-50">
+                <Loader2 className="w-8 h-8 animate-spin text-purple-500 mb-3" />
+                <p className="text-slate-500 text-sm font-medium">Verificando acceso...</p>
+            </div>
+        );
+    }
+
+    // ── Gate de autenticación ──
+    if (requiresAuth && !isAuthenticated) {
+        return <ModuleAuthGate onAuthenticated={() => setIsAuthenticated(true)} />;
+    }
+
     return (
         <div className="p-6 min-h-full w-full bg-slate-50/50 font-sans relative">
 
@@ -181,6 +214,13 @@ export default function DisciplineManagerPage() {
                                 <p className="text-sm text-slate-500 font-medium">Registro de faltas, sanciones y seguimiento DECE</p>
                             </div>
                         </div>
+
+                        {requiresAuth && (
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-600 rounded-lg border border-purple-100 text-xs font-bold">
+                                <Shield className="w-3.5 h-3.5" />
+                                Módulo protegido
+                            </div>
+                        )}
                     </div>
 
                     <div

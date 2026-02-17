@@ -38,6 +38,7 @@ func main() {
 
 	authService := security.NewAuthService(db)
 	userService := security.NewUserService(db)
+	securityConfigService := security.NewSecurityConfigService(db)
 	institutionService := security.NewInstitutionService(db)
 
 	yearService := academic.NewYearService(db)
@@ -103,6 +104,7 @@ func main() {
 			searchService,
 			maintenanceService,
 			templateService,
+			securityConfigService,
 		},
 	})
 

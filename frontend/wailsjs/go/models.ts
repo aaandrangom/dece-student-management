@@ -2432,6 +2432,29 @@ export namespace search {
 
 }
 
+export namespace security {
+	
+	export class ConfiguracionSeguridad {
+	    id: number;
+	    clave: string;
+	    valor: boolean;
+	    descripcion: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ConfiguracionSeguridad(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.clave = source["clave"];
+	        this.valor = source["valor"];
+	        this.descripcion = source["descripcion"];
+	    }
+	}
+
+}
+
 export namespace services {
 	
 	export class ImportRowError {

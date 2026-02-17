@@ -55,3 +55,10 @@ type ConfiguracionInstitucional struct {
 
 	FechaActualizacion string `json:"fecha_actualizacion"`
 }
+
+type ConfiguracionSeguridad struct {
+	ID          uint   `gorm:"primaryKey" json:"id"`
+	Clave       string `gorm:"unique;not null" json:"clave"`
+	Valor       bool   `gorm:"default:false" json:"valor"`
+	Descripcion string `json:"descripcion"`
+}

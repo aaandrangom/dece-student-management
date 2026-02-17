@@ -66,6 +66,7 @@ func InitDB() *gorm.DB {
 		&management.Capacitacion{},
 		&management.Plantilla{},
 		&notifications.Notificacion{},
+		&security.ConfiguracionSeguridad{},
 	)
 
 	if err != nil {
