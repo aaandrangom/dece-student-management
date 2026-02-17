@@ -49,15 +49,15 @@ const LoginScreen = () => {
             <HeartHandshake className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-wide">DECE</h1>
-            <p className="text-sm text-indigo-200">Sistema de Administración</p>
+            <h1 className="text-2xl font-bold text-white tracking-wide">SIGDECE</h1>
+            <p className="text-sm text-indigo-200">Sistema Integrado de Gestión DECE</p>
           </div>
         </div>
 
         <div className="space-y-6">
           <h2 className="text-4xl font-bold text-white leading-tight">
             Bienvenido al<br />
-            Sistema DECE
+            Sistema Integrado <br />de Gestión DECE
           </h2>
           <p className="text-lg text-indigo-200 max-w-md">
             Departamento de Consejería Estudiantil. <br /> Gestiona y administra de manera eficiente.
@@ -65,7 +65,7 @@ const LoginScreen = () => {
         </div>
 
         <div className="text-sm text-indigo-300">
-          © {currentYear} Sistema DECE · Versión 1.1.0
+          © {currentYear} Sistema Integrado de Gestión DECE · Versión 1.1.0
         </div>
       </div>
 
@@ -79,8 +79,8 @@ const LoginScreen = () => {
             >
               <HeartHandshake className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">DECE</h1>
-            <p className="text-sm text-gray-500 mt-1">Sistema de Administración</p>
+            <h1 className="text-2xl font-bold text-gray-900">SIGDECE</h1>
+            <p className="text-sm text-gray-500 mt-1">Sistema Integrado de Gestión DECE</p>
           </div>
 
           <div className="mb-8">
@@ -159,7 +159,7 @@ const LoginScreen = () => {
           </div>
 
           <div className="lg:hidden mt-8 text-center text-sm text-gray-500">
-            <p>© {currentYear} Sistema DECE · Versión 1.1.0</p>
+            <p>© {currentYear} Sistema Integrado de Gestión DECE · Versión 1.1.0</p>
           </div>
         </div>
       </div>
