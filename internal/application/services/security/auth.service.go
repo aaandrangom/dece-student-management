@@ -51,6 +51,14 @@ func (s *AuthService) ObtenerUsuarioSesion() (*usuarioDTO.UsuarioResponseDTO, er
 	if s.currentUser == nil {
 		return nil, errors.New("no hay usuario autenticado en la sesión")
 	}
+
+	// Re-leer desde BD para obtener datos frescos (ej: foto actualizada)
+	var user security.Usuario
+	if err := s.db.First(&user, s.currentUser.ID).Error; err != nil {
+		return nil, errors.New("usuario no encontrado")
+	}
+	s.currentUser = &user
+
 	return s.mapToDTO(s.currentUser), nil
 }
 
@@ -62,5 +70,7 @@ func (s *AuthService) mapToDTO(u *security.Usuario) *usuarioDTO.UsuarioResponseD
 		Rol:            u.Rol,
 		Activo:         u.Activo,
 		FechaCreacion:  u.FechaCreacion,
+		Cargo:          u.Cargo,
+		FotoPerfil:     u.FotoPerfil,
 	}
 }

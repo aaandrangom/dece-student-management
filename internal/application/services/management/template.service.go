@@ -480,7 +480,11 @@ func (s *TemplateService) ObtenerDatosCertificado(plantillaID uint, estudianteID
 		case "nombre_de_quien_suscribe":
 			result[tag] = currentUser.NombreCompleto
 		case "en_calidad_de":
-			result[tag] = currentUser.Rol
+			if currentUser.Cargo != "" {
+				result[tag] = currentUser.Cargo
+			} else {
+				result[tag] = currentUser.Rol
+			}
 		case "nombres_completos_estudiante":
 			result[tag] = estudiante.Apellidos + " " + estudiante.Nombres
 		case "cedula_estudiante":

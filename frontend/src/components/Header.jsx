@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, User, Bell, Search, Menu, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { useScreenLock } from '../context/ScreenLockContext';
 import { useNotifications } from '../context/NotificationsContext';
 import { useNavigate } from 'react-router-dom';
 import GlobalSearch from './GlobalSearch';
+import { ObtenerFotoPerfilBase64 } from '../../wailsjs/go/services/UserService';
 
 const Header = () => {
   const { user, lockScreen, logout } = useScreenLock();
@@ -11,9 +12,21 @@ const Header = () => {
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState(null);
+
+  useEffect(() => {
+    const loadPhoto = async () => {
+      if (user?.id) {
+        try {
+          const base64 = await ObtenerFotoPerfilBase64(user.id);
+          if (base64) setProfilePhoto(base64);
+        } catch { }
+      }
+    };
+    loadPhoto();
+  }, [user?.id]);
 
   const roleMap = (rolString) => {
-    console.log('Mapping role for:', rolString);
     switch (rolString) {
       case 'admin':
         return 'Administrador';
@@ -135,7 +148,11 @@ const Header = () => {
 
             <div className="w-11 h-11 rounded-full bg-linear-to-tr from-purple-600 to-indigo-500 p-0.5 shadow-md shadow-purple-200">
               <div className="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden">
-                <User className="w-6 h-6 text-purple-600" />
+                {profilePhoto ? (
+                  <img src={profilePhoto} alt="Perfil" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-6 h-6 text-purple-600" />
+                )}
               </div>
             </div>
 

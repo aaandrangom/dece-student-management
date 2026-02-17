@@ -1,9 +1,9 @@
 import {
     Users, Save, Key, Eye, EyeOff, Shield,
-    CheckCircle2, XCircle, Loader2, X, UserCog, Edit
+    CheckCircle2, XCircle, Loader2, X, UserCog, Edit, Camera, User
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ListarUsuarios, CambiarMiClave, ActualizarUsuario } from "../../../wailsjs/go/services/UserService";
+import { ListarUsuarios, CambiarMiClave, ActualizarUsuario, SubirFotoPerfil, ObtenerFotoPerfilBase64 } from "../../../wailsjs/go/services/UserService";
 import { useState, useEffect } from 'react';
 
 const UserSystem = () => {
@@ -13,6 +13,7 @@ const UserSystem = () => {
     const [showUserModal, setShowUserModal] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [currentUserToEdit, setCurrentUserToEdit] = useState(null);
+    const [userPhotos, setUserPhotos] = useState({});
 
     useEffect(() => {
         cargarUsuarios();
@@ -23,6 +24,18 @@ const UserSystem = () => {
             setIsLoading(true);
             const data = await ListarUsuarios();
             setUsuarios(data || []);
+
+            // Cargar fotos de perfil
+            const photos = {};
+            for (const user of (data || [])) {
+                if (user.foto_perfil) {
+                    try {
+                        const base64 = await ObtenerFotoPerfilBase64(user.id);
+                        if (base64) photos[user.id] = base64;
+                    } catch { }
+                }
+            }
+            setUserPhotos(photos);
         } catch (error) {
             console.error('Error al cargar usuarios:', error);
             toast.error('Error al cargar los usuarios');
@@ -113,8 +126,12 @@ const UserSystem = () => {
                                         <tr key={user.id} className="hover:bg-purple-50/30 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold border border-slate-200 shadow-sm">
-                                                        {user.nombre_completo.charAt(0).toUpperCase()}
+                                                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold border border-slate-200 shadow-sm overflow-hidden">
+                                                        {userPhotos[user.id] ? (
+                                                            <img src={userPhotos[user.id]} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <span className="text-sm">{user.nombre_completo.charAt(0).toUpperCase()}</span>
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-slate-800 text-sm">{user.nombre_completo}</p>
@@ -169,6 +186,7 @@ const UserSystem = () => {
             {showUserModal && (
                 <UserEditModal
                     user={currentUserToEdit}
+                    userPhoto={userPhotos[currentUserToEdit?.id]}
                     onClose={() => {
                         setShowUserModal(false);
                         setCurrentUserToEdit(null);
@@ -190,10 +208,13 @@ const UserSystem = () => {
     );
 };
 
-const UserEditModal = ({ user, onClose, onSuccess }) => {
+const UserEditModal = ({ user, userPhoto, onClose, onSuccess }) => {
     const [nombreCompleto, setNombreCompleto] = useState(user?.nombre_completo || '');
     const [nombreUsuario, setNombreUsuario] = useState(user?.nombre_usuario || '');
+    const [cargo, setCargo] = useState(user?.cargo || '');
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+    const [photoPreview, setPhotoPreview] = useState(userPhoto || null);
 
     const handleSubmit = async () => {
         if (!nombreCompleto.trim() || !nombreUsuario.trim()) {
@@ -203,7 +224,7 @@ const UserEditModal = ({ user, onClose, onSuccess }) => {
 
         try {
             setIsSaving(true);
-            await ActualizarUsuario(user.id, nombreUsuario, nombreCompleto);
+            await ActualizarUsuario(user.id, nombreUsuario, nombreCompleto, cargo);
             toast.success('Usuario actualizado correctamente');
             onSuccess();
         } catch (error) {
@@ -211,6 +232,27 @@ const UserEditModal = ({ user, onClose, onSuccess }) => {
             toast.error(typeof error === 'string' ? error : 'Error al actualizar usuario');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleUploadPhoto = async () => {
+        try {
+            setIsUploadingPhoto(true);
+            await SubirFotoPerfil(user.id);
+
+            // Recargar la foto
+            const base64 = await ObtenerFotoPerfilBase64(user.id);
+            if (base64) {
+                setPhotoPreview(base64);
+            }
+            toast.success('Foto de perfil actualizada');
+        } catch (error) {
+            const msg = typeof error === 'string' ? error : 'Error al subir foto';
+            if (!msg.includes('No se seleccionó')) {
+                toast.error(msg);
+            }
+        } finally {
+            setIsUploadingPhoto(false);
         }
     };
 
@@ -224,12 +266,40 @@ const UserEditModal = ({ user, onClose, onSuccess }) => {
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-slate-800">Editar Usuario</h2>
-                            <p className="text-xs text-slate-500">Actualizar información básica</p>
+                            <p className="text-xs text-slate-500">Actualizar información y foto de perfil</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
+                </div>
+
+                {/* Foto de perfil */}
+                <div className="flex flex-col items-center mb-6">
+                    <div className="relative group">
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 p-0.5 shadow-lg shadow-purple-200/50">
+                            <div className="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden">
+                                {photoPreview ? (
+                                    <img src={photoPreview} alt="Foto de perfil" className="w-full h-full object-cover" />
+                                ) : (
+                                    <User className="w-10 h-10 text-purple-400" />
+                                )}
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleUploadPhoto}
+                            disabled={isUploadingPhoto}
+                            className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 disabled:opacity-50"
+                            title="Cambiar foto"
+                        >
+                            {isUploadingPhoto ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Camera className="w-4 h-4" />
+                            )}
+                        </button>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-2">Click en el ícono de cámara para cambiar</p>
                 </div>
 
                 <div className="space-y-4">
@@ -252,6 +322,17 @@ const UserEditModal = ({ user, onClose, onSuccess }) => {
                             onChange={(e) => setNombreUsuario(e.target.value)}
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
                             placeholder="Ej: jperez"
+                        />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">Cargo</label>
+                        <input
+                            type="text"
+                            value={cargo}
+                            onChange={(e) => setCargo(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                            placeholder="Ej: Analista DECE"
                         />
                     </div>
                 </div>

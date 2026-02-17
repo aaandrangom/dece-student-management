@@ -6,6 +6,7 @@ import (
 	managementSvc "dece/internal/application/services/management"
 	notificationsSvc "dece/internal/application/services/notifications"
 	searchSvc "dece/internal/application/services/search"
+	security "dece/internal/application/services/security"
 	studentSvc "dece/internal/application/services/student"
 	telegramSync "dece/internal/application/services/sync"
 	system "dece/internal/application/services/system"
@@ -22,9 +23,10 @@ type App struct {
 	searchService       *searchSvc.SearchService
 	maintenanceService  *system.MaintenanceService
 	templateService     *managementSvc.TemplateService
+	userService         *security.UserService
 }
 
-func NewApp(enrollmentService *services.EnrollmentService, trackingService *tracking.TrackingService, notificationsService *notificationsSvc.NotificationsService, telegramSyncService *telegramSync.TelegramSyncService, studentService *studentSvc.StudentService, searchService *searchSvc.SearchService, maintenanceService *system.MaintenanceService, templateService *managementSvc.TemplateService) *App {
+func NewApp(enrollmentService *services.EnrollmentService, trackingService *tracking.TrackingService, notificationsService *notificationsSvc.NotificationsService, telegramSyncService *telegramSync.TelegramSyncService, studentService *studentSvc.StudentService, searchService *searchSvc.SearchService, maintenanceService *system.MaintenanceService, templateService *managementSvc.TemplateService, userService *security.UserService) *App {
 	return &App{
 		enrollmentService:   enrollmentService,
 		trackingService:     trackingService,
@@ -34,6 +36,7 @@ func NewApp(enrollmentService *services.EnrollmentService, trackingService *trac
 		searchService:       searchService,
 		maintenanceService:  maintenanceService,
 		templateService:     templateService,
+		userService:         userService,
 	}
 }
 
@@ -45,6 +48,7 @@ func (a *App) startup(ctx context.Context) {
 	a.searchService.SetContext(ctx)
 	a.maintenanceService.SetContext(ctx)
 	a.templateService.SetContext(ctx)
+	a.userService.SetContext(ctx)
 	if a.notificationsSvc != nil {
 		a.notificationsSvc.SetContext(ctx)
 		a.notificationsSvc.StartScheduler()

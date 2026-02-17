@@ -9,6 +9,8 @@ type UsuarioResponseDTO struct {
 	Rol            string `json:"rol"`
 	Activo         bool   `json:"activo"`
 	FechaCreacion  string `json:"fecha_creacion"`
+	Cargo          string `json:"cargo"`
+	FotoPerfil     string `json:"foto_perfil"`
 }
 
 type CrearUsuarioDTO struct {

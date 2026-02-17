@@ -11,6 +11,8 @@ type Usuario struct {
 	NombreCompleto string `gorm:"not null" json:"nombre_completo"`
 	Rol            string `gorm:"default:dece" json:"rol"`
 	Activo         bool   `gorm:"default:true" json:"activo"`
+	Cargo          string `json:"cargo"`
+	FotoPerfil     string `json:"foto_perfil"`
 
 	FechaCreacion string `json:"fecha_creacion"`
 }

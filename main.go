@@ -63,7 +63,7 @@ func main() {
 	searchService := search.NewSearchService(db)
 	maintenanceService := system.NewMaintenanceService(db)
 
-	app := NewApp(enrollmentService, trackingService, notificationsService, telegramSyncService, studentService, searchService, maintenanceService, templateService)
+	app := NewApp(enrollmentService, trackingService, notificationsService, telegramSyncService, studentService, searchService, maintenanceService, templateService, userService)
 
 	err := wails.Run(&options.App{
 		Title:            "SIGDECE",

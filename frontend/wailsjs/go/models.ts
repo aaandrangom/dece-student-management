@@ -893,6 +893,8 @@ export namespace dtos {
 	    rol: string;
 	    activo: boolean;
 	    fecha_creacion: string;
+	    cargo: string;
+	    foto_perfil: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new UsuarioResponseDTO(source);
@@ -906,6 +908,8 @@ export namespace dtos {
 	        this.rol = source["rol"];
 	        this.activo = source["activo"];
 	        this.fecha_creacion = source["fecha_creacion"];
+	        this.cargo = source["cargo"];
+	        this.foto_perfil = source["foto_perfil"];
 	    }
 	}
 
