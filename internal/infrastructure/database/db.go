@@ -62,6 +62,7 @@ func InitDB() *gorm.DB {
 		&tracking.LlamadoAtencion{},
 		&tracking.CasoSensible{},
 		&management.Convocatoria{},
+		&management.SyncPendiente{},
 		&management.Capacitacion{},
 		&management.Plantilla{},
 		&notifications.Notificacion{},

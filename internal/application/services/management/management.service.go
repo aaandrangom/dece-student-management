@@ -154,7 +154,28 @@ func (s *ManagementService) MarcarCompletada(id uint, completada bool) error {
 }
 
 func (s *ManagementService) EliminarCita(id uint) error {
-	return s.db.Delete(&management.Convocatoria{}, id).Error
+	// Obtener el TelegramID antes de eliminar
+	var cita management.Convocatoria
+	var telegramID int
+	if err := s.db.First(&cita, id).Error; err == nil {
+		telegramID = cita.TelegramID
+	}
+
+	if err := s.db.Delete(&management.Convocatoria{}, id).Error; err != nil {
+		return err
+	}
+
+	if s.sync != nil {
+		if telegramID > 0 {
+			// Fue sincronizada: enviar DELETE a la API
+			go s.sync.SyncEliminarCita(telegramID)
+		} else {
+			// Nunca fue sincronizada: limpiar operaciones pendientes de la cola
+			go s.sync.LimpiarColaPorCita(id)
+		}
+	}
+
+	return nil
 }
 
 func (s *ManagementService) ObtenerCita(id uint) (*dto.CitaDetalleDTO, error) {
@@ -237,6 +258,11 @@ func (s *ManagementService) ActualizarCita(input dto.ActualizarCitaDTO) (*manage
 
 	if err := s.db.Save(&cita).Error; err != nil {
 		return nil, fmt.Errorf("Error al actualizar cita: %v", err)
+	}
+
+	// Sincronizar actualización con Telegram
+	if s.sync != nil {
+		go s.sync.SyncActualizarCita(cita.ID)
 	}
 
 	return &cita, nil

@@ -50,6 +50,6 @@ func (a *App) startup(ctx context.Context) {
 		a.notificationsSvc.StartScheduler()
 	}
 	if a.telegramSyncService != nil {
-		go a.telegramSyncService.SyncConvocatorias()
+		go a.telegramSyncService.SyncCompleta()
 	}
 }
