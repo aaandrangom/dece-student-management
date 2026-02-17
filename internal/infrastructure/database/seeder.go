@@ -44,8 +44,9 @@ func seedAdminUser(db *gorm.DB) error {
 	passRaw := config.AppConfig.AdminPassword
 	nombreCompleto := config.AppConfig.AdminFullName
 
+	// Verificar si ya existe un usuario con rol admin
 	var count int64
-	db.Model(&security.Usuario{}).Where("nombre_usuario = ?", usuario).Count(&count)
+	db.Model(&security.Usuario{}).Where("rol = ?", "admin").Count(&count)
 	if count > 0 {
 		return nil
 	}
