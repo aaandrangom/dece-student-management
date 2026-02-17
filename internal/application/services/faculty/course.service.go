@@ -179,16 +179,16 @@ func (s *CourseService) GenerarCursosMasivos() (string, error) {
 		NombreCompleto string
 		Orden          int
 	}{
-		{Nombre: "1ro EGB", NombreCompleto: "Primero de Educación General Básica", Orden: 1},
-		{Nombre: "2do EGB", NombreCompleto: "Segundo de Educación General Básica", Orden: 2},
-		{Nombre: "3ro EGB", NombreCompleto: "Tercero de Educación General Básica", Orden: 3},
-		{Nombre: "4to EGB", NombreCompleto: "Cuarto de Educación General Básica", Orden: 4},
-		{Nombre: "5to EGB", NombreCompleto: "Quinto de Educación General Básica", Orden: 5},
-		{Nombre: "6to EGB", NombreCompleto: "Sexto de Educación General Básica", Orden: 6},
-		{Nombre: "7mo EGB", NombreCompleto: "Séptimo de Educación General Básica", Orden: 7},
-		{Nombre: "8vo EGB", NombreCompleto: "Octavo de Educación General Básica", Orden: 8},
-		{Nombre: "9no EGB", NombreCompleto: "Noveno de Educación General Básica", Orden: 9},
-		{Nombre: "10mo EGB", NombreCompleto: "Décimo de Educación General Básica", Orden: 10},
+		{Nombre: "1ro EGB", NombreCompleto: "Primer Año de Educación General Básica", Orden: 1},
+		{Nombre: "2do EGB", NombreCompleto: "Segundo Año de Educación General Básica", Orden: 2},
+		{Nombre: "3ro EGB", NombreCompleto: "Tercer Año de Educación General Básica", Orden: 3},
+		{Nombre: "4to EGB", NombreCompleto: "Cuarto Año de Educación General Básica", Orden: 4},
+		{Nombre: "5to EGB", NombreCompleto: "Quinto Año de Educación General Básica", Orden: 5},
+		{Nombre: "6to EGB", NombreCompleto: "Sexto Año de Educación General Básica", Orden: 6},
+		{Nombre: "7mo EGB", NombreCompleto: "Séptimo Año de Educación General Básica", Orden: 7},
+		{Nombre: "8vo EGB", NombreCompleto: "Octavo Año de Educación General Básica", Orden: 8},
+		{Nombre: "9no EGB", NombreCompleto: "Noveno Año de Educación General Básica", Orden: 9},
+		{Nombre: "10mo EGB", NombreCompleto: "Décimo Año de Educación General Básica", Orden: 10},
 	}
 
 	creados := 0
