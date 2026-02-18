@@ -8,16 +8,19 @@ export const menuOptions = [
     {
         title: "Institución",
         path: "/institucion",
+        id: "menu-institucion",
         icon: "Building",
         subOptions: [
             {
                 title: "Configuración General",
                 path: "/institucion/configuracion-general",
+                id: "submenu-configuracion-general",
                 icon: "Sliders"
             },
             {
                 title: "Usuarios del Sistema",
                 path: "/institucion/usuarios-sistema",
+                id: "submenu-usuarios-sistema",
                 icon: "UserCog"
             }
         ]
@@ -25,31 +28,37 @@ export const menuOptions = [
     {
         title: "Gestión Académica",
         path: "/gestion-academica",
+        id: "menu-gestion-academica",
         icon: "Book",
         subOptions: [
             {
                 title: "Periodos Lectivos",
                 path: "/gestion-academica/periodos-lectivos",
+                id: "submenu-periodos-lectivos",
                 icon: "Calendar"
             },
             {
                 title: "Niveles",
                 path: "/gestion-academica/niveles",
+                id: "submenu-niveles",
                 icon: "Layers"
             },
             {
                 title: "Materias",
                 path: "/gestion-academica/materias",
+                id: "submenu-materias",
                 icon: "BookOpen"
             },
             {
                 title: "Docentes",
                 path: "/gestion-academica/docentes",
+                id: "submenu-docentes",
                 icon: "Briefcase"
             },
             {
                 title: "Cursos y Distributivo",
                 path: "/gestion-academica/cursos-distributivo",
+                id: "submenu-cursos-distributivo",
                 icon: "School"
             }
         ]

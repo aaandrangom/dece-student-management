@@ -302,6 +302,7 @@ export default function CoursesPage() {
                         <button
                             onClick={openCreateModal}
                             disabled={!activePeriod}
+                            id="courses-new-btn"
                             className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Plus className="w-4 h-4" />
@@ -342,7 +343,7 @@ export default function CoursesPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" id="courses-table">
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                             <Loader2 className="w-10 h-10 animate-spin text-purple-500 mb-3" />
@@ -366,7 +367,7 @@ export default function CoursesPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {currentItems.map((course) => (
+                                    {currentItems.map((course, index) => (
                                         <tr key={course.id} className="hover:bg-purple-50/30 transition-colors">
                                             <td className="px-6 py-4 text-sm font-semibold text-slate-700">
                                                 {course.nivel_nombre}
@@ -407,6 +408,7 @@ export default function CoursesPage() {
                                                 <div className="flex items-center justify-center gap-2">
                                                     <button
                                                         onClick={() => openEditModal(course)}
+                                                        id={index === 0 ? "courses-edit-btn-0" : undefined}
                                                         className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
                                                         title="Editar Curso"
                                                     >
@@ -423,6 +425,7 @@ export default function CoursesPage() {
 
                                                     <button
                                                         onClick={() => handleOpenDistributivo(course)}
+                                                        id={index === 0 ? "courses-dist-btn-0" : undefined}
                                                         className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all ml-1"
                                                         title="Gestionar Carga Horaria"
                                                     >

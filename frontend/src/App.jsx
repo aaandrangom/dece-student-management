@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 import { ScreenLockProvider, useScreenLock } from './context/ScreenLockContext';
 import { NotificationsProvider } from './context/NotificationsContext';
 import SecurityWrapper from './components/SecurityWrapper';
+import { TutorialProvider } from './context/TutorialContext';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 
@@ -104,7 +105,9 @@ function App() {
       <Toaster position="bottom-right" richColors closeButton />
       <NotificationsProvider>
         <Router>
-          <MainLayout />
+          <TutorialProvider>
+            <MainLayout />
+          </TutorialProvider>
         </Router>
       </NotificationsProvider>
     </ScreenLockProvider>

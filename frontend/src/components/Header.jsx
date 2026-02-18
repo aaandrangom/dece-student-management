@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, User, Bell, Search, Menu, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Lock, User, Bell, Search, Menu, Settings, LogOut, ChevronDown, CircleHelp } from 'lucide-react';
 import { useScreenLock } from '../context/ScreenLockContext';
 import { useNotifications } from '../context/NotificationsContext';
+import { useTutorial } from '../context/TutorialContext';
 import { useNavigate } from 'react-router-dom';
 import GlobalSearch from './GlobalSearch';
 import { ObtenerFotoPerfilBase64 } from '../../wailsjs/go/services/UserService';
@@ -9,6 +10,7 @@ import { ObtenerFotoPerfilBase64 } from '../../wailsjs/go/services/UserService';
 const Header = () => {
   const { user, lockScreen, logout } = useScreenLock();
   const { notifications, unreadCount, markAsRead } = useNotifications();
+  const { runTutorial } = useTutorial();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -65,6 +67,14 @@ const Header = () => {
       <div className="flex items-center gap-4">
         <button className="md:hidden p-2.5 rounded-xl text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-all">
           <Search className="w-5 h-5" />
+        </button>
+
+        <button
+          onClick={() => runTutorial('initial-config')}
+          className="p-2.5 rounded-xl text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 border border-transparent hover:border-purple-100"
+          title="Ayuda interactiva"
+        >
+          <CircleHelp className="w-5 h-5" />
         </button>
 
         <div className="relative">

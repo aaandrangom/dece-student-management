@@ -146,7 +146,7 @@ const SidebarItem = ({ item, isCollapsed, setHoveredItem, setMenuPosition }) => 
   }, [isCollapsed, hasSubOptions, item, setHoveredItem, setMenuPosition]);
 
   return (
-    <div className="mb-1" ref={itemRef} onMouseEnter={handleMouseEnter}>
+    <div className="mb-1" ref={itemRef} onMouseEnter={handleMouseEnter} id={item.id}>
       <Link
         to={hasSubOptions ? '#' : item.path}
         onClick={handleClick}
@@ -184,6 +184,7 @@ const SidebarItem = ({ item, isCollapsed, setHoveredItem, setMenuPosition }) => 
                 <Link
                   key={idx}
                   to={subItem.path}
+                  id={subItem.id}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors duration-150 
                     ${isSubActive
                       ? 'text-white bg-white/15 font-semibold translate-x-1 shadow-sm'

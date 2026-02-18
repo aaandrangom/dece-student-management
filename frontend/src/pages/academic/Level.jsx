@@ -161,6 +161,7 @@ export default function LevelsPage() {
 
                     <button
                         onClick={openCreateModal}
+                        id="levels-new-btn"
                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95"
                     >
                         <Plus className="w-4 h-4" />
@@ -168,7 +169,7 @@ export default function LevelsPage() {
                     </button>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col" id="levels-table">
 
                     <div className="p-4 border-b border-slate-100 flex items-center gap-4 bg-slate-50/30">
                         <div className="relative flex-1 max-w-md">
@@ -211,7 +212,7 @@ export default function LevelsPage() {
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredLevels.map((level) => (
+                                    filteredLevels.map((level, index) => (
                                         <tr key={level.id} className="hover:bg-purple-50/30 transition-colors group">
                                             <td className="px-6 py-4 text-center">
                                                 <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-sm border border-slate-200 shadow-sm">
@@ -230,6 +231,7 @@ export default function LevelsPage() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => openEditModal(level)}
+                                                        id={index === 0 ? "levels-edit-btn-0" : undefined}
                                                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100 shadow-sm"
                                                         title="Editar nivel"
                                                     >

@@ -188,6 +188,7 @@ export default function SubjectsPage() {
 
                     <button
                         onClick={openCreateModal}
+                        id="subjects-new-btn"
                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95"
                     >
                         <Plus className="w-4 h-4" />
@@ -195,7 +196,7 @@ export default function SubjectsPage() {
                     </button>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col" id="subjects-table">
 
                     <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center gap-4 bg-slate-50/30">
                         <div className="relative flex-1 w-full">
@@ -257,7 +258,7 @@ export default function SubjectsPage() {
                                         </td>
                                     </tr>
                                 ) : (
-                                    paginatedSubjects.map((subject) => (
+                                    paginatedSubjects.map((subject, index) => (
                                         <tr key={subject.id} className="hover:bg-purple-50/30 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
@@ -278,6 +279,7 @@ export default function SubjectsPage() {
                                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button
                                                         onClick={() => openEditModal(subject)}
+                                                        id={index === 0 ? "subjects-edit-btn-0" : undefined}
                                                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100 shadow-sm"
                                                         title="Editar materia"
                                                     >

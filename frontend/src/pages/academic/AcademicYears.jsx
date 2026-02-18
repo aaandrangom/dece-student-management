@@ -240,6 +240,7 @@ export default function AcademicYearsPage() {
 
                     <button
                         onClick={openCreateModal}
+                        id="academic-years-new-btn"
                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95"
                     >
                         <Plus className="w-4 h-4" />
@@ -247,7 +248,7 @@ export default function AcademicYearsPage() {
                     </button>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col" id="academic-years-table">
 
                     <div className="p-4 border-b border-slate-100 flex items-center gap-4 bg-slate-50/30">
                         <div className="relative flex-1 max-w-md">
@@ -291,7 +292,7 @@ export default function AcademicYearsPage() {
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredPeriods.map((period) => (
+                                    filteredPeriods.map((period, index) => (
                                         <tr key={period.id} className={`transition-colors ${period.es_activo ? 'bg-purple-50/30 hover:bg-purple-50/50' : 'hover:bg-slate-50'}`}>
                                             <td className="px-6 py-4">
                                                 <span className={`font-bold text-sm ${period.es_activo ? 'text-purple-700' : 'text-slate-700'}`}>
@@ -313,6 +314,7 @@ export default function AcademicYearsPage() {
                                                         <>
                                                             <button
                                                                 onClick={() => openEditModal(period)}
+                                                                id={index === 0 ? "academic-years-edit-btn-0" : undefined}
                                                                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100 shadow-sm"
                                                                 title="Editar fechas"
                                                             >
@@ -322,6 +324,7 @@ export default function AcademicYearsPage() {
                                                             {!period.es_activo && (
                                                                 <button
                                                                     onClick={() => handleAction('ACTIVATE', period)}
+                                                                    id={index === 0 ? "academic-years-activate-btn-0" : undefined}
                                                                     className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all border border-transparent hover:border-emerald-100 shadow-sm"
                                                                     title="Activar Periodo"
                                                                 >

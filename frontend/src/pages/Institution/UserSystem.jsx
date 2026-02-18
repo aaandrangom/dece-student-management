@@ -110,7 +110,7 @@ const UserSystem = () => {
                             <p className="font-medium text-slate-600">No hay usuarios registrados</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto" id="system-users-table">
                             <table className="w-full text-left border-collapse">
                                 <thead className="bg-slate-50 border-b border-slate-200">
                                     <tr>
@@ -158,6 +158,7 @@ const UserSystem = () => {
                                                 <div className="flex justify-end gap-2">
                                                     <button
                                                         onClick={() => handleOpenUserModal(user)}
+                                                        id={usuarios.indexOf(user) === 0 ? "system-users-edit-btn-0" : undefined}
                                                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 rounded-lg transition-colors text-xs font-bold shadow-sm"
                                                         title="Editar datos"
                                                     >
@@ -183,28 +184,32 @@ const UserSystem = () => {
                 </div>
             </div>
 
-            {showUserModal && (
-                <UserEditModal
-                    user={currentUserToEdit}
-                    userPhoto={userPhotos[currentUserToEdit?.id]}
-                    onClose={() => {
-                        setShowUserModal(false);
-                        setCurrentUserToEdit(null);
-                    }}
-                    onSuccess={handleUserUpdated}
-                />
-            )}
+            {
+                showUserModal && (
+                    <UserEditModal
+                        user={currentUserToEdit}
+                        userPhoto={userPhotos[currentUserToEdit?.id]}
+                        onClose={() => {
+                            setShowUserModal(false);
+                            setCurrentUserToEdit(null);
+                        }}
+                        onSuccess={handleUserUpdated}
+                    />
+                )
+            }
 
-            {showPasswordModal && (
-                <PasswordChangeModal
-                    userId={currentUserId}
-                    onClose={() => {
-                        setShowPasswordModal(false);
-                        setCurrentUserId(null);
-                    }}
-                />
-            )}
-        </div>
+            {
+                showPasswordModal && (
+                    <PasswordChangeModal
+                        userId={currentUserId}
+                        onClose={() => {
+                            setShowPasswordModal(false);
+                            setCurrentUserId(null);
+                        }}
+                    />
+                )
+            }
+        </div >
     );
 };
 
@@ -258,7 +263,7 @@ const UserEditModal = ({ user, userPhoto, onClose, onSuccess }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all animate-in fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 scale-100 transform transition-all">
+            <div id="user-edit-modal-content" className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 scale-100 transform transition-all">
                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-50 rounded-lg text-blue-600 border border-blue-100">

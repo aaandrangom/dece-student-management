@@ -225,6 +225,7 @@ export default function TeachersPage() {
                         </button>
                         <button
                             onClick={openCreateModal}
+                            id="teachers-new-btn"
                             className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95"
                         >
                             <Plus className="w-4 h-4" />
@@ -233,7 +234,7 @@ export default function TeachersPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col" id="teachers-table">
 
                     <div className="p-4 border-b border-slate-100 flex items-center gap-4 bg-slate-50/30">
                         <div className="relative flex-1 max-w-md">
@@ -288,7 +289,7 @@ export default function TeachersPage() {
                                         </td>
                                     </tr>
                                 ) : (
-                                    paginatedTeachers.map((teacher) => (
+                                    paginatedTeachers.map((teacher, index) => (
                                         <tr key={teacher.id} className={`transition-colors ${!teacher.activo ? 'bg-slate-50/50 grayscale-[0.5]' : 'hover:bg-purple-50/30'}`}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
@@ -345,6 +346,7 @@ export default function TeachersPage() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => openEditModal(teacher)}
+                                                        id={index === 0 ? "teachers-edit-btn-0" : undefined}
                                                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100 shadow-sm"
                                                         title="Editar información"
                                                     >

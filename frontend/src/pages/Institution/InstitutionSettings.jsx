@@ -176,6 +176,7 @@ const InstitutionSettings = () => {
                         <button
                             onClick={handleGenerateReport}
                             disabled={isGeneratingReport || isSaving}
+                            id="inst-settings-reporte-btn"
                             className="px-4 py-2.5 bg-white text-slate-700 font-bold rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-purple-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
                             title="Generar Reporte PDF"
                         >
@@ -190,6 +191,7 @@ const InstitutionSettings = () => {
                         <button
                             onClick={handleSubmit}
                             disabled={isSaving}
+                            id="inst-settings-guardar-btn"
                             className="w-full sm:w-auto px-6 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
                         >
                             {isSaving ? (
@@ -212,7 +214,7 @@ const InstitutionSettings = () => {
                     <div className="p-8">
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
 
-                            <div className="space-y-6">
+                            <div className="space-y-6" id="inst-settings-general">
                                 <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
                                     <School className="w-5 h-5 text-purple-500" />
                                     <h2 className="text-lg font-bold text-slate-800">Datos Generales</h2>
@@ -273,7 +275,7 @@ const InstitutionSettings = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-6">
+                            <div className="space-y-6" id="inst-settings-ubicacion">
                                 <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
                                     <MapPin className="w-5 h-5 text-indigo-500" />
                                     <h2 className="text-lg font-bold text-slate-800">Ubicación Geográfica</h2>
@@ -325,7 +327,7 @@ const InstitutionSettings = () => {
                         </div>
                     </div>
 
-                    <div className="p-8 bg-slate-50/30 border-t border-slate-100">
+                    <div className="p-8 bg-slate-50/30 border-t border-slate-100" id="inst-settings-autoridades">
                         <div className="flex items-center gap-2 mb-6">
                             <Users className="w-5 h-5 text-emerald-500" />
                             <h2 className="text-lg font-bold text-slate-800">Autoridades Institucionales</h2>
