@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HeartHandshake, User, Lock, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useScreenLock } from '../context/ScreenLockContext';
@@ -8,6 +8,7 @@ const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const passwordRef = useRef(null);
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
@@ -31,6 +32,7 @@ const LoginScreen = () => {
       const errorMessage = typeof err === 'string' ? err : 'Usuario o contraseña incorrectos';
       toast.error(errorMessage);
       setPassword('');
+      setTimeout(() => passwordRef.current?.focus(), 100);
     } finally {
       setIsLoading(false);
     }
@@ -120,6 +122,7 @@ const LoginScreen = () => {
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
+                  ref={passwordRef}
                   type={"password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
     User, Loader2, AlertCircle, ShieldAlert,
     Lock, Eye, EyeOff, Shield
@@ -13,11 +13,13 @@ const ModuleAuthGate = ({ onAuthenticated }) => {
     const [isVerifying, setIsVerifying] = useState(false);
     const [error, setError] = useState('');
     const [attempts, setAttempts] = useState(0);
+    const passwordRef = useRef(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!clave.trim()) {
             setError('Ingrese su contraseña');
+            passwordRef.current?.focus();
             return;
         }
 
@@ -31,9 +33,11 @@ const ModuleAuthGate = ({ onAuthenticated }) => {
                 setAttempts(prev => prev + 1);
                 setError('Contraseña incorrecta');
                 setClave('');
+                setTimeout(() => passwordRef.current?.focus(), 100);
             }
         } catch (err) {
             setError('Error al verificar credenciales');
+            setTimeout(() => passwordRef.current?.focus(), 100);
         } finally {
             setIsVerifying(false);
         }
@@ -79,12 +83,13 @@ const ModuleAuthGate = ({ onAuthenticated }) => {
                                     <Lock className="w-4 h-4 text-slate-300 group-focus-within:text-[#5b2c8a] transition-colors" />
                                 </div>
                                 <input
+                                    ref={passwordRef}
                                     type={showPassword ? 'text' : 'password'}
                                     value={clave}
                                     onChange={(e) => { setClave(e.target.value); setError(''); }}
                                     className={`w-full pl-10 pr-10 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-4 transition-all text-slate-700 placeholder:text-slate-300 ${error
-                                            ? 'border-red-200 focus:ring-red-500/10 focus:border-red-500 bg-red-50/30'
-                                            : 'border-slate-200 focus:ring-[#5b2c8a]/10 focus:border-[#5b2c8a] hover:border-slate-300'
+                                        ? 'border-red-200 focus:ring-red-500/10 focus:border-red-500 bg-red-50/30'
+                                        : 'border-slate-200 focus:ring-[#5b2c8a]/10 focus:border-[#5b2c8a] hover:border-slate-300'
                                         }`}
                                     placeholder="••••••••"
                                     autoFocus
