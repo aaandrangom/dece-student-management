@@ -67,7 +67,7 @@ const LoginScreen = () => {
         </div>
 
         <div className="text-sm text-indigo-300">
-          © {currentYear} Sistema Integrado de Gestión DECE · Versión 1.1.0
+          © {currentYear} Sistema Integrado de Gestión DECE · Versión 1.2.0
         </div>
       </div>
 
@@ -162,7 +162,7 @@ const LoginScreen = () => {
           </div>
 
           <div className="lg:hidden mt-8 text-center text-sm text-gray-500">
-            <p>© {currentYear} Sistema Integrado de Gestión DECE · Versión 1.1.0</p>
+            <p>© {currentYear} Sistema Integrado de Gestión DECE · Versión 1.2.0</p>
           </div>
         </div>
       </div>
