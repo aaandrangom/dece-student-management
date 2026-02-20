@@ -10,6 +10,10 @@ export function DoUpdate() {
   return window['go']['main']['App']['DoUpdate']();
 }
 
+export function GetVersion() {
+  return window['go']['main']['App']['GetVersion']();
+}
+
 export function RestartApp() {
   return window['go']['main']['App']['RestartApp']();
 }

@@ -2,14 +2,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import { HeartHandshake, User, Lock, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useScreenLock } from '../context/ScreenLockContext';
+import { GetVersion } from '../../wailsjs/go/main/App';
 
 const LoginScreen = () => {
   const { login } = useScreenLock();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [appVersion, setAppVersion] = useState('');
   const passwordRef = useRef(null);
   const currentYear = new Date().getFullYear();
+
+  useEffect(() => {
+    GetVersion().then(v => setAppVersion(v)).catch(() => setAppVersion(''));
+  }, []);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('savedUserData');
@@ -67,7 +73,7 @@ const LoginScreen = () => {
         </div>
 
         <div className="text-sm text-indigo-300">
-          © {currentYear} Sistema Integrado de Gestión DECE · Versión 1.2.0
+          © {currentYear} Sistema Integrado de Gestión DECE · Versión {appVersion}
         </div>
       </div>
 
@@ -162,7 +168,7 @@ const LoginScreen = () => {
           </div>
 
           <div className="lg:hidden mt-8 text-center text-sm text-gray-500">
-            <p>© {currentYear} Sistema Integrado de Gestión DECE · Versión 1.2.0</p>
+            <p>© {currentYear} Sistema Integrado de Gestión DECE · Versión {appVersion}</p>
           </div>
         </div>
       </div>

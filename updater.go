@@ -11,7 +11,12 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const CurrentVersion = "1.2.0"
+const CurrentVersion = "1.2.1"
+
+// GetVersion expone la versión actual al frontend
+func (a *App) GetVersion() string {
+	return CurrentVersion
+}
 
 type UpdateInfo struct {
 	Version     string `json:"version"`
