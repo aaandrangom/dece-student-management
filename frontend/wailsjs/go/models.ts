@@ -1880,6 +1880,7 @@ export namespace management {
 	    descripcion: string;
 	    ruta_archivo: string;
 	    tags: common.JSONMap_dece_internal_domain_management_PlantillaTags_;
+	    incluye_firma: boolean;
 	    fecha_creacion: string;
 	    fecha_modificacion: string;
 	
@@ -1894,6 +1895,7 @@ export namespace management {
 	        this.descripcion = source["descripcion"];
 	        this.ruta_archivo = source["ruta_archivo"];
 	        this.tags = this.convertValues(source["tags"], common.JSONMap_dece_internal_domain_management_PlantillaTags_);
+	        this.incluye_firma = source["incluye_firma"];
 	        this.fecha_creacion = source["fecha_creacion"];
 	        this.fecha_modificacion = source["fecha_modificacion"];
 	    }

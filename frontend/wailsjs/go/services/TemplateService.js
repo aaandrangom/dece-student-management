@@ -30,6 +30,10 @@ export function ObtenerDatosCertificado(arg1, arg2) {
   return window['go']['services']['TemplateService']['ObtenerDatosCertificado'](arg1, arg2);
 }
 
+export function ObtenerFirmaBase64() {
+  return window['go']['services']['TemplateService']['ObtenerFirmaBase64']();
+}
+
 export function RecargarTagsPlantilla(arg1) {
   return window['go']['services']['TemplateService']['RecargarTagsPlantilla'](arg1);
 }
@@ -42,6 +46,18 @@ export function SetContext(arg1) {
   return window['go']['services']['TemplateService']['SetContext'](arg1);
 }
 
+export function SubirFirma() {
+  return window['go']['services']['TemplateService']['SubirFirma']();
+}
+
 export function SubirPlantilla(arg1, arg2) {
   return window['go']['services']['TemplateService']['SubirPlantilla'](arg1, arg2);
+}
+
+export function TieneFirma() {
+  return window['go']['services']['TemplateService']['TieneFirma']();
+}
+
+export function ToggleIncluyeFirma(arg1, arg2) {
+  return window['go']['services']['TemplateService']['ToggleIncluyeFirma'](arg1, arg2);
 }

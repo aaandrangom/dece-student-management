@@ -13,6 +13,7 @@ type Plantilla struct {
 	Descripcion       string                        `json:"descripcion"`
 	RutaArchivo       string                        `json:"ruta_archivo"`
 	Tags              common.JSONMap[PlantillaTags] `gorm:"type:text" json:"tags"`
+	IncluyeFirma      bool                          `json:"incluye_firma" gorm:"default:false"`
 	FechaCreacion     string                        `json:"fecha_creacion"`
 	FechaModificacion string                        `json:"fecha_modificacion"`
 }

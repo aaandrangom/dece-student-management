@@ -17,10 +17,18 @@ export function ListarPlantillas():Promise<Array<management.Plantilla>>;
 
 export function ObtenerDatosCertificado(arg1:number,arg2:number):Promise<Record<string, string>>;
 
+export function ObtenerFirmaBase64():Promise<string>;
+
 export function RecargarTagsPlantilla(arg1:number):Promise<management.Plantilla>;
 
 export function ReemplazarArchivoPlantilla(arg1:number):Promise<management.Plantilla>;
 
 export function SetContext(arg1:context.Context):Promise<void>;
 
+export function SubirFirma():Promise<string>;
+
 export function SubirPlantilla(arg1:string,arg2:string):Promise<management.Plantilla>;
+
+export function TieneFirma():Promise<boolean>;
+
+export function ToggleIncluyeFirma(arg1:number,arg2:boolean):Promise<management.Plantilla>;

@@ -9,8 +9,12 @@ import (
 	"dece/internal/domain/security"
 	"dece/internal/domain/student"
 	"dece/internal/domain/tracking"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"os"
 	"os/exec"
@@ -128,6 +132,157 @@ func extractTagsFromDocx(rutaArchivo string) ([]string, error) {
 		tags = append(tags, tag)
 	}
 	return tags, nil
+}
+
+// getFirmaPath devuelve la ruta donde se almacena la imagen de firma
+func (s *TemplateService) getFirmaPath() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", errors.New("no se pudo obtener carpeta de usuario")
+	}
+	return filepath.Join(homeDir, "Documents", "SistemaDECE", "firma.png"), nil
+}
+
+// TieneFirma verifica si existe una imagen de firma configurada
+func (s *TemplateService) TieneFirma() bool {
+	path, err := s.getFirmaPath()
+	if err != nil {
+		return false
+	}
+	_, err = os.Stat(path)
+	return err == nil
+}
+
+// SubirFirma permite al usuario subir una imagen de firma (PNG/JPG)
+func (s *TemplateService) SubirFirma() (string, error) {
+	if s.ctx == nil {
+		return "", errors.New("contexto no inicializado")
+	}
+
+	filePath, err := wailsRuntime.OpenFileDialog(s.ctx, wailsRuntime.OpenDialogOptions{
+		Title: "Seleccionar Imagen de Firma",
+		Filters: []wailsRuntime.FileFilter{
+			{DisplayName: "Imágenes", Pattern: "*.png;*.jpg;*.jpeg"},
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+	if filePath == "" {
+		return "", nil // Canceló
+	}
+
+	destPath, err := s.getFirmaPath()
+	if err != nil {
+		return "", err
+	}
+
+	// Asegurar que la carpeta existe
+	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+		return "", fmt.Errorf("error creando carpeta: %v", err)
+	}
+
+	// Copiar archivo
+	srcFile, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("no se pudo leer la imagen: %v", err)
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(destPath)
+	if err != nil {
+		return "", fmt.Errorf("no se pudo guardar la imagen: %v", err)
+	}
+	defer dstFile.Close()
+
+	if _, err := io.Copy(dstFile, srcFile); err != nil {
+		return "", fmt.Errorf("error copiando imagen: %v", err)
+	}
+
+	return destPath, nil
+}
+
+// ObtenerFirmaBase64 devuelve la imagen de firma codificada en base64
+func (s *TemplateService) ObtenerFirmaBase64() (string, error) {
+	path, err := s.getFirmaPath()
+	if err != nil {
+		return "", err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", errors.New("no se encontró la imagen de firma")
+	}
+	encoded := base64.StdEncoding.EncodeToString(data)
+	return "data:image/png;base64," + encoded, nil
+}
+
+// ToggleIncluyeFirma activa o desactiva la firma para una plantilla
+func (s *TemplateService) ToggleIncluyeFirma(id uint, incluye bool) (*management.Plantilla, error) {
+	var plantilla management.Plantilla
+	if err := s.db.First(&plantilla, id).Error; err != nil {
+		return nil, errors.New("plantilla no encontrada")
+	}
+	plantilla.IncluyeFirma = incluye
+	plantilla.FechaModificacion = time.Now().Format("2006-01-02 15:04:05")
+	if err := s.db.Save(&plantilla).Error; err != nil {
+		return nil, fmt.Errorf("error al actualizar: %v", err)
+	}
+	return &plantilla, nil
+}
+
+// getFirmaDimensions lee las dimensiones de la imagen de firma y las convierte a EMU
+func getFirmaDimensions(firmaPath string) (widthEMU int64, heightEMU int64) {
+	f, err := os.Open(firmaPath)
+	if err != nil {
+		return 1800000, 720000 // Default: ~5cm x 2cm
+	}
+	defer f.Close()
+
+	config, _, err := image.DecodeConfig(f)
+	if err != nil {
+		return 1800000, 720000
+	}
+
+	// Convertir pixels a EMU (asumiendo 96 DPI)
+	// 1 inch = 914400 EMU, a 96 DPI: 1px = 9525 EMU
+	widthEMU = int64(config.Width) * 9525
+	heightEMU = int64(config.Height) * 9525
+
+	// Limitar ancho máximo a 5cm (1800000 EMU) y escalar proporcionalmente
+	maxWidthEMU := int64(1800000)
+	if widthEMU > maxWidthEMU {
+		scale := float64(maxWidthEMU) / float64(widthEMU)
+		widthEMU = maxWidthEMU
+		heightEMU = int64(float64(heightEMU) * scale)
+	}
+
+	return widthEMU, heightEMU
+}
+
+// buildFirmaImageXML genera el XML de Word para insertar una imagen inline
+func buildFirmaImageXML(relID string, widthEMU, heightEMU int64) string {
+	return fmt.Sprintf(
+		`<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing>`+
+			`<wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">`+
+			`<wp:extent cx="%d" cy="%d"/>`+
+			`<wp:docPr id="99" name="Firma"/>`+
+			`<wp:cNvGraphicFramePr/>`+
+			`<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">`+
+			`<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">`+
+			`<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">`+
+			`<pic:nvPicPr><pic:cNvPr id="99" name="firma.png"/><pic:cNvPicPr/></pic:nvPicPr>`+
+			`<pic:blipFill>`+
+			`<a:blip r:embed="%s" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>`+
+			`<a:stretch><a:fillRect/></a:stretch>`+
+			`</pic:blipFill>`+
+			`<pic:spPr>`+
+			`<a:xfrm><a:off x="0" y="0"/><a:ext cx="%d" cy="%d"/></a:xfrm>`+
+			`<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>`+
+			`</pic:spPr>`+
+			`</pic:pic></a:graphicData></a:graphic>`+
+			`</wp:inline></w:drawing></w:r></w:p>`,
+		widthEMU, heightEMU, relID, widthEMU, heightEMU,
+	)
 }
 
 // preserveTagLabels conserva las etiquetas personalizadas existentes para tags que siguen presentes
@@ -558,6 +713,8 @@ func (s *TemplateService) ObtenerDatosCertificado(plantillaID uint, estudianteID
 			result[tag] = meses[now.Month()]
 		case "fecha_anio":
 			result[tag] = fmt.Sprintf("%d", now.Year())
+		case "firma":
+			// Se maneja como imagen automáticamente, no mostrar en formulario
 		default:
 			result[tag] = "" // Tag desconocido, dejarlo vacío para que el usuario lo llene
 		}
@@ -608,8 +765,20 @@ func (s *TemplateService) GenerarCertificado(plantillaID uint, estudianteID uint
 	fileName := fmt.Sprintf("CERT_%s_%d.docx", safeStudentName, time.Now().Unix())
 	outputPath := filepath.Join(certDir, fileName)
 
+	// Determinar ruta de firma si la plantilla la incluye
+	firmaPath := ""
+	if plantilla.IncluyeFirma {
+		if fp, fpErr := s.getFirmaPath(); fpErr == nil {
+			if _, statErr := os.Stat(fp); statErr == nil {
+				firmaPath = fp
+			}
+		}
+	}
+	// Eliminar tag firma de valores de texto (se maneja como imagen)
+	delete(valores, "firma")
+
 	// Abrir docx como ZIP y procesar XML
-	err = replaceTagsInDocx(plantilla.RutaArchivo, outputPath, valores)
+	err = replaceTagsInDocx(plantilla.RutaArchivo, outputPath, valores, firmaPath)
 	if err != nil {
 		return "", fmt.Errorf("error al generar certificado: %v", err)
 	}
@@ -630,8 +799,9 @@ func (s *TemplateService) GenerarCertificado(plantillaID uint, estudianteID uint
 }
 
 // replaceTagsInDocx abre el .docx, reemplaza {{tag}} por sus valores en los XML internos,
-// y escribe un nuevo .docx con los reemplazos aplicados.
-func replaceTagsInDocx(inputPath, outputPath string, valores map[string]string) error {
+// y escribe un nuevo .docx con los reemplazos aplicados. Si firmaPath no está vacío,
+// inserta la imagen de firma donde se encuentre el tag {{firma}}.
+func replaceTagsInDocx(inputPath, outputPath string, valores map[string]string, firmaPath string) error {
 	r, err := zip.OpenReader(inputPath)
 	if err != nil {
 		return fmt.Errorf("error abriendo plantilla: %v", err)
@@ -648,10 +818,19 @@ func replaceTagsInDocx(inputPath, outputPath string, valores map[string]string) 
 	w := zip.NewWriter(outFile)
 	defer w.Close()
 
+	// Configuración de firma
+	hasFirma := firmaPath != ""
+	firmaRelID := "rIdFirmaImg"
+	var firmaWidthEMU, firmaHeightEMU int64
+	if hasFirma {
+		firmaWidthEMU, firmaHeightEMU = getFirmaDimensions(firmaPath)
+	}
+
 	// Patrones para manejar tags fragmentados
 	paragraphPattern := regexp.MustCompile(`(?s)(<w:p[ >].*?</w:p>)`)
 	runPattern := regexp.MustCompile(`(?s)<w:r[ >].*?</w:r>`)
 	textContentPattern := regexp.MustCompile(`(?s)<w:t[^>]*>([^<]*)</w:t>`)
+	xmlTagStripper := regexp.MustCompile(`<[^>]+>`)
 
 	for _, f := range r.File {
 		rc, err := f.Open()
@@ -664,6 +843,24 @@ func replaceTagsInDocx(inputPath, outputPath string, valores map[string]string) 
 			return err
 		}
 
+		// Agregar relación de imagen en el archivo de relaciones del documento
+		if hasFirma && f.Name == "word/_rels/document.xml.rels" {
+			xmlStr := string(content)
+			relEntry := fmt.Sprintf(`<Relationship Id="%s" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/firma_cert.png"/>`, firmaRelID)
+			xmlStr = strings.Replace(xmlStr, "</Relationships>", relEntry+"</Relationships>", 1)
+			content = []byte(xmlStr)
+		}
+
+		// Agregar content type para PNG si no existe
+		if hasFirma && f.Name == "[Content_Types].xml" {
+			xmlStr := string(content)
+			if !strings.Contains(xmlStr, `Extension="png"`) {
+				xmlStr = strings.Replace(xmlStr, "</Types>",
+					`<Default Extension="png" ContentType="image/png"/></Types>`, 1)
+			}
+			content = []byte(xmlStr)
+		}
+
 		// Solo procesar archivos XML relevantes
 		if strings.HasSuffix(f.Name, ".xml") &&
 			(strings.Contains(f.Name, "document") ||
@@ -674,6 +871,70 @@ func replaceTagsInDocx(inputPath, outputPath string, valores map[string]string) 
 
 			// Procesar párrafo por párrafo para manejar tags fragmentados
 			xmlStr = paragraphPattern.ReplaceAllStringFunc(xmlStr, func(paragraph string) string {
+				// Extraer texto completo del párrafo limpiando XML
+				rawText := xmlTagStripper.ReplaceAllString(paragraph, "")
+
+				// Verificar si este párrafo contiene {{firma}} y hay imagen disponible
+				if hasFirma {
+					if strings.Contains(rawText, "{{firma}}") {
+						return buildFirmaImageXML(firmaRelID, firmaWidthEMU, firmaHeightEMU)
+					}
+					firmaFlexRe := regexp.MustCompile(`(?i)\{\{\s*firma\s*\}\}`)
+					if firmaFlexRe.MatchString(rawText) {
+						return buildFirmaImageXML(firmaRelID, firmaWidthEMU, firmaHeightEMU)
+					}
+				}
+
+				// Si no hay firma pero el párrafo tiene {{firma}}, reemplazar con vacío
+				if !hasFirma && (strings.Contains(rawText, "{{firma}}") || func() bool {
+					re := regexp.MustCompile(`(?i)\{\{\s*firma\s*\}\}`)
+					return re.MatchString(rawText)
+				}()) {
+					// Tratar como tag de texto normal, reemplazar con vacío
+					textMatches := textContentPattern.FindAllStringSubmatch(paragraph, -1)
+					var fullText strings.Builder
+					for _, m := range textMatches {
+						if len(m) > 1 {
+							fullText.WriteString(m[1])
+						}
+					}
+					replacedText := strings.ReplaceAll(fullText.String(), "{{firma}}", "")
+					firmaFlexRe := regexp.MustCompile(`(?i)\{\{\s*firma\s*\}\}`)
+					replacedText = firmaFlexRe.ReplaceAllString(replacedText, "")
+
+					runs := runPattern.FindAllString(paragraph, -1)
+					if len(runs) == 0 {
+						return paragraph
+					}
+					firstTextRun := true
+					resultPara := paragraph
+					for _, run := range runs {
+						if !textContentPattern.MatchString(run) {
+							continue
+						}
+						if firstTextRun {
+							newRun := textContentPattern.ReplaceAllStringFunc(run, func(match string) string {
+								openTag := match[:strings.Index(match, ">")+1]
+								return openTag + replacedText + "</w:t>"
+							})
+							firstWT := textContentPattern.FindString(newRun)
+							if firstWT != "" {
+								newRunClean := textContentPattern.ReplaceAllString(newRun, "")
+								newRunClean = strings.Replace(newRunClean, "</w:r>", firstWT+"</w:r>", 1)
+								resultPara = strings.Replace(resultPara, run, newRunClean, 1)
+							}
+							firstTextRun = false
+						} else {
+							cleanedRun := textContentPattern.ReplaceAllStringFunc(run, func(match string) string {
+								openTag := match[:strings.Index(match, ">")+1]
+								return openTag + "</w:t>"
+							})
+							resultPara = strings.Replace(resultPara, run, cleanedRun, 1)
+						}
+					}
+					return resultPara
+				}
+
 				// Extraer texto completo del párrafo concatenando todos los <w:t>
 				textMatches := textContentPattern.FindAllStringSubmatch(paragraph, -1)
 				var fullText strings.Builder
@@ -683,19 +944,19 @@ func replaceTagsInDocx(inputPath, outputPath string, valores map[string]string) 
 					}
 				}
 
-				rawText := fullText.String()
+				rawTextClean := fullText.String()
 
 				// Verificar si hay algún tag {{...}} en el texto concatenado
 				hasTag := false
 				for tag := range valores {
 					// Check simple
-					if strings.Contains(rawText, "{{"+tag+"}}") {
+					if strings.Contains(rawTextClean, "{{"+tag+"}}") {
 						hasTag = true
 						break
 					}
 					// Check con espacios (regex) e insensitive
 					tagName := regexp.QuoteMeta(tag)
-					if ok, _ := regexp.MatchString(`(?i)\{\{\s*`+tagName+`\s*\}\}`, rawText); ok {
+					if ok, _ := regexp.MatchString(`(?i)\{\{\s*`+tagName+`\s*\}\}`, rawTextClean); ok {
 						hasTag = true
 						break
 					}
@@ -706,7 +967,7 @@ func replaceTagsInDocx(inputPath, outputPath string, valores map[string]string) 
 				}
 
 				// Hay tags: hacer el reemplazo en el texto concatenado
-				replacedText := rawText
+				replacedText := rawTextClean
 				for tag, valor := range valores {
 					// Reemplazo exacto
 					replacedText = strings.ReplaceAll(replacedText, "{{"+tag+"}}", valor)
@@ -779,6 +1040,21 @@ func replaceTagsInDocx(inputPath, outputPath string, valores map[string]string) 
 		_, err = writer.Write(content)
 		if err != nil {
 			return err
+		}
+	}
+
+	// Agregar imagen de firma al ZIP si es necesario
+	if hasFirma {
+		firmaContent, fErr := os.ReadFile(firmaPath)
+		if fErr != nil {
+			return fmt.Errorf("error leyendo imagen de firma: %v", fErr)
+		}
+		firmaWriter, fErr := w.Create("word/media/firma_cert.png")
+		if fErr != nil {
+			return fmt.Errorf("error agregando firma al documento: %v", fErr)
+		}
+		if _, fErr = firmaWriter.Write(firmaContent); fErr != nil {
+			return fmt.Errorf("error escribiendo firma: %v", fErr)
 		}
 	}
 

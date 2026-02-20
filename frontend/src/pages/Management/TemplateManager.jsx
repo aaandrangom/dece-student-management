@@ -9,7 +9,8 @@ import {
 import {
     SubirPlantilla, ListarPlantillas, EliminarPlantilla,
     ActualizarPlantilla, ReemplazarArchivoPlantilla,
-    AbrirPlantillaEnEditor, RecargarTagsPlantilla, ActualizarTagLabels
+    AbrirPlantillaEnEditor, RecargarTagsPlantilla, ActualizarTagLabels,
+    ToggleIncluyeFirma, SubirFirma, TieneFirma, ObtenerFirmaBase64
 } from '../../../wailsjs/go/services/TemplateService';
 
 export default function TemplateManager() {
@@ -25,9 +26,12 @@ export default function TemplateManager() {
     const [isEditingLabels, setIsEditingLabels] = useState(false);
     const [editingLabels, setEditingLabels] = useState({});
     const [isSavingLabels, setIsSavingLabels] = useState(false);
+    const [hasFirmaGlobal, setHasFirmaGlobal] = useState(false);
+    const [firmaPreview, setFirmaPreview] = useState(null);
 
     useEffect(() => {
         loadTemplates();
+        checkFirmaStatus();
     }, []);
 
     const loadTemplates = async () => {
@@ -39,6 +43,42 @@ export default function TemplateManager() {
             toast.error("Error al cargar plantillas");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const checkFirmaStatus = async () => {
+        try {
+            const exists = await TieneFirma();
+            setHasFirmaGlobal(exists);
+            if (exists) {
+                const b64 = await ObtenerFirmaBase64();
+                setFirmaPreview(b64);
+            }
+        } catch { setHasFirmaGlobal(false); }
+    };
+
+    const handleToggleFirma = async (incluye) => {
+        try {
+            const updated = await ToggleIncluyeFirma(selectedTemplate.id, incluye);
+            if (updated) {
+                setSelectedTemplate(updated);
+                setTemplates(prev => prev.map(t => t.id === updated.id ? updated : t));
+                toast.success(incluye ? 'Firma activada' : 'Firma desactivada');
+            }
+        } catch (err) {
+            toast.error('Error al actualizar firma');
+        }
+    };
+
+    const handleUploadFirma = async () => {
+        try {
+            const path = await SubirFirma();
+            if (path) {
+                await checkFirmaStatus();
+                toast.success('Imagen de firma actualizada');
+            }
+        } catch (err) {
+            toast.error('Error al subir imagen de firma');
         }
     };
 
@@ -481,6 +521,56 @@ export default function TemplateManager() {
                                                 <p className="text-[10px] text-slate-400 font-bold uppercase">Modificado</p>
                                                 <p className="text-xs text-slate-600 font-medium mt-0.5">{formatDate(selectedTemplate.fecha_modificacion)}</p>
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Firma Digital */}
+                                    <div>
+                                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Firma Digital</h4>
+                                        <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-3">
+                                            <label className="flex items-center gap-3 cursor-pointer select-none">
+                                                <div className="relative">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedTemplate.incluye_firma || false}
+                                                        onChange={e => handleToggleFirma(e.target.checked)}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className="w-9 h-5 bg-slate-300 rounded-full peer-checked:bg-emerald-500 transition-colors" />
+                                                    <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4" />
+                                                </div>
+                                                <span className="text-xs font-medium text-slate-700">Incluir firma en certificados</span>
+                                            </label>
+
+                                            {selectedTemplate.incluye_firma && (
+                                                <div className="space-y-2 pt-1 border-t border-slate-200">
+                                                    {hasFirmaGlobal && firmaPreview ? (
+                                                        <div className="flex items-center gap-3">
+                                                            <img
+                                                                src={firmaPreview}
+                                                                alt="Firma"
+                                                                className="h-10 object-contain bg-white rounded border border-slate-200 p-1"
+                                                            />
+                                                            <div className="flex-1">
+                                                                <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                                                                    <Check className="w-3 h-3" /> Firma configurada
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-[10px] text-amber-600 font-medium">
+                                                            ⚠ No hay imagen de firma configurada
+                                                        </p>
+                                                    )}
+                                                    <button
+                                                        onClick={handleUploadFirma}
+                                                        className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-white text-slate-700 text-[11px] font-bold rounded-lg border border-slate-300 hover:bg-slate-100 transition-all active:scale-[0.98]"
+                                                    >
+                                                        <Upload className="w-3 h-3" />
+                                                        {hasFirmaGlobal ? 'Cambiar imagen' : 'Subir imagen de firma'}
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
