@@ -3,7 +3,8 @@ package management
 import "dece/internal/domain/common"
 
 type PlantillaTags struct {
-	Tags []string `json:"tags"`
+	Tags      []string          `json:"tags"`
+	TagLabels map[string]string `json:"tag_labels,omitempty"`
 }
 
 type Plantilla struct {

@@ -10,6 +10,10 @@ export function ActualizarPlantilla(arg1, arg2, arg3) {
   return window['go']['services']['TemplateService']['ActualizarPlantilla'](arg1, arg2, arg3);
 }
 
+export function ActualizarTagLabels(arg1, arg2) {
+  return window['go']['services']['TemplateService']['ActualizarTagLabels'](arg1, arg2);
+}
+
 export function EliminarPlantilla(arg1) {
   return window['go']['services']['TemplateService']['EliminarPlantilla'](arg1);
 }

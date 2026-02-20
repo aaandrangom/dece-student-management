@@ -130,6 +130,27 @@ func extractTagsFromDocx(rutaArchivo string) ([]string, error) {
 	return tags, nil
 }
 
+// preserveTagLabels conserva las etiquetas personalizadas existentes para tags que siguen presentes
+func preserveTagLabels(newTags []string, existingLabels map[string]string) map[string]string {
+	if len(existingLabels) == 0 {
+		return nil
+	}
+	newTagSet := make(map[string]bool, len(newTags))
+	for _, t := range newTags {
+		newTagSet[t] = true
+	}
+	result := make(map[string]string)
+	for tag, label := range existingLabels {
+		if newTagSet[tag] {
+			result[tag] = label
+		}
+	}
+	if len(result) == 0 {
+		return nil
+	}
+	return result
+}
+
 // SubirPlantilla permite al usuario seleccionar un .docx y lo guarda como plantilla
 func (s *TemplateService) SubirPlantilla(nombre string, descripcion string) (*management.Plantilla, error) {
 	if s.ctx == nil {
@@ -332,7 +353,12 @@ func (s *TemplateService) ReemplazarArchivoPlantilla(id uint) (*management.Plant
 	}
 
 	plantilla.RutaArchivo = destPath
-	plantilla.Tags = common.JSONMap[management.PlantillaTags]{Data: management.PlantillaTags{Tags: tags}}
+
+	// Preservar labels existentes para tags que siguen presentes
+	existingLabels := plantilla.Tags.Data.TagLabels
+	newLabels := preserveTagLabels(tags, existingLabels)
+
+	plantilla.Tags = common.JSONMap[management.PlantillaTags]{Data: management.PlantillaTags{Tags: tags, TagLabels: newLabels}}
 	plantilla.FechaModificacion = time.Now().Format("2006-01-02 15:04:05")
 
 	if err := s.db.Save(&plantilla).Error; err != nil {
@@ -386,11 +412,32 @@ func (s *TemplateService) RecargarTagsPlantilla(id uint) (*management.Plantilla,
 		return nil, fmt.Errorf("error analizando la plantilla: %v", err)
 	}
 
-	plantilla.Tags = common.JSONMap[management.PlantillaTags]{Data: management.PlantillaTags{Tags: tags}}
+	// Preservar labels existentes para tags que siguen presentes
+	existingLabels := plantilla.Tags.Data.TagLabels
+	newLabels := preserveTagLabels(tags, existingLabels)
+
+	plantilla.Tags = common.JSONMap[management.PlantillaTags]{Data: management.PlantillaTags{Tags: tags, TagLabels: newLabels}}
 	plantilla.FechaModificacion = time.Now().Format("2006-01-02 15:04:05")
 
 	if err := s.db.Save(&plantilla).Error; err != nil {
 		return nil, fmt.Errorf("error al actualizar tags: %v", err)
+	}
+
+	return &plantilla, nil
+}
+
+// ActualizarTagLabels actualiza las etiquetas personalizadas de los tags de una plantilla
+func (s *TemplateService) ActualizarTagLabels(id uint, tagLabels map[string]string) (*management.Plantilla, error) {
+	var plantilla management.Plantilla
+	if err := s.db.First(&plantilla, id).Error; err != nil {
+		return nil, errors.New("plantilla no encontrada")
+	}
+
+	plantilla.Tags.Data.TagLabels = tagLabels
+	plantilla.FechaModificacion = time.Now().Format("2006-01-02 15:04:05")
+
+	if err := s.db.Save(&plantilla).Error; err != nil {
+		return nil, fmt.Errorf("error al actualizar labels de tags: %v", err)
 	}
 
 	return &plantilla, nil

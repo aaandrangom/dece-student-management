@@ -221,7 +221,15 @@ function StudentList({ onCreate, onEdit }) {
     };
 
     const getTagLabel = (tag) => {
-        const labels = {
+        // Intentar obtener label personalizado de la plantilla seleccionada
+        if (certSelectedTemplate) {
+            const tagLabels = certSelectedTemplate?.tags?.Data?.tag_labels
+                || certSelectedTemplate?.tags?.tag_labels
+                || {};
+            if (tagLabels[tag]) return tagLabels[tag];
+        }
+        // Fallback: labels por defecto para tags conocidos
+        const defaults = {
             nombre_de_quien_suscribe: 'Nombre de quien suscribe',
             en_calidad_de: 'Cargo / En calidad de',
             nombres_completos_estudiante: 'Nombres completos del estudiante',
@@ -234,7 +242,7 @@ function StudentList({ onCreate, onEdit }) {
             fecha_mes: 'Mes',
             fecha_anio: 'Año'
         };
-        return labels[tag] || tag.replace(/_/g, ' ');
+        return defaults[tag] || tag.replace(/_/g, ' ');
     };
 
     return (
@@ -466,7 +474,7 @@ function StudentList({ onCreate, onEdit }) {
 
             {/* Modal de progreso */}
             {importProgress && !importResult && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100]">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-100">
                     <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
                         <div className="flex flex-col items-center mb-6">
                             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
@@ -493,7 +501,7 @@ function StudentList({ onCreate, onEdit }) {
 
             {/* Modal de resultados */}
             {importResult && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100]">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-100">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-200">
                         {/* Header */}
                         <div className="p-6 border-b border-slate-200 flex items-center justify-between shrink-0">

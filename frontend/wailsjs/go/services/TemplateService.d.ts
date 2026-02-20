@@ -7,6 +7,8 @@ export function AbrirPlantillaEnEditor(arg1:number):Promise<void>;
 
 export function ActualizarPlantilla(arg1:number,arg2:string,arg3:string):Promise<management.Plantilla>;
 
+export function ActualizarTagLabels(arg1:number,arg2:Record<string, string>):Promise<management.Plantilla>;
+
 export function EliminarPlantilla(arg1:number):Promise<void>;
 
 export function GenerarCertificado(arg1:number,arg2:number,arg3:Record<string, string>):Promise<string>;

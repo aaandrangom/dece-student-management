@@ -1918,6 +1918,7 @@ export namespace management {
 	}
 	export class PlantillaTags {
 	    tags: string[];
+	    tag_labels?: Record<string, string>;
 	
 	    static createFrom(source: any = {}) {
 	        return new PlantillaTags(source);
@@ -1926,6 +1927,7 @@ export namespace management {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.tags = source["tags"];
+	        this.tag_labels = source["tag_labels"];
 	    }
 	}
 
