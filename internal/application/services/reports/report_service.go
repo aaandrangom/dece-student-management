@@ -250,7 +250,7 @@ func (s *ReportService) ObtenerDatosFichaEstudiantil(cedula string) (*dtos.Ficha
 			la.ruta_acta,
 			CASE WHEN la.representante_firmo = 1 THEN 'Firmado' ELSE 'Pendiente' END as estado,
 			pl.nombre as periodo_lectivo
-		FROM llamado_atencions la
+		FROM llamados_atencion la
 		JOIN matriculas m ON la.matricula_id = m.id
 		JOIN cursos c ON m.curso_id = c.id
 		JOIN periodo_lectivos pl ON c.periodo_id = pl.id
@@ -270,7 +270,7 @@ func (s *ReportService) ObtenerDatosFichaEstudiantil(cedula string) (*dtos.Ficha
 			cs.estado, 
 			cs.entidad_derivacion,
 			cs.descripcion
-		FROM caso_sensibles cs
+		FROM casos_sensibles cs
 		JOIN estudiantes e ON cs.estudiante_id = e.id
 		WHERE e.cedula = ?
 		ORDER BY cs.fecha_deteccion DESC;`
@@ -292,7 +292,7 @@ func (s *ReportService) ObtenerReporteEstadistico(fechaInicio, fechaFin string) 
 		SELECT 
 			tipo_caso,
 			COUNT(*) as cantidad
-		FROM caso_sensibles
+		FROM casos_sensibles
 		WHERE fecha_deteccion BETWEEN ? AND ?
 		GROUP BY tipo_caso
 		ORDER BY cantidad DESC;`
@@ -305,7 +305,7 @@ func (s *ReportService) ObtenerReporteEstadistico(fechaInicio, fechaFin string) 
 		SELECT 
 			ne.nombre || ' ' || c.paralelo as curso,
 			COUNT(la.id) as total_faltas
-		FROM llamado_atencions la
+		FROM llamados_atencion la
 		JOIN matriculas m ON la.matricula_id = m.id
 		JOIN cursos c ON m.curso_id = c.id
 		JOIN nivel_educativos ne ON c.nivel_id = ne.id
@@ -322,7 +322,7 @@ func (s *ReportService) ObtenerReporteEstadistico(fechaInicio, fechaFin string) 
 		SELECT 
 			entidad_derivacion,
 			COUNT(*) as cantidad
-		FROM caso_sensibles
+		FROM casos_sensibles
 		WHERE fecha_deteccion BETWEEN ? AND ?
 		AND entidad_derivacion IS NOT NULL 
 		AND entidad_derivacion != ''
@@ -699,7 +699,7 @@ func (s *ReportService) ObtenerReporteNominaVulnerabilidad(filtroTipoCaso string
 			cs.codigo_caso,
 			cs.estado,
 			cs.fecha_deteccion
-		FROM caso_sensibles cs
+		FROM casos_sensibles cs
 		JOIN estudiantes e ON cs.estudiante_id = e.id
 		JOIN periodo_lectivos pl ON cs.periodo_id = pl.id
 		LEFT JOIN matriculas m ON e.id = m.estudiante_id 
@@ -968,7 +968,7 @@ func (s *ReportService) ObtenerReporteDerivaciones(fechaInicio, fechaFin string)
 		cs.tipo_caso,
 		cs.entidad_derivacion,
 		cs.estado
-	FROM caso_sensibles cs
+	FROM casos_sensibles cs
 	JOIN estudiantes e ON cs.estudiante_id = e.id
 	JOIN periodo_lectivos pl ON cs.periodo_id = pl.id
 	-- Joins para obtener el curso actual del estudiante

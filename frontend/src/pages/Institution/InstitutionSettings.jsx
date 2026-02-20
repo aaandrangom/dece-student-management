@@ -350,8 +350,16 @@ const InstitutionSettings = () => {
                                             isOpen={openAuthoritySection === 'rector'}
                                             onToggle={() => toggleAuthority('rector')}
                                         />
+                                    </div>
+                                </div>
+
+                                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                                    <div className="bg-slate-50 border-b border-slate-100 px-4 py-3">
+                                        <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Subdirección</h3>
+                                    </div>
+                                    <div className="divide-y divide-slate-100">
                                         <AutoridadForm
-                                            titulo="Jornada Matutina"
+                                            titulo="Subdirector/a Matutina"
                                             color="blue"
                                             fixedJornada="Matutina"
                                             autoridad={config.autoridades.subdirector_matutina}
@@ -360,7 +368,7 @@ const InstitutionSettings = () => {
                                             onToggle={() => toggleAuthority('subdirector_matutina')}
                                         />
                                         <AutoridadForm
-                                            titulo="Jornada Vespertina"
+                                            titulo="Subdirector/a Vespertina"
                                             color="blue"
                                             fixedJornada="Vespertina"
                                             autoridad={config.autoridades.subdirector_vespertina}

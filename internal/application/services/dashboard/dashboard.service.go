@@ -35,7 +35,7 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 
 	s.db.Raw(`
 		SELECT COUNT(*) 
-		FROM caso_sensibles c
+		FROM casos_sensibles c
 		JOIN periodo_lectivos p ON c.periodo_id = p.id
 		WHERE p.es_activo = 1 AND c.estado = 'Abierto'
 	`).Scan(&data.KPI.CasosAbiertos)
@@ -46,7 +46,7 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 
 	s.db.Raw(`
 		SELECT COUNT(*) 
-		FROM llamado_atencions
+		FROM llamados_atencion
 		WHERE strftime('%Y-%m', fecha) = strftime('%Y-%m', 'now')
 	`).Scan(&data.KPI.SancionesMes)
 
@@ -75,7 +75,7 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 		SELECT 
 			ne.nombre || ' ' || c.paralelo as curso,
 			COUNT(la.id) as cantidad_faltas
-		FROM llamado_atencions la
+		FROM llamados_atencion la
 		JOIN matriculas m ON la.matricula_id = m.id
 		JOIN cursos c ON m.curso_id = c.id
 		JOIN nivel_educativos ne ON c.nivel_id = ne.id
@@ -90,7 +90,7 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 		SELECT 
 			tipo_caso,
 			COUNT(*) as cantidad
-		FROM caso_sensibles cs
+		FROM casos_sensibles cs
 		JOIN periodo_lectivos p ON cs.periodo_id = p.id
 		WHERE p.es_activo = 1
 		GROUP BY tipo_caso
@@ -116,7 +116,7 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 				la.fecha as fecha,
 				'Falta: ' || substr(la.motivo, 1, 30) || '...' as descripcion,
 				e.apellidos || ' ' || e.nombres as estudiante
-			FROM llamado_atencions la
+			FROM llamados_atencion la
 			JOIN matriculas m ON la.matricula_id = m.id
 			JOIN estudiantes e ON m.estudiante_id = e.id
 
@@ -128,7 +128,7 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 				cs.fecha_deteccion as fecha,
 				'Caso ' || cs.codigo_caso || ' (' || cs.tipo_caso || ')' as descripcion,
 				e.apellidos || ' ' || e.nombres as estudiante
-			FROM caso_sensibles cs
+			FROM casos_sensibles cs
 			JOIN estudiantes e ON cs.estudiante_id = e.id
 
 			UNION ALL

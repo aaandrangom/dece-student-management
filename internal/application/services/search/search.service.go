@@ -97,7 +97,7 @@ func (s *SearchService) BusquedaGlobal(query string) ([]search.GlobalSearchResul
             e.nombres, 
             e.apellidos, 
             e.cedula,
-            EXISTS(SELECT 1 FROM caso_sensibles cs WHERE cs.estudiante_id = e.id) as tiene_caso,
+            EXISTS(SELECT 1 FROM casos_sensibles cs WHERE cs.estudiante_id = e.id) as tiene_caso,
             EXISTS(SELECT 1 FROM llamado_atencions la JOIN matriculas m ON m.id = la.matricula_id WHERE m.estudiante_id = e.id) as tiene_disciplina
         FROM estudiantes e
         WHERE (e.nombres LIKE ? OR e.apellidos LIKE ? OR e.cedula LIKE ?)
