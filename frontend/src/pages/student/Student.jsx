@@ -9,9 +9,10 @@ import {
 } from 'lucide-react';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
 
-import { BuscarEstudiantes, ObtenerFotoBase64, ImportarEstudiantes } from '../../../wailsjs/go/services/StudentService';
+import { BuscarEstudiantes, BuscarEstudiantesFiltrados, ObtenerFotoBase64, ImportarEstudiantes } from '../../../wailsjs/go/services/StudentService';
 import { ListarCursos } from '../../../wailsjs/go/services/CourseService';
 import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
+import { ListarNiveles } from '../../../wailsjs/go/academic/LevelService';
 import {
     ListarPlantillas, ObtenerDatosCertificado, GenerarCertificado
 } from '../../../wailsjs/go/services/TemplateService';
@@ -36,7 +37,11 @@ export default function StudentsPage() {
 
 function StudentList({ onCreate, onEdit }) {
     const [students, setStudents] = useState([]);
-    const [query, setQuery] = useState('');
+    const [query, setQuery] = useState(() => sessionStorage.getItem('student_query') || '');
+    const [filterNivel, setFilterNivel] = useState(() => sessionStorage.getItem('student_nivel') || 0);
+    const [filterParalelo, setFilterParalelo] = useState(() => sessionStorage.getItem('student_paralelo') || '');
+    const [filterJornada, setFilterJornada] = useState(() => sessionStorage.getItem('student_jornada') || '');
+    const [levels, setLevels] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const [imageCache, setImageCache] = useState({});
@@ -81,9 +86,14 @@ function StudentList({ onCreate, onEdit }) {
         return false;
     };
 
-    const search = async (q) => {
+    const search = async (q = query, niv = filterNivel, par = filterParalelo, jor = filterJornada) => {
         try {
-            const data = await BuscarEstudiantes(q);
+            const applyFilters = niv != 0 && par !== '' && jor !== '';
+            const n = applyFilters ? Number(niv) : 0;
+            const p = applyFilters ? par : '';
+            const j = applyFilters ? jor : '';
+
+            const data = await BuscarEstudiantesFiltrados(q, n, p, j);
             setStudents(data || []);
             setCurrentPage(1);
             try {
@@ -105,12 +115,26 @@ function StudentList({ onCreate, onEdit }) {
         }
     };
 
-    useEffect(() => { search(''); }, []);
+    useEffect(() => {
+        sessionStorage.setItem('student_query', query);
+        sessionStorage.setItem('student_nivel', filterNivel);
+        sessionStorage.setItem('student_paralelo', filterParalelo);
+        sessionStorage.setItem('student_jornada', filterJornada);
+    }, [query, filterNivel, filterParalelo, filterJornada]);
+
+    useEffect(() => {
+        ListarNiveles().then(data => setLevels(data || [])).catch(() => {});
+        const initialQuery = sessionStorage.getItem('student_query') || '';
+        const initialNivel = sessionStorage.getItem('student_nivel') || 0;
+        const initialParalelo = sessionStorage.getItem('student_paralelo') || '';
+        const initialJornada = sessionStorage.getItem('student_jornada') || '';
+        search(initialQuery, initialNivel, initialParalelo, initialJornada); 
+    }, []);
 
     const handleSearchChange = (e) => {
         const val = e.target.value;
         setQuery(val);
-        search(val);
+        search(val, filterNivel, filterParalelo, filterJornada);
     };
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -273,16 +297,68 @@ function StudentList({ onCreate, onEdit }) {
                 </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="relative w-full sm:w-96">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Buscar por cédula o nombres..."
-                        className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
-                        value={query}
-                        onChange={handleSearchChange}
-                    />
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col xl:flex-row justify-between items-center gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
+                    <div className="relative w-full sm:w-64 shrink-0">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por cédula o nombres..."
+                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            value={query}
+                            onChange={handleSearchChange}
+                        />
+                    </div>
+                    <select
+                        className="w-full sm:w-48 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-700 font-medium"
+                        value={filterNivel}
+                        onChange={(e) => { setFilterNivel(e.target.value); search(query, e.target.value, filterParalelo, filterJornada); }}
+                    >
+                        <option value="0">Todos los Cursos</option>
+                        {levels.map(l => (
+                            <option key={l.id} value={l.id}>{l.nombre}</option>
+                        ))}
+                    </select>
+                    <select
+                        className="w-full sm:w-32 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-700 font-medium"
+                        value={filterParalelo}
+                        onChange={(e) => { setFilterParalelo(e.target.value); search(query, filterNivel, e.target.value, filterJornada); }}
+                    >
+                        <option value="">Paralelo</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="G">G</option>
+                        <option value="H">H</option>
+                    </select>
+                    <select
+                        className="w-full sm:w-36 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-700 font-medium"
+                        value={filterJornada}
+                        onChange={(e) => { setFilterJornada(e.target.value); search(query, filterNivel, filterParalelo, e.target.value); }}
+                    >
+                        <option value="">Jornada</option>
+                        <option value="Matutina">Matutina</option>
+                        <option value="Vespertina">Vespertina</option>
+                        <option value="Nocturna">Nocturna</option>
+                    </select>
+                    {(filterNivel != 0 || filterParalelo !== '' || filterJornada !== '') && (
+                        <button 
+                            onClick={() => {
+                                setFilterNivel(0);
+                                setFilterParalelo('');
+                                setFilterJornada('');
+                                search(query, 0, '', '');
+                            }}
+                            className="px-3 py-2 text-sm text-red-600 hover:bg-red-50 font-medium rounded-lg transition-colors border border-transparent hover:border-red-100 flex items-center gap-1 shrink-0"
+                            title="Limpiar filtros"
+                        >
+                            <X className="w-4 h-4" />
+                            <span className="hidden sm:inline">Limpiar</span>
+                        </button>
+                    )}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                     <span className="font-medium text-slate-500 mr-2">Total: {students.length}</span>

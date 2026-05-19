@@ -361,7 +361,6 @@ func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.Estudiant
 	}
 
 	response := make([]studentDTO.EstudianteListaDTO, len(estudiantes))
-	print(estudiantes)
 	for i, e := range estudiantes {
 		response[i] = studentDTO.EstudianteListaDTO{
 			ID:                    e.ID,
@@ -381,7 +380,62 @@ func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.Estudiant
 			},
 		}
 	}
-	print(response)
+
+	return response, nil
+}
+
+func (s *StudentService) BuscarEstudiantesFiltrados(query string, nivelID uint, paralelo string, jornada string) ([]studentDTO.EstudianteListaDTO, error) {
+	var estudiantes []student.Estudiante
+	query = strings.TrimSpace(query)
+
+	dbQuery := s.db.Model(&student.Estudiante{})
+
+	if nivelID > 0 || paralelo != "" || jornada != "" {
+		dbQuery = dbQuery.Joins("JOIN matriculas ON matriculas.estudiante_id = estudiantes.id AND matriculas.estado = 'Matriculado'")
+		dbQuery = dbQuery.Joins("JOIN cursos ON cursos.id = matriculas.curso_id")
+		
+		if nivelID > 0 {
+			dbQuery = dbQuery.Where("cursos.nivel_id = ?", nivelID)
+		}
+		if paralelo != "" {
+			dbQuery = dbQuery.Where("cursos.paralelo = ?", paralelo)
+		}
+		if jornada != "" {
+			dbQuery = dbQuery.Where("cursos.jornada = ?", jornada)
+		}
+	}
+
+	if query != "" {
+		likeQuery := "%" + query + "%"
+		dbQuery = dbQuery.Where("estudiantes.cedula LIKE ? OR estudiantes.apellidos LIKE ? OR estudiantes.nombres LIKE ? OR json_extract(estudiantes.info_nacionalidad, '$.pasaporte_odni') LIKE ?", likeQuery, likeQuery, likeQuery, likeQuery)
+	}
+
+	result := dbQuery.Order("estudiantes.apellidos ASC").Limit(3000).Find(&estudiantes)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	response := make([]studentDTO.EstudianteListaDTO, len(estudiantes))
+	for i, e := range estudiantes {
+		response[i] = studentDTO.EstudianteListaDTO{
+			ID:                    e.ID,
+			Cedula:                e.Cedula,
+			Apellidos:             e.Apellidos,
+			Nombres:               e.Nombres,
+			CorreoElectronico:     e.CorreoElectronico,
+			RutaFoto:              e.RutaFoto,
+			RutaCedula:            e.RutaCedula,
+			RutaPartidaNacimiento: e.RutaPartidaNacimiento,
+			FechaNacimiento:       e.FechaNacimiento,
+			Edad:                  CaclularEdad(e.FechaNacimiento),
+			InfoNacionalidad: &studentDTO.InfoNacionalidadDTO{
+				EsExtranjero:   e.InfoNacionalidad.Data.EsExtranjero,
+				PaisOrigen:     e.InfoNacionalidad.Data.PaisOrigen,
+				PasaporteOrDNI: e.InfoNacionalidad.Data.PasaporteOrDNI,
+			},
+		}
+	}
 
 	return response, nil
 }
