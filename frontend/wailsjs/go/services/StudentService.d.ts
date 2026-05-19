@@ -8,6 +8,8 @@ export function BuscarEstudiantes(arg1:string):Promise<Array<student.EstudianteL
 
 export function BuscarEstudiantesFiltrados(arg1:string,arg2:number,arg3:string,arg4:string):Promise<Array<student.EstudianteListaDTO>>;
 
+export function EliminarEstudiante(arg1:number):Promise<void>;
+
 export function EliminarFamiliar(arg1:number):Promise<void>;
 
 export function GuardarDocumentoPDF(arg1:number,arg2:string,arg3:string):Promise<string>;

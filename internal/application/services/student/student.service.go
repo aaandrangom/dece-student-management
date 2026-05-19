@@ -790,3 +790,47 @@ func (s *StudentService) EliminarFamiliar(id uint) error {
 	}
 	return nil
 }
+
+func (s *StudentService) EliminarEstudiante(id uint) error {
+	var est student.Estudiante
+	if err := s.db.First(&est, id).Error; err != nil {
+		return errors.New("Estudiante no encontrado")
+	}
+
+	var countMatriculas int64
+	if err := s.db.Table("matriculas").Where("estudiante_id = ?", id).Count(&countMatriculas).Error; err != nil {
+		return fmt.Errorf("Error al verificar matrículas: %v", err)
+	}
+	if countMatriculas > 0 {
+		return errors.New("No se puede eliminar: el estudiante tiene matrículas registradas.")
+	}
+
+	var countCasos int64
+	if err := s.db.Table("casos_sensibles").Where("estudiante_id = ?", id).Count(&countCasos).Error; err != nil {
+		return fmt.Errorf("Error al verificar casos sensibles: %v", err)
+	}
+	if countCasos > 0 {
+		return errors.New("No se puede eliminar: el estudiante tiene casos sensibles registrados.")
+	}
+
+	// Iniciar transacción para eliminar de forma segura
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		// Eliminar familiares (por si tiene, aunque esté recién creado)
+		if err := tx.Where("estudiante_id = ?", id).Delete(&student.Familiar{}).Error; err != nil {
+			return err
+		}
+
+		// Eliminar el estudiante
+		if err := tx.Delete(&est).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("Error al eliminar el estudiante: %v", err)
+	}
+
+	return nil
+}

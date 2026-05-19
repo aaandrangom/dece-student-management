@@ -5,11 +5,12 @@ import {
     Search, Plus, User, Edit3, Users,
     ChevronLeft, ChevronRight, Upload,
     CheckCircle2, AlertTriangle, XCircle, X, RefreshCw,
-    FileText, Loader2
+    FileText, Loader2, Trash2
 } from 'lucide-react';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
+import Swal from 'sweetalert2';
 
-import { BuscarEstudiantes, BuscarEstudiantesFiltrados, ObtenerFotoBase64, ImportarEstudiantes } from '../../../wailsjs/go/services/StudentService';
+import { BuscarEstudiantes, BuscarEstudiantesFiltrados, ObtenerFotoBase64, ImportarEstudiantes, EliminarEstudiante } from '../../../wailsjs/go/services/StudentService';
 import { ListarCursos } from '../../../wailsjs/go/services/CourseService';
 import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
 import { ListarNiveles } from '../../../wailsjs/go/academic/LevelService';
@@ -112,6 +113,29 @@ function StudentList({ onCreate, onEdit }) {
             }
         } catch (err) {
             toast.error("Error al buscar estudiantes");
+        }
+    };
+
+    const handleDelete = async (st) => {
+        const result = await Swal.fire({
+            title: '¿Confirmar eliminación?',
+            html: `Está a punto de eliminar a <b>${st.apellidos} ${st.nombres}</b>.<br/><br/>Esta acción no se puede deshacer.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await EliminarEstudiante(st.id);
+                toast.success("Estudiante eliminado correctamente");
+                search();
+            } catch (error) {
+                toast.error(error || "Error al eliminar estudiante");
+            }
         }
     };
 
@@ -441,6 +465,13 @@ function StudentList({ onCreate, onEdit }) {
                                                     title="Generar Certificado"
                                                 >
                                                     <FileText className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleDelete(st); }}
+                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                    title="Eliminar Estudiante"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </td>

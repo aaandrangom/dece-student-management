@@ -10,6 +10,10 @@ export function BuscarEstudiantesFiltrados(arg1, arg2, arg3, arg4) {
   return window['go']['services']['StudentService']['BuscarEstudiantesFiltrados'](arg1, arg2, arg3, arg4);
 }
 
+export function EliminarEstudiante(arg1) {
+  return window['go']['services']['StudentService']['EliminarEstudiante'](arg1);
+}
+
 export function EliminarFamiliar(arg1) {
   return window['go']['services']['StudentService']['EliminarFamiliar'](arg1);
 }
