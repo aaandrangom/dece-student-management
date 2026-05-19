@@ -7,6 +7,7 @@ import {
 import { toast } from 'sonner';
 import { GenerarRespaldo, RestaurarRespaldo } from "../../../wailsjs/go/system/MaintenanceService";
 import { ListarConfiguraciones, ActualizarConfiguracion } from "../../../wailsjs/go/services/SecurityConfigService";
+import { GetVersion } from "../../../wailsjs/go/main/App";
 
 const SystemSettings = () => {
     const [isBackupLoading, setIsBackupLoading] = useState(false);
@@ -15,9 +16,11 @@ const SystemSettings = () => {
     const [securityConfigs, setSecurityConfigs] = useState([]);
     const [isLoadingConfigs, setIsLoadingConfigs] = useState(true);
     const [togglingKey, setTogglingKey] = useState(null);
+    const [appVersion, setAppVersion] = useState('');
 
     useEffect(() => {
         cargarConfiguraciones();
+        GetVersion().then(v => setAppVersion(v)).catch(() => setAppVersion(''));
     }, []);
 
     useEffect(() => {
@@ -366,7 +369,7 @@ const SystemSettings = () => {
 
                 <div className="text-center py-8">
                     <p className="text-xs text-slate-400">
-                        Sistema Integrado de Gestión DECE v1.1.0 • Módulo de Mantenimiento
+                        Sistema Integrado de Gestión DECE {appVersion ? `v${appVersion}` : ''} • Módulo de Mantenimiento
                     </p>
                 </div>
             </div>
