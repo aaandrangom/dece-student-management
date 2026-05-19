@@ -40,7 +40,7 @@ export default function CoursesPage() {
     const [selectedCourse, setSelectedCourse] = useState(null);
 
     const jornadas = ['Matutina', 'Vespertina', 'Nocturna'];
-    const paralelos = ['A', 'B', 'C', 'D'];
+    const paralelos = ['A', 'B', 'C', 'D', 'E'];
 
     useEffect(() => {
         loadInitialData();
