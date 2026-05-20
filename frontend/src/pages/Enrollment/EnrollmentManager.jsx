@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Search, User, ArrowRight, Loader2, GraduationCap, FileText } from 'lucide-react';
 import { BuscarEstudiantes, ObtenerEstudiante, ObtenerFotoBase64 } from '../../../wailsjs/go/services/StudentService';
@@ -57,6 +58,9 @@ const StudentCard = ({ student, onSelect }) => {
 };
 
 export default function EnrollmentManager() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const [view, setView] = useState('search');
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
@@ -101,6 +105,14 @@ export default function EnrollmentManager() {
             setIsLoadingDetails(false);
         }
     };
+
+    useEffect(() => {
+        if (location.state?.studentId) {
+            handleSelectStudent({ id: location.state.studentId });
+            // Clear navigation state to prevent re-opening on reload or going back
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state, navigate]);
 
     const handleBackToSearch = () => {
         setSelectedStudent(null);

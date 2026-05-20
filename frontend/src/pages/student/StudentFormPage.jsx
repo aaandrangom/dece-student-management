@@ -356,7 +356,7 @@ export default function StudentFormPage() {
         toast.info("Eliminado");
     };
 
-    const handleFinalTransaction = async () => {
+    const handleFinalTransaction = async (goToEnrollment = false) => {
         try {
             setIsLoading(true);
 
@@ -437,7 +437,11 @@ export default function StudentFormPage() {
             if (studentId === 0) clearLocalStorage();
 
             toast.success("¡Guardado correctamente!");
-            onBack();
+            if (goToEnrollment && savedStudent?.id) {
+                navigate('/estudiantes/ficha-dece', { state: { studentId: savedStudent.id } });
+            } else {
+                onBack();
+            }
         } catch (err) {
             toast.error("Error: " + err);
         } finally {
@@ -495,9 +499,14 @@ export default function StudentFormPage() {
                                     Siguiente <ChevronRight className="w-4 h-4" />
                                 </button>
                             ) : (
-                                <button onClick={handleFinalTransaction} disabled={isLoading} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
-                                    <Save className="w-4 h-4" /> {isLoading ? 'Guardando...' : 'Guardar Todo'}
-                                </button>
+                                <>
+                                    <button onClick={() => handleFinalTransaction(false)} disabled={isLoading} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
+                                        <Save className="w-4 h-4" /> {isLoading ? 'Guardando...' : 'Guardar Todo'}
+                                    </button>
+                                    <button onClick={() => handleFinalTransaction(true)} disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
+                                        Continuar Proceso <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>
@@ -778,9 +787,20 @@ export default function StudentFormPage() {
                                 </div>
                             </div>
 
-                            <div className="flex justify-center pt-4">
-                                <button onClick={handleFinalTransaction} disabled={isLoading} className="px-10 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg flex items-center gap-3 text-lg">
-                                    <Save className="w-5 h-5" /> {isLoading ? 'Procesando...' : 'Confirmar y Guardar Todo'}
+                            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-6">
+                                <button
+                                    onClick={() => handleFinalTransaction(false)}
+                                    disabled={isLoading}
+                                    className="w-full sm:w-auto px-8 py-3.5 bg-slate-600 hover:bg-slate-700 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-3 text-base transition-all"
+                                >
+                                    <Save className="w-5 h-5" /> {isLoading ? 'Procesando...' : 'Guardar y Finalizar'}
+                                </button>
+                                <button
+                                    onClick={() => handleFinalTransaction(true)}
+                                    disabled={isLoading}
+                                    className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-3 text-base transition-all"
+                                >
+                                    Guardar y Continuar Ficha DECE <ChevronRight className="w-5 h-5" />
                                 </button>
                             </div>
                         </div>
