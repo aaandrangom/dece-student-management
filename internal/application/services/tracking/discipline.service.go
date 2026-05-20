@@ -340,10 +340,14 @@ func (s *TrackingService) ObtenerCaso(id uint) (*dto.GuardarCasoDTO, error) {
 
 func (s *TrackingService) CrearCaso(input dto.GuardarCasoDTO) (*tracking.CasoSensible, error) {
 	if input.ID == 0 {
-		var periodoActivo academic.PeriodoLectivo
-		if err := s.db.Where("es_activo = ?", true).First(&periodoActivo).Error; err != nil {
+		var periodos []academic.PeriodoLectivo
+		if err := s.db.Where("es_activo = ?", true).Limit(1).Find(&periodos).Error; err != nil {
+			return nil, err
+		}
+		if len(periodos) == 0 {
 			return nil, errors.New("No hay un periodo lectivo activo para registrar el caso")
 		}
+		periodoActivo := periodos[0]
 
 		year := time.Now().Year()
 		var count int64

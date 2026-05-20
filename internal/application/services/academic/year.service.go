@@ -117,10 +117,6 @@ func (s *YearService) ActivarPeriodo(id uint) error {
 		tx.Rollback()
 		return errors.New("El periodo seleccionado no existe")
 	}
-	if target.Cerrado {
-		tx.Rollback()
-		return errors.New("No se puede activar un periodo cerrado")
-	}
 
 	result := tx.Model(&academic.PeriodoLectivo{}).
 		Where("id = ?", id).
@@ -135,21 +131,24 @@ func (s *YearService) ActivarPeriodo(id uint) error {
 }
 
 func (s *YearService) ObtenerPeriodoActivo() (*academicDTO.PeriodoResponseDTO, error) {
-	var periodo academic.PeriodoLectivo
+	var periodos []academic.PeriodoLectivo
 
-	if err := s.db.Where("es_activo = ?", true).First(&periodo).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("No hay ningún periodo lectivo activo configurado")
-		}
+	if err := s.db.Where("es_activo = ?", true).Limit(1).Find(&periodos).Error; err != nil {
 		return nil, err
 	}
 
+	if len(periodos) == 0 {
+		return nil, nil
+	}
+
+	periodo := periodos[0]
 	return &academicDTO.PeriodoResponseDTO{
 		ID:          periodo.ID,
 		Nombre:      periodo.Nombre,
 		FechaInicio: periodo.FechaInicio,
 		FechaFin:    periodo.FechaFin,
 		EsActivo:    true,
+		Cerrado:     periodo.Cerrado,
 		Estado:      "Activo",
 	}, nil
 }

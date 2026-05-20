@@ -55,7 +55,8 @@ export default function CoursesPage() {
         try {
             const periodo = await ObtenerPeriodoActivo();
             if (!periodo) {
-                toast.error("No hay un periodo lectivo activo. Configure uno primero.");
+                setActivePeriod(null);
+                setCourses([]);
                 setIsLoading(false);
                 return;
             }
@@ -253,6 +254,7 @@ export default function CoursesPage() {
         return (
             <DistributivoView
                 course={selectedCourse}
+                isReadOnly={activePeriod?.cerrado}
                 onBack={() => {
                     setViewMode('list');
                     setSelectedCourse(null);
@@ -276,10 +278,17 @@ export default function CoursesPage() {
                             <div className="flex items-center gap-2 mt-1 text-sm text-slate-500 font-medium">
                                 <span>Periodo Lectivo:</span>
                                 {activePeriod ? (
-                                    <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100 font-bold flex items-center gap-1">
-                                        <Calendar className="w-3 h-3" />
-                                        {activePeriod.nombre}
-                                    </span>
+                                    activePeriod.cerrado ? (
+                                        <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded border border-amber-200 font-bold flex items-center gap-1 shadow-sm">
+                                            <Calendar className="w-3 h-3 text-amber-600 animate-pulse" />
+                                            {activePeriod.nombre} (Solo Lectura)
+                                        </span>
+                                    ) : (
+                                        <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100 font-bold flex items-center gap-1">
+                                            <Calendar className="w-3 h-3 animate-pulse" />
+                                            {activePeriod.nombre}
+                                        </span>
+                                    )
                                 ) : (
                                     <span className="text-red-500 font-bold">Inactivo</span>
                                 )}
@@ -287,29 +296,31 @@ export default function CoursesPage() {
                         </div>
                     </div>
 
-                    <div className="flex gap-3 w-full sm:w-auto">
-                        <button
-                            onClick={handleGenerarMasivo}
-                            disabled={!activePeriod}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-bold shadow-md hover:shadow-blue-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Generar 1ro-10mo (A-E)"
-                        >
-                            <BookOpen className="w-4 h-4" />
-                            <span className="hidden md:inline">Generar Automático</span>
-                            <span className="md:hidden">Auto</span>
-                        </button>
+                    {!activePeriod?.cerrado && (
+                        <div className="flex gap-3 w-full sm:w-auto">
+                            <button
+                                onClick={handleGenerarMasivo}
+                                disabled={!activePeriod}
+                                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-bold shadow-md hover:shadow-blue-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Generar 1ro-10mo (A-E)"
+                            >
+                                <BookOpen className="w-4 h-4" />
+                                <span className="hidden md:inline">Generar Automático</span>
+                                <span className="md:hidden">Auto</span>
+                            </button>
 
-                        <button
-                            onClick={openCreateModal}
-                            disabled={!activePeriod}
-                            id="courses-new-btn"
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <Plus className="w-4 h-4" />
-                            <span className="hidden md:inline">Nuevo Curso</span>
-                            <span className="md:hidden">Nuevo</span>
-                        </button>
-                    </div>
+                            <button
+                                onClick={openCreateModal}
+                                disabled={!activePeriod}
+                                id="courses-new-btn"
+                                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span className="hidden md:inline">Nuevo Curso</span>
+                                <span className="md:hidden">Nuevo</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -406,31 +417,43 @@ export default function CoursesPage() {
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <button
-                                                        onClick={() => openEditModal(course)}
-                                                        id={index === 0 ? "courses-edit-btn-0" : undefined}
-                                                        className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
-                                                        title="Editar Curso"
-                                                    >
-                                                        <Edit3 className="w-4 h-4" />
-                                                    </button>
+                                                    {activePeriod?.cerrado ? (
+                                                        <button
+                                                            onClick={() => handleOpenDistributivo(course)}
+                                                            className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                                                            title="Visualizar Carga Horaria (Solo Lectura)"
+                                                        >
+                                                            <BookOpen className="w-4 h-4" />
+                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                onClick={() => openEditModal(course)}
+                                                                id={index === 0 ? "courses-edit-btn-0" : undefined}
+                                                                className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
+                                                                title="Editar Curso"
+                                                            >
+                                                                <Edit3 className="w-4 h-4" />
+                                                            </button>
 
-                                                    <button
-                                                        onClick={(e) => handleDelete(course, e)}
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                        title="Eliminar Curso"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                            <button
+                                                                onClick={(e) => handleDelete(course, e)}
+                                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                                title="Eliminar Curso"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
 
-                                                    <button
-                                                        onClick={() => handleOpenDistributivo(course)}
-                                                        id={index === 0 ? "courses-dist-btn-0" : undefined}
-                                                        className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all ml-1"
-                                                        title="Gestionar Carga Horaria"
-                                                    >
-                                                        <BookOpen className="w-4 h-4" />
-                                                    </button>
+                                                            <button
+                                                                onClick={() => handleOpenDistributivo(course)}
+                                                                id={index === 0 ? "courses-dist-btn-0" : undefined}
+                                                                className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all ml-1"
+                                                                title="Gestionar Carga Horaria"
+                                                            >
+                                                                <BookOpen className="w-4 h-4" />
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>

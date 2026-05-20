@@ -5,7 +5,7 @@ import {
     Search, Plus, User, Edit3, Users,
     ChevronLeft, ChevronRight, Upload,
     CheckCircle2, AlertTriangle, XCircle, X, RefreshCw,
-    FileText, Loader2, Trash2
+    FileText, Loader2, Trash2, Eye
 } from 'lucide-react';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
 import Swal from 'sweetalert2';
@@ -38,6 +38,7 @@ export default function StudentsPage() {
 
 function StudentList({ onCreate, onEdit }) {
     const [students, setStudents] = useState([]);
+    const [activePeriod, setActivePeriod] = useState(null);
     const [query, setQuery] = useState(() => sessionStorage.getItem('student_query') || '');
     const [filterNivel, setFilterNivel] = useState(() => sessionStorage.getItem('student_nivel') || 0);
     const [filterParalelo, setFilterParalelo] = useState(() => sessionStorage.getItem('student_paralelo') || '');
@@ -148,6 +149,11 @@ function StudentList({ onCreate, onEdit }) {
 
     useEffect(() => {
         ListarNiveles().then(data => setLevels(data || [])).catch(() => {});
+        ObtenerPeriodoActivo().then(period => {
+            setActivePeriod(period);
+        }).catch((err) => {
+            console.error("Error al obtener periodo activo:", err);
+        });
         const initialQuery = sessionStorage.getItem('student_query') || '';
         const initialNivel = sessionStorage.getItem('student_nivel') || 0;
         const initialParalelo = sessionStorage.getItem('student_paralelo') || '';
@@ -301,24 +307,34 @@ function StudentList({ onCreate, onEdit }) {
                         <Users className="w-6 h-6 text-purple-600" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-slate-800 tracking-tight">Gestión de Estudiantes</h1>
+                        <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                            Gestión de Estudiantes
+                            {activePeriod?.cerrado && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 shadow-sm">
+                                    <Eye className="w-3 h-3 text-amber-600 animate-pulse" />
+                                    Solo Lectura
+                                </span>
+                            )}
+                        </h1>
                         <p className="text-slate-500 text-sm font-medium">Directorio general de alumnos</p>
                     </div>
                 </div>
-                <div className="flex gap-3 w-full sm:w-auto">
-                    <button
-                        onClick={openImportModal}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-sm font-bold shadow-md hover:shadow-green-200 active:scale-95"
-                    >
-                        <Upload size={18} /> Importar
-                    </button>
-                    <button
-                        onClick={onCreate}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95"
-                    >
-                        <Plus size={18} /> Nuevo
-                    </button>
-                </div>
+                {!activePeriod?.cerrado && (
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <button
+                            onClick={openImportModal}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-sm font-bold shadow-md hover:shadow-green-200 active:scale-95"
+                        >
+                            <Upload size={18} /> Importar
+                        </button>
+                        <button
+                            onClick={onCreate}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-bold shadow-md hover:shadow-purple-200 active:scale-95"
+                        >
+                            <Plus size={18} /> Nuevo
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col xl:flex-row justify-between items-center gap-4">
@@ -452,13 +468,23 @@ function StudentList({ onCreate, onEdit }) {
                                         <td className="px-6 py-4 text-slate-500 text-sm">{st.correo_electronico || '-'}</td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-1">
-                                                <button
-                                                    onClick={() => onEdit(st.id)}
-                                                    className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
-                                                    title="Editar"
-                                                >
-                                                    <Edit3 className="w-4 h-4" />
-                                                </button>
+                                                {activePeriod?.cerrado ? (
+                                                    <button
+                                                        onClick={() => onEdit(st.id)}
+                                                        className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                                                        title="Visualizar Estudiante"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => onEdit(st.id)}
+                                                        className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
+                                                        title="Editar"
+                                                    >
+                                                        <Edit3 className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); openCertificateModal(st); }}
                                                     className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
@@ -466,13 +492,15 @@ function StudentList({ onCreate, onEdit }) {
                                                 >
                                                     <FileText className="w-4 h-4" />
                                                 </button>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleDelete(st); }}
-                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                    title="Eliminar Estudiante"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                {!activePeriod?.cerrado && (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleDelete(st); }}
+                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                        title="Eliminar Estudiante"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

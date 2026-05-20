@@ -4,12 +4,13 @@ import { toast } from 'sonner';
 import {
     User, MapPin, Camera, Save, ArrowLeft, Users,
     FileText, Check, ChevronRight, Edit, Trash2,
-    Plus, AlertCircle
+    Plus, AlertCircle, Eye
 } from 'lucide-react';
 import {
     GuardarEstudiante, GuardarFoto, GuardarFotoBase64,
     ObtenerEstudiante, ObtenerFotoBase64, GuardarDocumentoPDF, ObtenerDocumentoPDF
 } from '../../../wailsjs/go/services/StudentService';
+import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
 
 const calculateAge = (dateString) => {
     if (!dateString) return '-';
@@ -33,6 +34,8 @@ export default function StudentFormPage() {
 
     const [currentStep, setCurrentStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
+    const [isReadOnly, setIsReadOnly] = useState(false);
+    const [activePeriod, setActivePeriod] = useState(null);
 
     const [tempPhotoPath, setTempPhotoPath] = useState(null);
     const [tempPhotoFile, setTempPhotoFile] = useState(null);
@@ -88,6 +91,17 @@ export default function StudentFormPage() {
         },
         familiares: []
     });
+
+    useEffect(() => {
+        ObtenerPeriodoActivo().then(period => {
+            setActivePeriod(period);
+            if (period?.cerrado) {
+                setIsReadOnly(true);
+            }
+        }).catch(err => {
+            console.error("Error al obtener periodo activo:", err);
+        });
+    }, []);
 
     useEffect(() => {
         if (studentId === 0) {
@@ -222,6 +236,7 @@ export default function StudentFormPage() {
     };
 
     const handlePdfSelect = (type) => {
+        if (isReadOnly) return;
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'application/pdf';
@@ -273,6 +288,7 @@ export default function StudentFormPage() {
     };
 
     const handlePhotoSelect = async () => {
+        if (isReadOnly) return;
         try {
             const input = document.createElement('input');
             input.type = 'file';
@@ -329,6 +345,7 @@ export default function StudentFormPage() {
     };
 
     const saveLocalFamiliar = () => {
+        if (isReadOnly) return;
         if (!familyFormData.nombres_completos || !familyFormData.parentesco) return toast.warning("Datos requeridos");
 
         let currentFamiliares = [...formData.familiares];
@@ -350,6 +367,7 @@ export default function StudentFormPage() {
     };
 
     const deleteLocalFamiliar = (fam) => {
+        if (isReadOnly) return;
         if (!confirm("¿Eliminar?")) return;
         const newFamiliares = formData.familiares.filter(f => !((f.id > 0 && f.id === fam.id) || (f.uiId && f.uiId === fam.uiId)));
         setFormData(prev => ({ ...prev, familiares: newFamiliares }));
@@ -357,6 +375,10 @@ export default function StudentFormPage() {
     };
 
     const handleFinalTransaction = async (goToEnrollment = false) => {
+        if (isReadOnly) {
+            onBack();
+            return;
+        }
         try {
             setIsLoading(true);
 
@@ -476,6 +498,15 @@ export default function StudentFormPage() {
                 </div>
             )}
             <div className="max-w-7xl mx-auto">
+                {isReadOnly && (
+                    <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3 text-amber-800 shadow-sm animate-in slide-in-from-top-4 duration-300">
+                        <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 animate-pulse" />
+                        <div>
+                            <p className="text-sm font-bold">Modo de Solo Lectura Activo</p>
+                            <p className="text-xs text-amber-700 font-medium">Está explorando registros históricos del periodo lectivo cerrado <strong>{activePeriod?.nombre}</strong>. Se han deshabilitado las opciones de edición y guardado.</p>
+                        </div>
+                    </div>
+                )}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-8 p-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -484,19 +515,25 @@ export default function StudentFormPage() {
                             </button>
                             <div>
                                 <h1 className="text-2xl font-bold text-slate-800">
-                                    {studentId > 0 ? 'Editar Estudiante' : 'Nuevo Estudiante'}
+                                    {isReadOnly ? 'Visualizar Estudiante' : studentId > 0 ? 'Editar Estudiante' : 'Nuevo Estudiante'}
                                 </h1>
                                 <p className="text-slate-500 text-sm">Registro Integral</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <button onClick={onBack} className="px-4 py-2 text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm font-medium">Cancelar</button>
+                            <button onClick={onBack} className="px-4 py-2 text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm font-medium">
+                                {isReadOnly ? 'Volver' : 'Cancelar'}
+                            </button>
                             {currentStep > 1 && (
                                 <button onClick={() => setCurrentStep(prev => prev - 1)} className="px-4 py-2 text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm font-medium">Anterior</button>
                             )}
                             {currentStep < steps.length ? (
                                 <button onClick={handleNextStep} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-2">
                                     Siguiente <ChevronRight className="w-4 h-4" />
+                                </button>
+                            ) : isReadOnly ? (
+                                <button onClick={onBack} className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
+                                    Volver al Listado
                                 </button>
                             ) : (
                                 <>
@@ -540,92 +577,93 @@ export default function StudentFormPage() {
 
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
                     {currentStep === 1 && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="md:col-span-1">
-                                <div className="sticky top-6">
-                                    <label className="block text-sm font-bold text-slate-700 mb-3">Foto de Perfil</label>
-                                    <div onClick={handlePhotoSelect} className="relative w-full aspect-square rounded-xl overflow-hidden cursor-pointer border-2 border-dashed border-slate-300 bg-slate-50 hover:border-blue-500 hover:shadow-lg transition-all flex flex-col items-center justify-center group">
-                                        {getImageSrc() ? (
-                                            <><img src={getImageSrc()} alt="Estudiante" className="w-full h-full object-cover" /><div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all"><div className="bg-white/90 px-3 py-1.5 rounded-full text-xs font-bold text-slate-800 flex items-center gap-2 shadow-sm"><Camera className="w-4 h-4" /> Cambiar</div></div></>
-                                        ) : (
-                                            <div className="text-center p-4"><div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400 group-hover:text-blue-500 transition-colors"><Camera className="w-8 h-8" /></div><p className="text-sm font-bold text-slate-600">Subir Imagen</p></div>
-                                        )}
-                                    </div>
-                                    {studentId === 0 && <p className="text-xs text-slate-400 text-center mt-3">Guardado automático activado.</p>}
+    <fieldset disabled={isReadOnly} className="contents">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-1">
+                <div className="sticky top-6">
+                    <label className="block text-sm font-bold text-slate-700 mb-3">Foto de Perfil</label>
+                    <div onClick={handlePhotoSelect} className={`relative w-full aspect-square rounded-xl overflow-hidden border-2 border-dashed transition-all flex flex-col items-center justify-center group ${isReadOnly ? 'border-slate-200 bg-slate-50 cursor-default' : 'cursor-pointer border-slate-300 bg-slate-50 hover:border-blue-500 hover:shadow-lg'}`}>
+                        {getImageSrc() ? (
+                            <><img src={getImageSrc()} alt="Estudiante" className="w-full h-full object-cover" />{!isReadOnly && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all"><div className="bg-white/90 px-3 py-1.5 rounded-full text-xs font-bold text-slate-800 flex items-center gap-2 shadow-sm"><Camera className="w-4 h-4" /> Cambiar</div></div>}</>
+                        ) : (
+                            <div className="text-center p-4"><div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400 group-hover:text-blue-500 transition-colors"><Camera className="w-8 h-8" /></div><p className="text-sm font-bold text-slate-600">{isReadOnly ? 'Sin Foto' : 'Subir Imagen'}</p></div>
+                        )}
+                    </div>
+                    {studentId === 0 && !isReadOnly && <p className="text-xs text-slate-400 text-center mt-3">Guardado automático activado.</p>}
 
-                                    <div className="mt-8 border-t border-slate-200 pt-6">
-                                        <h3 className="text-sm font-bold text-slate-800 uppercase mb-4 flex items-center gap-2">
-                                            <FileText className="w-4 h-4" /> Documentación Digital
-                                        </h3>
+                    <div className="mt-8 border-t border-slate-200 pt-6">
+                        <h3 className="text-sm font-bold text-slate-800 uppercase mb-4 flex items-center gap-2">
+                            <FileText className="w-4 h-4" /> Documentación Digital
+                        </h3>
 
-                                        <div className="mb-4">
-                                            <label className="block text-xs font-bold text-slate-600 mb-2">Cédula de Identidad (PDF)</label>
-                                            <div
-                                                onClick={() => handlePdfSelect('cedula')}
-                                                className={`p-3 rounded-lg border-2 border-dashed flex items-center gap-3 cursor-pointer transition-colors ${hasCedula || pdfCedulaFile ? 'border-green-300 bg-green-50' : 'border-slate-300 hover:border-blue-400'}`}
-                                            >
-                                                <div className={`p-2 rounded-full ${hasCedula || pdfCedulaFile ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
-                                                    <FileText className="w-5 h-5" />
-                                                </div>
-                                                <div className="flex-1 overflow-hidden">
-                                                    <p className="text-sm font-bold text-slate-700 truncate">
-                                                        {pdfCedulaFile ? pdfCedulaFile.name : (hasCedula ? 'Documento cargado' : 'Subir archivo')}
-                                                    </p>
-                                                    <p className="text-xs text-slate-500">
-                                                        {pdfCedulaFile ? 'Listo para guardar' : (hasCedula ? 'Disponible en servidor' : 'Click para seleccionar')}
-                                                    </p>
-                                                </div>
-                                                {(hasCedula || pdfCedulaFile) && (
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            onClick={(e) => handleViewPdf('cedula', e)}
-                                                            className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-                                                            title="Ver Documento"
-                                                        >
-                                                            <FileText className="w-4 h-4" />
-                                                        </button>
-                                                        <Check className="w-5 h-5 text-green-600" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-600 mb-2">Partida de Nacimiento (PDF)</label>
-                                            <div
-                                                onClick={() => handlePdfSelect('partida')}
-                                                className={`p-3 rounded-lg border-2 border-dashed flex items-center gap-3 cursor-pointer transition-colors ${hasPartida || pdfPartidaFile ? 'border-green-300 bg-green-50' : 'border-slate-300 hover:border-blue-400'}`}
-                                            >
-                                                <div className={`p-2 rounded-full ${hasPartida || pdfPartidaFile ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
-                                                    <FileText className="w-5 h-5" />
-                                                </div>
-                                                <div className="flex-1 overflow-hidden">
-                                                    <p className="text-sm font-bold text-slate-700 truncate">
-                                                        {pdfPartidaFile ? pdfPartidaFile.name : (hasPartida ? 'Documento cargado' : 'Subir archivo')}
-                                                    </p>
-                                                    <p className="text-xs text-slate-500">
-                                                        {pdfPartidaFile ? 'Listo para guardar' : (hasPartida ? 'Disponible en servidor' : 'Click para seleccionar')}
-                                                    </p>
-                                                </div>
-                                                {(hasPartida || pdfPartidaFile) && (
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            onClick={(e) => handleViewPdf('partida', e)}
-                                                            className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-                                                            title="Ver Documento"
-                                                        >
-                                                            <FileText className="w-4 h-4" />
-                                                        </button>
-                                                        <Check className="w-5 h-5 text-green-600" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-
-                                    </div>
+                        <div className="mb-4">
+                            <label className="block text-xs font-bold text-slate-600 mb-2">Cédula de Identidad (PDF)</label>
+                            <div
+                                onClick={() => handlePdfSelect('cedula')}
+                                className={`p-3 rounded-lg border-2 border-dashed flex items-center gap-3 transition-colors ${isReadOnly ? 'border-slate-200 bg-slate-50 cursor-default' : 'cursor-pointer border-slate-300 hover:border-blue-400'} ${hasCedula || pdfCedulaFile ? 'border-green-300 bg-green-50' : ''}`}
+                            >
+                                <div className={`p-2 rounded-full ${hasCedula || pdfCedulaFile ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
+                                    <FileText className="w-5 h-5" />
                                 </div>
+                                <div className="flex-1 overflow-hidden">
+                                    <p className="text-sm font-bold text-slate-700 truncate">
+                                        {pdfCedulaFile ? pdfCedulaFile.name : (hasCedula ? 'Documento cargado' : 'Subir archivo')}
+                                    </p>
+                                    <p className="text-xs text-slate-500">
+                                        {pdfCedulaFile ? 'Listo para guardar' : (hasCedula ? 'Disponible en servidor' : isReadOnly ? 'No cargado' : 'Click para seleccionar')}
+                                    </p>
+                                </div>
+                                {(hasCedula || pdfCedulaFile) && (
+                                    <div className="flex items-center gap-2">
+                                        <div
+                                            role="button"
+                                            onClick={(e) => handleViewPdf('cedula', e)}
+                                            className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors cursor-pointer"
+                                            title="Ver Documento"
+                                        >
+                                            <FileText className="w-4 h-4" />
+                                        </div>
+                                        <Check className="w-5 h-5 text-green-600" />
+                                    </div>
+                                )}
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-600 mb-2">Partida de Nacimiento (PDF)</label>
+                            <div
+                                onClick={() => handlePdfSelect('partida')}
+                                className={`p-3 rounded-lg border-2 border-dashed flex items-center gap-3 transition-colors ${isReadOnly ? 'border-slate-200 bg-slate-50 cursor-default' : 'cursor-pointer border-slate-300 hover:border-blue-400'} ${hasPartida || pdfPartidaFile ? 'border-green-300 bg-green-50' : ''}`}
+                            >
+                                <div className={`p-2 rounded-full ${hasPartida || pdfPartidaFile ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
+                                    <FileText className="w-5 h-5" />
+                                </div>
+                                <div className="flex-1 overflow-hidden">
+                                    <p className="text-sm font-bold text-slate-700 truncate">
+                                        {pdfPartidaFile ? pdfPartidaFile.name : (hasPartida ? 'Documento cargado' : 'Subir archivo')}
+                                    </p>
+                                    <p className="text-xs text-slate-500">
+                                        {pdfPartidaFile ? 'Listo para guardar' : (hasPartida ? 'Disponible en servidor' : isReadOnly ? 'No cargado' : 'Click para seleccionar')}
+                                    </p>
+                                </div>
+                                {(hasPartida || pdfPartidaFile) && (
+                                    <div className="flex items-center gap-2">
+                                        <div
+                                            role="button"
+                                            onClick={(e) => handleViewPdf('partida', e)}
+                                            className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors cursor-pointer"
+                                            title="Ver Documento"
+                                        >
+                                            <FileText className="w-4 h-4" />
+                                        </div>
+                                        <Check className="w-5 h-5 text-green-600" />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
                             <div className="md:col-span-2 space-y-6">
                                 <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
                                     <h3 className="text-sm font-bold text-slate-800 uppercase mb-4 flex items-center gap-2"><MapPin className="w-4 h-4" /> Identificación</h3>
@@ -665,13 +703,18 @@ export default function StudentFormPage() {
                                 </div>
                             </div>
                         </div>
-                    )}
+                    </fieldset>
+                )}
 
                     {currentStep === 2 && (
                         <div>
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2"><Users className="w-5 h-5 text-blue-600" /> Listado de Familiares</h2>
-                                {!isEditingFamily && (<button onClick={() => initFamilyForm()} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-2 shadow-sm"><Plus className="w-4 h-4" /> Agregar Familiar</button>)}
+                                {!isEditingFamily && !isReadOnly && (
+                                    <button onClick={() => initFamilyForm()} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-2 shadow-sm">
+                                        <Plus className="w-4 h-4" /> Agregar Familiar
+                                    </button>
+                                )}
                             </div>
                             {!isEditingFamily && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -679,7 +722,18 @@ export default function StudentFormPage() {
                                         <div key={fam.uiId || fam.id || idx} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm relative group">
                                             <div className="flex justify-between items-start mb-3">
                                                 <div><span className="inline-block px-2 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded mb-2 uppercase tracking-wide">{fam.parentesco}</span>{fam.es_representante_legal && (<span className="ml-2 inline-block px-2 py-1 bg-green-50 text-green-700 text-xs font-bold rounded mb-2 border border-green-200">Repr.</span>)}</div>
-                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => initFamilyForm(fam)} className="p-1 text-slate-400 hover:text-blue-600"><Edit className="w-4 h-4" /></button><button onClick={() => deleteLocalFamiliar(fam)} className="p-1 text-slate-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button></div>
+                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    {isReadOnly ? (
+                                                        <button onClick={() => initFamilyForm(fam)} className="p-1 text-slate-400 hover:text-amber-600" title="Ver Familiar">
+                                                            <Eye className="w-4 h-4" />
+                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            <button onClick={() => initFamilyForm(fam)} className="p-1 text-slate-400 hover:text-blue-600" title="Editar"><Edit className="w-4 h-4" /></button>
+                                                            <button onClick={() => deleteLocalFamiliar(fam)} className="p-1 text-slate-400 hover:text-red-600" title="Eliminar"><Trash2 className="w-4 h-4" /></button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                             <h4 className="font-bold text-slate-800 truncate">{fam.nombres_completos}</h4>
                                             <p className="text-sm text-slate-500">{fam.cedula || 'S/N'}</p>
@@ -688,19 +742,34 @@ export default function StudentFormPage() {
                                 </div>
                             )}
                             {isEditingFamily && (
-                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-6">
-                                    <h3 className="text-md font-bold text-slate-800 mb-6 pb-2 border-b border-slate-200">{familyFormData.id > 0 ? 'Editar Familiar' : 'Nuevo Familiar'}</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
-                                            <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cédula</label><input type="text" name="cedula" value={familyFormData.cedula} onChange={handleFamilyInputChange} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none" maxLength={10} /></div>
-                                            <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombres</label><input type="text" name="nombres_completos" value={familyFormData.nombres_completos} onChange={handleFamilyInputChange} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none" /></div>
+                                <fieldset disabled={isReadOnly} className="contents">
+                                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-6">
+                                        <h3 className="text-md font-bold text-slate-800 mb-6 pb-2 border-b border-slate-200">
+                                            {isReadOnly ? 'Ver Familiar' : familyFormData.id > 0 ? 'Editar Familiar' : 'Nuevo Familiar'}
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cédula</label><input type="text" name="cedula" value={familyFormData.cedula} onChange={handleFamilyInputChange} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none" maxLength={10} /></div>
+                                                <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombres</label><input type="text" name="nombres_completos" value={familyFormData.nombres_completos} onChange={handleFamilyInputChange} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none" /></div>
+                                            </div>
+                                            <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Parentesco</label><select name="parentesco" value={familyFormData.parentesco} onChange={handleFamilyInputChange} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none"><option value="Padre">Padre</option><option value="Madre">Madre</option><option value="Abuelo/a">Abuelo/a</option><option value="Tío/a">Tío/a</option><option value="Otro">Otro</option></select></div>
+                                            <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Teléfono</label><input type="text" name="telefono_personal" value={familyFormData.telefono_personal} onChange={handleFamilyInputChange} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none" /></div>
+                                            <div className="md:col-span-2 flex flex-wrap gap-4"><label className="flex items-center gap-2"><input type="checkbox" name="es_representante_legal" checked={familyFormData.es_representante_legal} onChange={handleFamilyInputChange} /> Representante</label><label className="flex items-center gap-2"><input type="checkbox" name="vive_con_estudiante" checked={familyFormData.vive_con_estudiante} onChange={handleFamilyInputChange} /> Vive con estudiante</label></div>
                                         </div>
-                                        <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Parentesco</label><select name="parentesco" value={familyFormData.parentesco} onChange={handleFamilyInputChange} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none"><option value="Padre">Padre</option><option value="Madre">Madre</option><option value="Abuelo/a">Abuelo/a</option><option value="Tío/a">Tío/a</option><option value="Otro">Otro</option></select></div>
-                                        <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Teléfono</label><input type="text" name="telefono_personal" value={familyFormData.telefono_personal} onChange={handleFamilyInputChange} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none" /></div>
-                                        <div className="md:col-span-2 flex flex-wrap gap-4"><label className="flex items-center gap-2"><input type="checkbox" name="es_representante_legal" checked={familyFormData.es_representante_legal} onChange={handleFamilyInputChange} /> Representante</label><label className="flex items-center gap-2"><input type="checkbox" name="vive_con_estudiante" checked={familyFormData.vive_con_estudiante} onChange={handleFamilyInputChange} /> Vive con estudiante</label></div>
+                                        <div className="flex justify-end gap-3">
+                                            {isReadOnly ? (
+                                                <button type="button" onClick={() => setIsEditingFamily(false)} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition-colors">
+                                                    Cerrar
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <button type="button" onClick={() => setIsEditingFamily(false)} className="px-4 py-2 text-slate-600">Cancelar</button>
+                                                    <button type="button" onClick={saveLocalFamiliar} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Guardar</button>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex justify-end gap-3"><button onClick={() => setIsEditingFamily(false)} className="px-4 py-2 text-slate-600">Cancelar</button><button onClick={saveLocalFamiliar} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Guardar</button></div>
-                                </div>
+                                </fieldset>
                             )}
                         </div>
                     )}
@@ -711,11 +780,13 @@ export default function StudentFormPage() {
                                 <FileText className="w-6 h-6 text-blue-600" />
                                 <div>
                                     <h2 className="text-xl font-bold text-slate-800">Resumen y Confirmación</h2>
-                                    <p className="text-sm text-slate-500">Verifique los datos. Los campos son editables.</p>
+                                    <p className="text-sm text-slate-500">
+                                        {isReadOnly ? 'Verifique los datos registrados del estudiante.' : 'Verifique los datos. Los campos son editables.'}
+                                    </p>
                                 </div>
                             </div>
 
-                            {studentId === 0 && (
+                            {studentId === 0 && !isReadOnly && (
                                 <div className="mb-6 bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center gap-2 text-sm text-blue-700">
                                     <AlertCircle className="w-4 h-4" />
                                     <span>Backup local activo. Cierre seguro habilitado.</span>
@@ -743,29 +814,33 @@ export default function StudentFormPage() {
                                 </div>
 
                                 <div className="lg:col-span-2 space-y-6">
-                                    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                        <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex justify-between items-center">
-                                            <h4 className="font-bold text-slate-700 text-sm uppercase">Datos del Estudiante (Editable)</h4>
+                                    <fieldset disabled={isReadOnly} className="contents">
+                                        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                                            <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex justify-between items-center">
+                                                <h4 className="font-bold text-slate-700 text-sm uppercase">
+                                                    {isReadOnly ? 'Datos del Estudiante' : 'Datos del Estudiante (Editable)'}
+                                                </h4>
+                                            </div>
+                                            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nombres</label><input type="text" name="nombres" value={formData.nombres} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
+                                                <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Apellidos</label><input type="text" name="apellidos" value={formData.apellidos} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
+                                                {!formData.info_nacionalidad?.es_extranjero ? (
+                                                    <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Cédula</label><input type="text" name="cedula" value={formData.cedula} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
+                                                ) : (
+                                                    <>
+                                                        <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Pasaporte</label><input type="text" name="pasaporte_odni" value={formData.info_nacionalidad.pasaporte_odni} onChange={handleNacionalidadChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
+                                                        <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">País de Origen</label><input type="text" name="pais_origen" value={formData.info_nacionalidad.pais_origen} onChange={handleNacionalidadChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
+                                                    </>
+                                                )}
+                                                <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Fecha Nacimiento</label><input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
+                                            </div>
                                         </div>
-                                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nombres</label><input type="text" name="nombres" value={formData.nombres} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
-                                            <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Apellidos</label><input type="text" name="apellidos" value={formData.apellidos} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
-                                            {!formData.info_nacionalidad?.es_extranjero ? (
-                                                <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Cédula</label><input type="text" name="cedula" value={formData.cedula} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
-                                            ) : (
-                                                <>
-                                                    <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Pasaporte</label><input type="text" name="pasaporte_odni" value={formData.info_nacionalidad.pasaporte_odni} onChange={handleNacionalidadChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
-                                                    <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">País de Origen</label><input type="text" name="pais_origen" value={formData.info_nacionalidad.pais_origen} onChange={handleNacionalidadChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
-                                                </>
-                                            )}
-                                            <div><label className="block text-xs font-bold text-slate-400 uppercase mb-1">Fecha Nacimiento</label><input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleInputChange} className="w-full border-b border-slate-300 focus:border-blue-500 outline-none py-1 bg-transparent font-medium text-slate-700" /></div>
-                                        </div>
-                                    </div>
+                                    </fieldset>
 
                                     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                                         <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex justify-between items-center">
                                             <h4 className="font-bold text-slate-700 text-sm uppercase">Núcleo Familiar</h4>
-                                            <button onClick={() => setCurrentStep(2)} className="text-xs text-blue-600 hover:underline font-medium">Volver a editar</button>
+                                            {!isReadOnly && <button onClick={() => setCurrentStep(2)} className="text-xs text-blue-600 hover:underline font-medium">Volver a editar</button>}
                                         </div>
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-sm text-left">
@@ -788,20 +863,31 @@ export default function StudentFormPage() {
                             </div>
 
                             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-6">
-                                <button
-                                    onClick={() => handleFinalTransaction(false)}
-                                    disabled={isLoading}
-                                    className="w-full sm:w-auto px-8 py-3.5 bg-slate-600 hover:bg-slate-700 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-3 text-base transition-all"
-                                >
-                                    <Save className="w-5 h-5" /> {isLoading ? 'Procesando...' : 'Guardar y Finalizar'}
-                                </button>
-                                <button
-                                    onClick={() => handleFinalTransaction(true)}
-                                    disabled={isLoading}
-                                    className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-3 text-base transition-all"
-                                >
-                                    Guardar y Continuar Ficha DECE <ChevronRight className="w-5 h-5" />
-                                </button>
+                                {isReadOnly ? (
+                                    <button
+                                        onClick={() => handleFinalTransaction(false)}
+                                        className="w-full sm:w-auto px-8 py-3.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-3 text-base transition-all active:scale-95 animate-in fade-in"
+                                    >
+                                        Volver al Listado
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={() => handleFinalTransaction(false)}
+                                            disabled={isLoading}
+                                            className="w-full sm:w-auto px-8 py-3.5 bg-slate-600 hover:bg-slate-700 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-3 text-base transition-all"
+                                        >
+                                            <Save className="w-5 h-5" /> {isLoading ? 'Procesando...' : 'Guardar y Finalizar'}
+                                        </button>
+                                        <button
+                                            onClick={() => handleFinalTransaction(true)}
+                                            disabled={isLoading}
+                                            className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-3 text-base transition-all"
+                                        >
+                                            Guardar y Continuar Ficha DECE <ChevronRight className="w-5 h-5" />
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}

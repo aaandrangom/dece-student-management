@@ -15,6 +15,9 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
     const [courses, setCourses] = useState([]);
     const [subjectsList, setSubjectsList] = useState([]);
     const [previewFile, setPreviewFile] = useState(null);
+    const [activePeriod, setActivePeriod] = useState(null);
+
+    const isReadOnly = activePeriod?.cerrado;
 
     const [formData, setFormData] = useState({
         id: 0, estudiante_id: studentId, curso_id: 0, es_repetidor: false, direccion_actual: '', ruta_croquis: '', ruta_consentimiento: '',
@@ -39,10 +42,12 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                 const [periodo, materias] = await Promise.all([ObtenerPeriodoActivo(), ListarMaterias()]);
                 if (materias) setSubjectsList(materias);
                 if (periodo) {
+                    setActivePeriod(periodo);
                     const cursosData = await ListarCursos(periodo.id);
                     setCourses(cursosData || []);
                 } else {
-                    toast.error("Configure un periodo lectivo activo primero.");
+                    setActivePeriod(null);
+                    setCourses([]);
                 }
 
                 if (studentId > 0) {
@@ -110,6 +115,7 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
     };
 
     const handleSave = async () => {
+        if (isReadOnly) return;
         if (!formData.curso_id) return toast.warning("Seleccione un curso");
         try {
             setIsLoading(true);
@@ -149,9 +155,25 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 p-5 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-lg"><ArrowLeft className="w-5 h-5 text-slate-600" /></button>
-                        <div><h1 className="text-xl font-bold text-slate-800">Ficha DECE</h1><p className="text-slate-500 text-sm">Gestionando Matrícula</p></div>
+                        <div>
+                            <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                Ficha DECE
+                                {isReadOnly && (
+                                    <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded border border-amber-200">
+                                        Solo Lectura
+                                    </span>
+                                )}
+                            </h1>
+                            <p className="text-slate-500 text-sm">Gestionando Matrícula</p>
+                        </div>
                     </div>
-                    <button onClick={handleSave} disabled={isLoading} className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 shadow-sm transition-all"><Save className="w-4 h-4" /> {isLoading ? 'Guardando...' : 'Guardar'}</button>
+                    {isReadOnly ? (
+                        <button onClick={onBack} className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium shadow-sm transition-all">
+                            Volver al Listado
+                        </button>
+                    ) : (
+                        <button onClick={handleSave} disabled={isLoading} className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 shadow-sm transition-all"><Save className="w-4 h-4" /> {isLoading ? 'Guardando...' : 'Guardar'}</button>
+                    )}
                 </div>
 
                 <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
@@ -162,11 +184,13 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                     ))}
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 min-h-150">
-                    {activeTab === 'academico' && <AcademicTab data={formData} courses={courses} onChange={(field, val) => updateRoot(field, val)} onFileSelect={handleFileSelect} onPreview={handlePreview} />}
-                    {activeTab === 'fisico' && <PhysicalTab data={formData.antropometria} onChange={(field, val) => updateField('antropometria', field, val)} />}
-                    {activeTab === 'salud' && <HealthTab data={formData.datos_salud} onChange={(field, val) => updateField('datos_salud', field, val)} onFileSelect={handleFileSelect} onPreview={handlePreview} />}
-                    {activeTab === 'social' && <SocialTab history={formData.historial_academico} social={formData.datos_sociales} rutaCroquis={formData.ruta_croquis} subjectsList={subjectsList} onChangeHistory={(field, val) => updateField('historial_academico', field, val)} onChangeSocial={(field, val) => updateField('datos_sociales', field, val)} onFileSelect={handleFileSelect} onPreview={handlePreview} />}
-                    {activeTab === 'genero' && <GenderTab gender={studentGender} data={formData.condicion_genero} onChange={(newData) => updateSection('condicion_genero', newData)} />}
+                    <fieldset disabled={isReadOnly} className="contents">
+                        {activeTab === 'academico' && <AcademicTab data={formData} courses={courses} onChange={(field, val) => updateRoot(field, val)} onFileSelect={handleFileSelect} onPreview={handlePreview} />}
+                        {activeTab === 'fisico' && <PhysicalTab data={formData.antropometria} onChange={(field, val) => updateField('antropometria', field, val)} />}
+                        {activeTab === 'salud' && <HealthTab data={formData.datos_salud} onChange={(field, val) => updateField('datos_salud', field, val)} onFileSelect={handleFileSelect} onPreview={handlePreview} />}
+                        {activeTab === 'social' && <SocialTab history={formData.historial_academico} social={formData.datos_sociales} rutaCroquis={formData.ruta_croquis} subjectsList={subjectsList} onChangeHistory={(field, val) => updateField('historial_academico', field, val)} onChangeSocial={(field, val) => updateField('datos_sociales', field, val)} onFileSelect={handleFileSelect} onPreview={handlePreview} />}
+                        {activeTab === 'genero' && <GenderTab gender={studentGender} data={formData.condicion_genero} onChange={(newData) => updateSection('condicion_genero', newData)} />}
+                    </fieldset>
                 </div>
             </div>
         </div>

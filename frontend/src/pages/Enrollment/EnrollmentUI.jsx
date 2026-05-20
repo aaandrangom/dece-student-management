@@ -105,13 +105,14 @@ export const FileUploader = ({ label, path, onSelect, onPreview, onDelete }) => 
                     </button>
                     {path && (
                         <>
-                            <button
+                            <div
+                                role="button"
                                 onClick={() => onPreview(path)}
-                                className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors border border-indigo-100"
+                                className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors border border-indigo-100 cursor-pointer flex items-center justify-center"
                                 title="Ver archivo"
                             >
                                 <Eye className="w-4 h-4" />
-                            </button>
+                            </div>
                             {onDelete && (
                                 <button
                                     onClick={onDelete}

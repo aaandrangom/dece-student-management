@@ -271,10 +271,14 @@ func (s *ManagementService) ActualizarCita(input dto.ActualizarCitaDTO) (*manage
 func (s *ManagementService) ListarCapacitaciones() ([]dto.CapacitacionResumenDTO, error) {
 	var capacitaciones []management.Capacitacion
 
-	var periodoActivo academic.PeriodoLectivo
-	if err := s.db.Where("es_activo = ?", true).First(&periodoActivo).Error; err != nil {
+	var periodos []academic.PeriodoLectivo
+	if err := s.db.Where("es_activo = ?", true).Limit(1).Find(&periodos).Error; err != nil {
 		return []dto.CapacitacionResumenDTO{}, nil
 	}
+	if len(periodos) == 0 {
+		return []dto.CapacitacionResumenDTO{}, nil
+	}
+	periodoActivo := periodos[0]
 
 	result := s.db.Where("periodo_id = ?", periodoActivo.ID).
 		Order("fecha DESC").
@@ -328,10 +332,14 @@ func (s *ManagementService) RegistrarCapacitacion(input dto.GuardarCapacitacionD
 	var capacitacion management.Capacitacion
 	var rutaEvidenciaPrevia string
 
-	var periodoActivo academic.PeriodoLectivo
-	if err := s.db.Where("es_activo = ?", true).First(&periodoActivo).Error; err != nil {
+	var periodos []academic.PeriodoLectivo
+	if err := s.db.Where("es_activo = ?", true).Limit(1).Find(&periodos).Error; err != nil {
+		return nil, err
+	}
+	if len(periodos) == 0 {
 		return nil, errors.New("Debe configurar un periodo lectivo activo antes de registrar capacitaciones")
 	}
+	periodoActivo := periodos[0]
 
 	var gradoEspecificoFinal string
 	var paraleloEspecificoFinal string
@@ -415,10 +423,14 @@ func (s *ManagementService) RegistrarCapacitacion(input dto.GuardarCapacitacionD
 }
 
 func (s *ManagementService) ListarAulasPeriodoActivo() ([]dto.AulaDTO, error) {
-	var periodoActivo academic.PeriodoLectivo
-	if err := s.db.Where("es_activo = ?", true).First(&periodoActivo).Error; err != nil {
+	var periodos []academic.PeriodoLectivo
+	if err := s.db.Where("es_activo = ?", true).Limit(1).Find(&periodos).Error; err != nil {
 		return []dto.AulaDTO{}, nil
 	}
+	if len(periodos) == 0 {
+		return []dto.AulaDTO{}, nil
+	}
+	periodoActivo := periodos[0]
 
 	var cursos []faculty.Curso
 	if err := s.db.

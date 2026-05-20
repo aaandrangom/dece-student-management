@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import {
     Calendar, Plus, Search, Trash2, X, Loader2, History,
-    Lock, Pencil, Power, School, Archive, AlertCircle
+    Lock, Pencil, Power, School, Archive, AlertCircle, Eye
 } from 'lucide-react';
 
 import {
@@ -131,6 +131,15 @@ export default function AcademicYearsPage() {
                 confirmButtonColor: '#10b981',
                 confirmButtonText: 'Sí, activar'
             };
+        } else if (type === 'ACTIVATE_CLOSED') {
+            swalOptions = {
+                ...swalOptions,
+                title: '¿Visualizar Periodo Cerrado?',
+                text: `El periodo ${period.nombre} está CERRADO. El sistema entrará temporalmente en modo de SOLO LECTURA. No se podrán modificar datos.`,
+                icon: 'warning',
+                confirmButtonColor: '#f59e0b',
+                confirmButtonText: 'Sí, visualizar'
+            };
         } else if (type === 'DELETE') {
             swalOptions = {
                 ...swalOptions,
@@ -155,9 +164,9 @@ export default function AcademicYearsPage() {
 
         if (result.isConfirmed) {
             try {
-                if (type === 'ACTIVATE') {
+                if (type === 'ACTIVATE' || type === 'ACTIVATE_CLOSED') {
                     await ActivarPeriodo(period.id);
-                    toast.success(`Periodo ${period.nombre} activado`);
+                    toast.success(`Periodo ${period.nombre} activado ${type === 'ACTIVATE_CLOSED' ? 'en modo solo lectura' : ''}`);
                 } else if (type === 'DELETE') {
                     await EliminarPeriodo(period.id);
                     toast.success("Periodo eliminado");
@@ -187,6 +196,14 @@ export default function AcademicYearsPage() {
     };
 
     const getStatusBadge = (period) => {
+        if (period.cerrado && period.es_activo) {
+            return (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 shadow-sm">
+                    <Eye className="w-3.5 h-3.5 text-amber-600" />
+                    Visualizando (Solo Lectura)
+                </span>
+            );
+        }
         if (period.cerrado) {
             return (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
@@ -352,14 +369,26 @@ export default function AcademicYearsPage() {
                                                         </>
                                                     ) : (
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-xs text-slate-400 italic mr-2">Solo lectura</span>
-                                                            <button
-                                                                disabled
-                                                                className="p-2 text-slate-300 bg-slate-50 rounded-lg cursor-not-allowed border border-slate-100"
-                                                                title="Año cerrado"
-                                                            >
-                                                                <Lock className="w-4 h-4" />
-                                                            </button>
+                                                            {!period.es_activo ? (
+                                                                <button
+                                                                    onClick={() => handleAction('ACTIVATE_CLOSED', period)}
+                                                                    className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all border border-transparent hover:border-amber-100 shadow-sm"
+                                                                    title="Visualizar Periodo (Solo Lectura)"
+                                                                >
+                                                                    <Eye className="w-4 h-4" />
+                                                                </button>
+                                                            ) : (
+                                                                <>
+                                                                    <span className="text-xs text-amber-600 font-medium italic mr-2">Visualizando</span>
+                                                                    <button
+                                                                        disabled
+                                                                        className="p-2 text-amber-500 bg-amber-50 rounded-lg cursor-not-allowed border border-amber-100"
+                                                                        title="Periodo activo en solo lectura"
+                                                                    >
+                                                                        <Lock className="w-4 h-4" />
+                                                                    </button>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>

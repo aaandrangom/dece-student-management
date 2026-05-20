@@ -9,7 +9,7 @@ import {
 import { ObtenerDistributivo, AsignarDocenteMateria, EliminarAsignacion } from '../../../wailsjs/go/services/DistributivoService';
 import { ListarDocentes } from '../../../wailsjs/go/services/TeacherService';
 
-export default function DistributivoView({ course, onBack }) {
+export default function DistributivoView({ course, onBack, isReadOnly }) {
     const [allMaterias, setAllMaterias] = useState([]);
     const [teachers, setTeachers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +53,7 @@ export default function DistributivoView({ course, onBack }) {
     }, [allMaterias, searchTerm]);
 
     const handleSaveAssignment = async () => {
+        if (isReadOnly) return;
         if (!selectedMateria || !selectedTeacherId) {
             toast.warning("Debes seleccionar una materia y un docente");
             return;
@@ -92,6 +93,7 @@ export default function DistributivoView({ course, onBack }) {
     };
 
     const handleRemoveAssignment = async (materia) => {
+        if (isReadOnly) return;
         const result = await Swal.fire({
             title: `Quitar ${materia.materia_nombre}`,
             text: `¿Estás seguro de quitar ${materia.materia_nombre} del curso? Esta acción asignará la materia como "Sin Asignar".`,
@@ -122,6 +124,7 @@ export default function DistributivoView({ course, onBack }) {
     };
 
     const openModal = () => {
+        if (isReadOnly) return;
         setSearchTerm("");
         setSelectedMateria(null);
         setSelectedTeacherId("");
@@ -158,13 +161,15 @@ export default function DistributivoView({ course, onBack }) {
                         </div>
                     </div>
 
-                    <button
-                        onClick={openModal}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold shadow-md shadow-purple-200 transition-all active:scale-95"
-                    >
-                        <Plus className="w-5 h-5" />
-                        Agregar Materia
-                    </button>
+                    {!isReadOnly && (
+                        <button
+                            onClick={openModal}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-bold shadow-md shadow-purple-200 transition-all active:scale-95"
+                        >
+                            <Plus className="w-5 h-5" />
+                            Agregar Materia
+                        </button>
+                    )}
                 </div>
 
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -177,7 +182,9 @@ export default function DistributivoView({ course, onBack }) {
                         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                             <BookOpen className="w-16 h-16 mb-4 opacity-20" />
                             <p className="font-medium text-lg">Este curso aún no tiene materias asignadas</p>
-                            <p className="text-sm mt-1">Haz clic en "Agregar Materia" para configurar la carga horaria.</p>
+                            <p className="text-sm mt-1">
+                                {isReadOnly ? "No hay materias configuradas para este curso." : 'Haz clic en "Agregar Materia" para configurar la carga horaria.'}
+                            </p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -187,7 +194,7 @@ export default function DistributivoView({ course, onBack }) {
                                         <th className="px-6 py-4">Materia</th>
                                         <th className="px-6 py-4">Área</th>
                                         <th className="px-6 py-4">Docente Encargado</th>
-                                        <th className="px-6 py-4 text-center">Acciones</th>
+                                        {!isReadOnly && <th className="px-6 py-4 text-center">Acciones</th>}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
@@ -211,15 +218,17 @@ export default function DistributivoView({ course, onBack }) {
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <button
-                                                    onClick={() => handleRemoveAssignment(item)}
-                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                    title="Quitar materia del curso"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </td>
+                                            {!isReadOnly && (
+                                                <td className="px-6 py-4 text-center">
+                                                    <button
+                                                        onClick={() => handleRemoveAssignment(item)}
+                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                        title="Quitar materia del curso"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))}
                                 </tbody>

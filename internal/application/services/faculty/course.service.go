@@ -168,10 +168,14 @@ func (s *CourseService) EliminarCurso(id uint) error {
 
 func (s *CourseService) GenerarCursosMasivos() (string, error) {
 	// 1. Obtener periodo activo
-	var periodo academic.PeriodoLectivo
-	if err := s.db.Where("es_activo = ?", true).First(&periodo).Error; err != nil {
+	var periodos []academic.PeriodoLectivo
+	if err := s.db.Where("es_activo = ?", true).Limit(1).Find(&periodos).Error; err != nil {
+		return "", err
+	}
+	if len(periodos) == 0 {
 		return "", errors.New("No se encontró ningún periodo lectivo activo. Por favor active uno primero.")
 	}
+	periodo := periodos[0]
 
 	// 2. Definir niveles requeridos (según la tabla proporcionada por el usuario)
 	nivelesRequeridos := []struct {

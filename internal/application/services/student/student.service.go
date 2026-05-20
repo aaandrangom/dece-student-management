@@ -345,14 +345,27 @@ func CaclularEdad(fechaNacimiento string) int {
 func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.EstudianteListaDTO, error) {
 	var estudiantes []student.Estudiante
 	query = strings.TrimSpace(query)
+
+	// 1. Obtener el periodo activo
+	var activePeriods []struct {
+		ID uint
+	}
+	if err := s.db.Table("periodo_lectivos").Where("es_activo = ?", true).Select("id").Limit(1).Find(&activePeriods).Error; err != nil {
+		return nil, err
+	}
+	if len(activePeriods) == 0 {
+		// Si no hay periodo activo, devolver lista vacía sin error
+		return []studentDTO.EstudianteListaDTO{}, nil
+	}
+	activePeriod := activePeriods[0]
+
 	likeQuery := "%" + query + "%"
 
-	result := s.db.
-		Where("cedula LIKE ?", likeQuery).
-		Or("apellidos LIKE ?", likeQuery).
-		Or("nombres LIKE ?", likeQuery).
-		Or("json_extract(info_nacionalidad, '$.pasaporte_odni') LIKE ?", likeQuery).
-		Order("apellidos ASC").
+	result := s.db.Model(&student.Estudiante{}).
+		Joins("JOIN matriculas ON matriculas.estudiante_id = estudiantes.id AND matriculas.estado = 'Matriculado'").
+		Joins("JOIN cursos ON cursos.id = matriculas.curso_id AND cursos.periodo_id = ?", activePeriod.ID).
+		Where("(estudiantes.cedula LIKE ? OR estudiantes.apellidos LIKE ? OR estudiantes.nombres LIKE ? OR json_extract(estudiantes.info_nacionalidad, '$.pasaporte_odni') LIKE ?)", likeQuery, likeQuery, likeQuery, likeQuery).
+		Order("estudiantes.apellidos ASC").
 		Limit(3000).
 		Find(&estudiantes)
 
@@ -388,26 +401,36 @@ func (s *StudentService) BuscarEstudiantesFiltrados(query string, nivelID uint, 
 	var estudiantes []student.Estudiante
 	query = strings.TrimSpace(query)
 
-	dbQuery := s.db.Model(&student.Estudiante{})
+	// 1. Obtener el periodo activo
+	var activePeriods []struct {
+		ID uint
+	}
+	if err := s.db.Table("periodo_lectivos").Where("es_activo = ?", true).Select("id").Limit(1).Find(&activePeriods).Error; err != nil {
+		return nil, err
+	}
+	if len(activePeriods) == 0 {
+		// Si no hay periodo activo, devolver lista vacía sin error
+		return []studentDTO.EstudianteListaDTO{}, nil
+	}
+	activePeriod := activePeriods[0]
 
-	if nivelID > 0 || paralelo != "" || jornada != "" {
-		dbQuery = dbQuery.Joins("JOIN matriculas ON matriculas.estudiante_id = estudiantes.id AND matriculas.estado = 'Matriculado'")
-		dbQuery = dbQuery.Joins("JOIN cursos ON cursos.id = matriculas.curso_id")
-		
-		if nivelID > 0 {
-			dbQuery = dbQuery.Where("cursos.nivel_id = ?", nivelID)
-		}
-		if paralelo != "" {
-			dbQuery = dbQuery.Where("cursos.paralelo = ?", paralelo)
-		}
-		if jornada != "" {
-			dbQuery = dbQuery.Where("cursos.jornada = ?", jornada)
-		}
+	dbQuery := s.db.Model(&student.Estudiante{}).
+		Joins("JOIN matriculas ON matriculas.estudiante_id = estudiantes.id AND matriculas.estado = 'Matriculado'").
+		Joins("JOIN cursos ON cursos.id = matriculas.curso_id AND cursos.periodo_id = ?", activePeriod.ID)
+
+	if nivelID > 0 {
+		dbQuery = dbQuery.Where("cursos.nivel_id = ?", nivelID)
+	}
+	if paralelo != "" {
+		dbQuery = dbQuery.Where("cursos.paralelo = ?", paralelo)
+	}
+	if jornada != "" {
+		dbQuery = dbQuery.Where("cursos.jornada = ?", jornada)
 	}
 
 	if query != "" {
 		likeQuery := "%" + query + "%"
-		dbQuery = dbQuery.Where("estudiantes.cedula LIKE ? OR estudiantes.apellidos LIKE ? OR estudiantes.nombres LIKE ? OR json_extract(estudiantes.info_nacionalidad, '$.pasaporte_odni') LIKE ?", likeQuery, likeQuery, likeQuery, likeQuery)
+		dbQuery = dbQuery.Where("(estudiantes.cedula LIKE ? OR estudiantes.apellidos LIKE ? OR estudiantes.nombres LIKE ? OR json_extract(estudiantes.info_nacionalidad, '$.pasaporte_odni') LIKE ?)", likeQuery, likeQuery, likeQuery, likeQuery)
 	}
 
 	result := dbQuery.Order("estudiantes.apellidos ASC").Limit(3000).Find(&estudiantes)
