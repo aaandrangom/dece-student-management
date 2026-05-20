@@ -11,7 +11,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const CurrentVersion = "1.2.2"
+const CurrentVersion = "1.2.3"
 
 // GetVersion expone la versión actual al frontend
 func (a *App) GetVersion() string {
