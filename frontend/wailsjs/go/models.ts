@@ -137,36 +137,6 @@ export namespace academic {
 
 export namespace common {
 	
-	export class JSONMap___dece_internal_domain_tracking_Evidencia_ {
-	    Data: tracking.Evidencia[];
-	
-	    static createFrom(source: any = {}) {
-	        return new JSONMap___dece_internal_domain_tracking_Evidencia_(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.Data = this.convertValues(source["Data"], tracking.Evidencia);
-	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
-	}
 	export class JSONMap_dece_internal_domain_enrollment_Antropometria_ {
 	    Data: enrollment.Antropometria;
 	
@@ -477,6 +447,36 @@ export namespace common {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.Data = this.convertValues(source["Data"], tracking.DetalleSancion);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class JSONMap_dece_internal_domain_tracking_ListaEvidencias_ {
+	    Data: tracking.Evidencia[];
+	
+	    static createFrom(source: any = {}) {
+	        return new JSONMap_dece_internal_domain_tracking_ListaEvidencias_(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Data = this.convertValues(source["Data"], tracking.Evidencia);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -2935,8 +2935,7 @@ export namespace tracking {
 	    entidad_derivacion_detalle: string;
 	    descripcion: string;
 	    estado: string;
-	    // Go type: common
-	    rutas_documentos: any;
+	    rutas_documentos: common.JSONMap_dece_internal_domain_tracking_ListaEvidencias_;
 	    estudiante: student.Estudiante;
 	    periodo: academic.PeriodoLectivo;
 	
@@ -2956,7 +2955,7 @@ export namespace tracking {
 	        this.entidad_derivacion_detalle = source["entidad_derivacion_detalle"];
 	        this.descripcion = source["descripcion"];
 	        this.estado = source["estado"];
-	        this.rutas_documentos = this.convertValues(source["rutas_documentos"], null);
+	        this.rutas_documentos = this.convertValues(source["rutas_documentos"], common.JSONMap_dece_internal_domain_tracking_ListaEvidencias_);
 	        this.estudiante = this.convertValues(source["estudiante"], student.Estudiante);
 	        this.periodo = this.convertValues(source["periodo"], academic.PeriodoLectivo);
 	    }

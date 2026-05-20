@@ -36,6 +36,8 @@ type Evidencia struct {
 	Ruta   string `json:"ruta"`
 }
 
+type ListaEvidencias []Evidencia
+
 type CasoSensible struct {
 	ID           uint `gorm:"primaryKey" json:"id"`
 	EstudianteID uint `json:"estudiante_id"`
@@ -49,7 +51,7 @@ type CasoSensible struct {
 	Descripcion              string `json:"descripcion"`
 	Estado                   string `json:"estado"`
 
-	RutasDocumentos common.JSONMap[[]Evidencia] `gorm:"type:text" json:"rutas_documentos"`
+	RutasDocumentos common.JSONMap[ListaEvidencias] `gorm:"type:text" json:"rutas_documentos"`
 
 	Estudiante student.Estudiante      `gorm:"foreignKey:EstudianteID" json:"estudiante"`
 	Periodo    academic.PeriodoLectivo `gorm:"foreignKey:PeriodoID" json:"periodo"`

@@ -292,7 +292,7 @@ func (s *TrackingService) ListarCasos(estudianteID uint) ([]dto.CasoResumenDTO, 
 	for i, c := range casos {
 		evidencias := c.RutasDocumentos.Data
 		if evidencias == nil {
-			evidencias = []tracking.Evidencia{}
+			evidencias = tracking.ListaEvidencias{}
 		}
 
 		evidenciasDTO := make([]dto.EvidenciaDTO, len(evidencias))
@@ -368,7 +368,7 @@ func (s *TrackingService) CrearCaso(input dto.GuardarCasoDTO) (*tracking.CasoSen
 			EntidadDerivacionDetalle: input.EntidadDerivacionDetalle,
 			Descripcion:              input.Descripcion,
 			Estado:                   input.Estado,
-			RutasDocumentos:          common.JSONMap[[]tracking.Evidencia]{Data: []tracking.Evidencia{}},
+			RutasDocumentos:          common.JSONMap[tracking.ListaEvidencias]{Data: tracking.ListaEvidencias{}},
 		}
 
 		if err := s.db.Create(&caso).Error; err != nil {
@@ -452,7 +452,7 @@ func (s *TrackingService) SubirEvidenciaCaso(casoID uint, rutaOrigen string, nom
 
 	listaActual := caso.RutasDocumentos.Data
 	if listaActual == nil {
-		listaActual = []tracking.Evidencia{}
+		listaActual = tracking.ListaEvidencias{}
 	}
 
 	if nombre == "" {
@@ -464,7 +464,7 @@ func (s *TrackingService) SubirEvidenciaCaso(casoID uint, rutaOrigen string, nom
 		Ruta:   rutaDestinoCompleta,
 	})
 
-	caso.RutasDocumentos = common.JSONMap[[]tracking.Evidencia]{Data: listaActual}
+	caso.RutasDocumentos = common.JSONMap[tracking.ListaEvidencias]{Data: listaActual}
 
 	if err := s.db.Save(&caso).Error; err != nil {
 		return "", fmt.Errorf("Evidencia guardada pero error al actualizar BD: %v", err)
@@ -490,17 +490,17 @@ func (s *TrackingService) EliminarEvidenciaCaso(casoID uint, ruta string) error 
 
 	listaActual := caso.RutasDocumentos.Data
 	if listaActual == nil {
-		listaActual = []tracking.Evidencia{}
+		listaActual = tracking.ListaEvidencias{}
 	}
 
-	nuevaLista := make([]tracking.Evidencia, 0, len(listaActual))
+	nuevaLista := make(tracking.ListaEvidencias, 0, len(listaActual))
 	for _, r := range listaActual {
 		if r.Ruta != ruta {
 			nuevaLista = append(nuevaLista, r)
 		}
 	}
 
-	caso.RutasDocumentos = common.JSONMap[[]tracking.Evidencia]{Data: nuevaLista}
+	caso.RutasDocumentos = common.JSONMap[tracking.ListaEvidencias]{Data: nuevaLista}
 
 	if err := s.db.Save(&caso).Error; err != nil {
 		return fmt.Errorf("Error al actualizar BD: %v", err)
