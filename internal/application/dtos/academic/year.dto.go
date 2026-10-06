@@ -22,3 +22,11 @@ type ActualizarPeriodoDTO struct {
 	FechaInicio string `json:"fecha_inicio" validate:"required"`
 	FechaFin    string `json:"fecha_fin" validate:"required"`
 }
+
+// PeriodoVistaDTO es el periodo que la app está mostrando.
+type PeriodoVistaDTO struct {
+	PeriodoResponseDTO
+	EsConsulta      bool `json:"es_consulta"`       // se está viendo un año distinto al de trabajo
+	SoloLectura     bool `json:"solo_lectura"`      // consulta o periodo cerrado: no se permiten cambios
+	PeriodoActivoID uint `json:"periodo_activo_id"` // año de trabajo (0 si no hay)
+}

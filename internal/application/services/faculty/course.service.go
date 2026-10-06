@@ -2,6 +2,7 @@ package services
 
 import (
 	courseDTO "dece/internal/application/dtos/faculty"
+	"dece/internal/application/helpers/periodo"
 	"dece/internal/domain/academic"
 	"dece/internal/domain/faculty"
 	"errors"
@@ -61,6 +62,9 @@ func (s *CourseService) ListarCursos(periodoID uint) ([]courseDTO.CursoResponseD
 }
 
 func (s *CourseService) CrearCurso(input courseDTO.GuardarCursoDTO) error {
+	if err := periodo.ValidarEditable(s.db, input.PeriodoID); err != nil {
+		return err
+	}
 	paralelo := strings.ToUpper(strings.TrimSpace(input.Paralelo))
 
 	var count int64
@@ -100,6 +104,9 @@ func (s *CourseService) CrearCurso(input courseDTO.GuardarCursoDTO) error {
 }
 
 func (s *CourseService) ActualizarCurso(input courseDTO.GuardarCursoDTO) error {
+	if err := periodo.ValidarCursoEditable(s.db, input.ID); err != nil {
+		return err
+	}
 	var curso faculty.Curso
 
 	if err := s.db.First(&curso, input.ID).Error; err != nil {
@@ -139,6 +146,9 @@ func (s *CourseService) ActualizarCurso(input courseDTO.GuardarCursoDTO) error {
 }
 
 func (s *CourseService) EliminarCurso(id uint) error {
+	if err := periodo.ValidarCursoEditable(s.db, id); err != nil {
+		return err
+	}
 	var curso faculty.Curso
 
 	if err := s.db.First(&curso, id).Error; err != nil {
@@ -167,7 +177,10 @@ func (s *CourseService) EliminarCurso(id uint) error {
 }
 
 func (s *CourseService) GenerarCursosMasivos() (string, error) {
-	// 1. Obtener periodo activo
+	// 1. Obtener periodo activo (debe estar abierto)
+	if _, err := periodo.ValidarActivoEditable(s.db); err != nil {
+		return "", err
+	}
 	var periodos []academic.PeriodoLectivo
 	if err := s.db.Where("es_activo = ?", true).Limit(1).Find(&periodos).Error; err != nil {
 		return "", err

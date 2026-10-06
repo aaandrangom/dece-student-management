@@ -7,6 +7,7 @@ import SecurityWrapper from './components/SecurityWrapper';
 import { TutorialProvider } from './context/TutorialContext';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import { PeriodBanner } from './components/PeriodSelector';
 
 import Dashboard from './pages/Common/Dashboard';
 import NotificationsPage from './pages/Common/NotificationsPage';
@@ -54,6 +55,7 @@ const MainLayout = () => {
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header />
+        <PeriodBanner />
 
         <div className="flex-1 overflow-auto">
           <Routes>

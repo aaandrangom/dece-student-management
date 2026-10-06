@@ -51,6 +51,14 @@ Métodos en español con verbo: `Crear*`, `Listar*`, `Actualizar*`, `Eliminar*`,
 4. Instanciar en `main.go` y añadir a `Bind`. Si necesita ctx: pasarlo a `NewApp` y llamar `SetContext` en `app.go` `startup`.
 5. `wails dev` / `wails generate module` para regenerar bindings.
 
+### Periodo lectivo: año de trabajo vs año en consulta
+`internal/application/helpers/periodo` centraliza esto (leer antes de tocar cualquier servicio por periodo):
+- **Año de trabajo** = `periodo_lectivos.es_activo`. Todo lo nuevo se registra ahí. Cerrar el año lo deja activo en solo lectura hasta activar el siguiente; un periodo cerrado no se puede activar.
+- **Año en consulta** = selector del Header (`PeriodSelector.jsx`). Vive solo en memoria del backend (`periodo.SetConsulta`), al reiniciar vuelve al año de trabajo. El frontend recarga la ventana al cambiarlo.
+- **Lecturas** por periodo: usar `periodo.ConsultaID(db)`, nunca `es_activo` directo.
+- **Escrituras**: validar con `periodo.ValidarEditable` / `ValidarCursoEditable` / `ValidarMatriculaEditable` / `ValidarActivoEditable`.
+- **Frontend**: `usePeriodoVista()` (`src/hooks/`) da `soloLectura`; ocultar botones de crear/editar/eliminar con eso. `ObtenerPeriodoVista` reemplaza a `ObtenerPeriodoActivo` en pantallas.
+
 ### Gotcha: bindings de Wails
 La carpeta en `frontend/wailsjs/go/<pkg>/` usa el **nombre del paquete Go**, no el directorio. Casi todos los servicios declaran `package services`, así que sus bindings están en `wailsjs/go/services/` (Auth, Course, Distributivo, Enrollment, Institution, Management, Notifications, SecurityConfig, Student, Teacher, Template, Tracking, User). Excepciones: `academic/`, `dashboard/`, `reports/`, `search/`, `system/`, `main/` (App). `wailsjs/` es generado: no editar a mano.
 

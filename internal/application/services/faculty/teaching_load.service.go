@@ -2,6 +2,7 @@ package services
 
 import (
 	teachingLoadDTO "dece/internal/application/dtos/faculty"
+	"dece/internal/application/helpers/periodo"
 	"dece/internal/domain/faculty"
 	"errors"
 	"fmt"
@@ -47,6 +48,9 @@ func (s *DistributivoService) ObtenerDistributivo(cursoID uint) ([]teachingLoadD
 }
 
 func (s *DistributivoService) AsignarDocenteMateria(input teachingLoadDTO.AsignarDocenteDTO) error {
+	if err := periodo.ValidarCursoEditable(s.db, input.CursoID); err != nil {
+		return err
+	}
 	var asignacion faculty.DistributivoMateria
 
 	result := s.db.Where("curso_id = ? AND materia_id = ?", input.CursoID, input.MateriaID).First(&asignacion)
@@ -75,6 +79,9 @@ func (s *DistributivoService) AsignarDocenteMateria(input teachingLoadDTO.Asigna
 }
 
 func (s *DistributivoService) EliminarAsignacion(cursoID uint, materiaID uint) error {
+	if err := periodo.ValidarCursoEditable(s.db, cursoID); err != nil {
+		return err
+	}
 
 	result := s.db.Where("curso_id = ? AND materia_id = ?", cursoID, materiaID).
 		Delete(&faculty.DistributivoMateria{})

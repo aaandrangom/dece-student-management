@@ -3,6 +3,7 @@ package services
 import (
 	"archive/zip"
 	"context"
+	"dece/internal/application/helpers/periodo"
 	"dece/internal/domain/common"
 	"dece/internal/domain/enrollment"
 	"dece/internal/domain/management"
@@ -632,10 +633,10 @@ func (s *TemplateService) ObtenerDatosCertificado(plantillaID uint, estudianteID
 
 	// Obtener matrícula actual con curso y nivel
 	var matricula enrollment.Matricula
+	periodoID, _ := periodo.ConsultaID(s.db)
 	s.db.Preload("Curso.Nivel").Preload("Curso.Periodo").
 		Joins("JOIN cursos ON cursos.id = matriculas.curso_id").
-		Joins("JOIN periodo_lectivos ON periodo_lectivos.id = cursos.periodo_id AND periodo_lectivos.es_activo = true").
-		Where("matriculas.estudiante_id = ?", estudianteID).
+		Where("matriculas.estudiante_id = ? AND cursos.periodo_id = ?", estudianteID, periodoID).
 		First(&matricula)
 
 	// Obtener usuario actual (admin)

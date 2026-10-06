@@ -4,6 +4,7 @@ import (
 	"context"
 	enrollmentDTO "dece/internal/application/dtos/enrollment"
 	"dece/internal/application/helpers/busqueda"
+	"dece/internal/application/helpers/periodo"
 	"dece/internal/domain/common"
 	domain "dece/internal/domain/enrollment"
 	"dece/internal/domain/faculty"
@@ -145,10 +146,14 @@ func (s *EnrollmentService) guardarArchivo(rutaOrigen string, subCarpeta string,
 func (s *EnrollmentService) ObtenerMatriculaActual(estudianteID uint) (*enrollmentDTO.MatriculaResponseDTO, error) {
 	var matricula domain.Matricula
 
-	err := s.db.
+	periodoID, err := periodo.ConsultaID(s.db)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.db.
 		Joins("JOIN cursos c ON c.id = matriculas.curso_id").
-		Joins("JOIN periodo_lectivos p ON p.id = c.periodo_id").
-		Where("matriculas.estudiante_id = ? AND p.es_activo = ?", estudianteID, true).
+		Where("matriculas.estudiante_id = ? AND c.periodo_id = ?", estudianteID, periodoID).
 		Order("CASE WHEN matriculas.estado = 'Matriculado' THEN 0 ELSE 1 END, matriculas.id DESC").
 		First(&matricula).Error
 
@@ -192,11 +197,11 @@ const (
 // cursoEnPeriodoEditable valida que el curso exista y pertenezca al periodo activo y abierto.
 func (s *EnrollmentService) cursoEnPeriodoEditable(tx *gorm.DB, cursoID uint) (*faculty.Curso, error) {
 	var curso faculty.Curso
-	if err := tx.Preload("Periodo").First(&curso, cursoID).Error; err != nil {
+	if err := tx.First(&curso, cursoID).Error; err != nil {
 		return nil, errors.New("El curso seleccionado no existe")
 	}
-	if !curso.Periodo.EsActivo || curso.Periodo.Cerrado {
-		return nil, errors.New("Solo se pueden registrar matrículas en el periodo lectivo activo y abierto")
+	if err := periodo.ValidarEditable(tx, curso.PeriodoID); err != nil {
+		return nil, err
 	}
 	return &curso, nil
 }
@@ -332,16 +337,20 @@ func (s *EnrollmentService) ObtenerHistorial(estudianteID uint) ([]enrollmentDTO
 	return response, nil
 }
 
-// BuscarParaRetiro lista las matrículas del periodo activo (vigentes y retiradas) que coinciden
+// BuscarParaRetiro lista las matrículas del periodo en consulta (vigentes y retiradas) que coinciden
 // con la búsqueda. Las retiradas se muestran para poder revertir un retiro hecho por error.
 func (s *EnrollmentService) BuscarParaRetiro(query string) ([]enrollmentDTO.EstudianteRetiroDTO, error) {
 	palabras := busqueda.Palabras(query)
 	if len(palabras) == 0 {
 		return []enrollmentDTO.EstudianteRetiroDTO{}, nil
 	}
+	periodoID, err := periodo.ConsultaID(s.db)
+	if err != nil {
+		return nil, err
+	}
 
 	var filas []enrollmentDTO.EstudianteRetiroDTO
-	err := s.db.Table("matriculas").
+	err = s.db.Table("matriculas").
 		Select(`estudiantes.id AS estudiante_id, matriculas.id AS matricula_id, estudiantes.cedula,
 			estudiantes.nombres, estudiantes.apellidos, matriculas.estado,
 			nivel_educativos.nombre || ' ' || cursos.paralelo AS curso,
@@ -349,9 +358,8 @@ func (s *EnrollmentService) BuscarParaRetiro(query string) ([]enrollmentDTO.Estu
 		Joins("JOIN estudiantes ON estudiantes.id = matriculas.estudiante_id").
 		Joins("JOIN cursos ON cursos.id = matriculas.curso_id").
 		Joins("JOIN nivel_educativos ON nivel_educativos.id = cursos.nivel_id").
-		Joins("JOIN periodo_lectivos ON periodo_lectivos.id = cursos.periodo_id").
 		Joins("LEFT JOIN retiro_estudiantes ON retiro_estudiantes.matricula_id = matriculas.id").
-		Where("periodo_lectivos.es_activo = ?", true).
+		Where("cursos.periodo_id = ?", periodoID).
 		Order("estudiantes.apellidos ASC, estudiantes.nombres ASC, matriculas.id DESC").
 		Scan(&filas).Error
 	if err != nil {

@@ -12,7 +12,7 @@ import Swal from 'sweetalert2';
 
 import { BuscarEstudiantesFiltrados, ObtenerFotoBase64, ImportarEstudiantes, EliminarEstudiante } from '../../../wailsjs/go/services/StudentService';
 import { ListarCursos } from '../../../wailsjs/go/services/CourseService';
-import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
+import { ObtenerPeriodoVista } from '../../../wailsjs/go/academic/YearService';
 import { ListarNiveles } from '../../../wailsjs/go/academic/LevelService';
 import {
     ListarPlantillas, ObtenerDatosCertificado, GenerarCertificado
@@ -156,7 +156,7 @@ function StudentList({ onCreate, onEdit }) {
 
     useEffect(() => {
         ListarNiveles().then(data => setLevels(data || [])).catch(() => {});
-        ObtenerPeriodoActivo().then(period => {
+        ObtenerPeriodoVista().then(period => {
             setActivePeriod(period);
         }).catch((err) => {
             console.error("Error al obtener periodo activo:", err);
@@ -188,7 +188,7 @@ function StudentList({ onCreate, onEdit }) {
     const openImportModal = async () => {
         setIsLoadingCourses(true);
         try {
-            const period = await ObtenerPeriodoActivo();
+            const period = await ObtenerPeriodoVista();
             if (period) {
                 setActivePeriodName(period.nombre);
                 const courses = await ListarCursos(period.id);
@@ -321,7 +321,7 @@ function StudentList({ onCreate, onEdit }) {
                     <div>
                         <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
                             Gestión de Estudiantes
-                            {activePeriod?.cerrado && (
+                            {activePeriod?.solo_lectura && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 shadow-sm">
                                     <Eye className="w-3 h-3 text-amber-600 animate-pulse" />
                                     Solo Lectura
@@ -331,7 +331,7 @@ function StudentList({ onCreate, onEdit }) {
                         <p className="text-slate-500 text-sm font-medium">Directorio general de alumnos</p>
                     </div>
                 </div>
-                {!activePeriod?.cerrado && (
+                {!activePeriod?.solo_lectura && (
                     <div className="flex gap-3 w-full sm:w-auto">
                         <button
                             onClick={openImportModal}
@@ -512,7 +512,7 @@ function StudentList({ onCreate, onEdit }) {
                                         <td className="px-6 py-4 text-slate-500 text-sm">{st.correo_electronico || '-'}</td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-1">
-                                                {activePeriod?.cerrado ? (
+                                                {activePeriod?.solo_lectura ? (
                                                     <button
                                                         onClick={() => onEdit(st.id)}
                                                         className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
@@ -536,7 +536,7 @@ function StudentList({ onCreate, onEdit }) {
                                                 >
                                                     <FileText className="w-4 h-4" />
                                                 </button>
-                                                {!activePeriod?.cerrado && (
+                                                {!activePeriod?.solo_lectura && (
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); handleDelete(st); }}
                                                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"

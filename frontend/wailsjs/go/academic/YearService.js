@@ -10,6 +10,10 @@ export function ActualizarPeriodo(arg1) {
   return window['go']['academic']['YearService']['ActualizarPeriodo'](arg1);
 }
 
+export function CambiarPeriodoConsulta(arg1) {
+  return window['go']['academic']['YearService']['CambiarPeriodoConsulta'](arg1);
+}
+
 export function CerrarPeriodo(arg1) {
   return window['go']['academic']['YearService']['CerrarPeriodo'](arg1);
 }
@@ -28,4 +32,8 @@ export function ListarPeriodos() {
 
 export function ObtenerPeriodoActivo() {
   return window['go']['academic']['YearService']['ObtenerPeriodoActivo']();
+}
+
+export function ObtenerPeriodoVista() {
+  return window['go']['academic']['YearService']['ObtenerPeriodoVista']();
 }

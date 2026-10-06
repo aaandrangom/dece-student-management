@@ -5,6 +5,7 @@ import { useNotifications } from '../context/NotificationsContext';
 import { useTutorial } from '../context/TutorialContext';
 import { useNavigate } from 'react-router-dom';
 import GlobalSearch from './GlobalSearch';
+import { PeriodSelector } from './PeriodSelector';
 import { ObtenerFotoPerfilBase64 } from '../../wailsjs/go/services/UserService';
 
 const Header = () => {
@@ -65,6 +66,8 @@ const Header = () => {
       </div>
 
       <div className="flex items-center gap-4">
+        <PeriodSelector />
+
         <button className="md:hidden p-2.5 rounded-xl text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-all">
           <Search className="w-5 h-5" />
         </button>

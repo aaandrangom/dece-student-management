@@ -2,6 +2,7 @@ package reports
 
 import (
 	dtos "dece/internal/application/dtos/reports"
+	"dece/internal/application/helpers/periodo"
 	faculty "dece/internal/application/services/faculty"
 	security "dece/internal/application/services/security"
 	"fmt"
@@ -219,10 +220,15 @@ func (s *ReportService) ObtenerDatosFichaEstudiantil(cedula string) (*dtos.Ficha
 		LEFT JOIN cursos c ON m.curso_id = c.id
 		LEFT JOIN nivel_educativos ne ON c.nivel_id = ne.id
 		LEFT JOIN periodo_lectivos pl ON c.periodo_id = pl.id
-		WHERE e.cedula = ? 
-		AND pl.es_activo = 1;`
+		WHERE e.cedula = ?
+		AND pl.id = ?;`
 
-	if err := s.db.Raw(queryA, cedula).Scan(&ficha.DatosPersonales).Error; err != nil {
+	periodoID, err := periodo.ConsultaID(s.db)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.db.Raw(queryA, cedula, periodoID).Scan(&ficha.DatosPersonales).Error; err != nil {
 		return nil, fmt.Errorf("Error obteniendo datos personales: %v", err)
 	}
 
@@ -701,16 +707,19 @@ func (s *ReportService) ObtenerReporteNominaVulnerabilidad(filtroTipoCaso string
 			cs.fecha_deteccion
 		FROM casos_sensibles cs
 		JOIN estudiantes e ON cs.estudiante_id = e.id
-		JOIN periodo_lectivos pl ON cs.periodo_id = pl.id
-		LEFT JOIN matriculas m ON e.id = m.estudiante_id 
-		LEFT JOIN cursos c ON m.curso_id = c.id
+		JOIN matriculas m ON m.estudiante_id = e.id AND m.estado = 'Matriculado'
+		JOIN cursos c ON c.id = m.curso_id AND c.periodo_id = cs.periodo_id
 		LEFT JOIN nivel_educativos ne ON c.nivel_id = ne.id
-		WHERE pl.es_activo = 1  
-		AND m.estado = 'Matriculado'
-		AND cs.tipo_caso LIKE ? 
+		WHERE cs.periodo_id = ?
+		AND cs.tipo_caso LIKE ?
 		ORDER BY c.nivel_id, c.paralelo, e.apellidos;`
 
-	if err := s.db.Raw(query, param).Scan(&reporte).Error; err != nil {
+	periodoID, err := periodo.ConsultaID(s.db)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.db.Raw(query, periodoID, param).Scan(&reporte).Error; err != nil {
 		return nil, fmt.Errorf("error obteniendo nómina de vulnerabilidad: %v", err)
 	}
 
@@ -970,20 +979,23 @@ func (s *ReportService) ObtenerReporteDerivaciones(fechaInicio, fechaFin string)
 		cs.estado
 	FROM casos_sensibles cs
 	JOIN estudiantes e ON cs.estudiante_id = e.id
-	JOIN periodo_lectivos pl ON cs.periodo_id = pl.id
-	-- Joins para obtener el curso actual del estudiante
-	LEFT JOIN matriculas m ON e.id = m.estudiante_id 
-	LEFT JOIN cursos c ON m.curso_id = c.id
+	-- Curso del estudiante en el mismo periodo del caso (sin duplicar por otros años)
+	JOIN matriculas m ON m.estudiante_id = e.id AND m.estado = 'Matriculado'
+	JOIN cursos c ON c.id = m.curso_id AND c.periodo_id = cs.periodo_id
 	LEFT JOIN nivel_educativos ne ON c.nivel_id = ne.id
-	WHERE pl.es_activo = 1 
-	AND m.estado = 'Matriculado'
-	-- FILTRO CLAVE: Solo aquellos que tienen una entidad de derivación registrada
+	WHERE cs.periodo_id = ?
+-- FILTRO CLAVE: Solo aquellos que tienen una entidad de derivación registrada
 	AND cs.entidad_derivacion IS NOT NULL 
 	AND cs.entidad_derivacion != ''
 	AND cs.fecha_deteccion BETWEEN ? AND ?
 	ORDER BY cs.fecha_deteccion DESC;`
 
-	if err := s.db.Raw(query, fechaInicio, fechaFin).Scan(&derivaciones).Error; err != nil {
+	periodoID, err := periodo.ConsultaID(s.db)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.db.Raw(query, periodoID, fechaInicio, fechaFin).Scan(&derivaciones).Error; err != nil {
 		return nil, fmt.Errorf("error obteniendo derivaciones: %v", err)
 	}
 

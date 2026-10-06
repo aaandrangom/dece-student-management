@@ -10,7 +10,7 @@ import {
     GuardarEstudiante, GuardarFoto, GuardarFotoBase64,
     ObtenerEstudiante, ObtenerFotoBase64, GuardarDocumentoPDF, ObtenerDocumentoPDF
 } from '../../../wailsjs/go/services/StudentService';
-import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
+import { ObtenerPeriodoVista } from '../../../wailsjs/go/academic/YearService';
 
 const calculateAge = (dateString) => {
     if (!dateString) return '-';
@@ -108,9 +108,9 @@ export default function StudentFormPage() {
     });
 
     useEffect(() => {
-        ObtenerPeriodoActivo().then(period => {
+        ObtenerPeriodoVista().then(period => {
             setActivePeriod(period);
-            if (period?.cerrado) {
+            if (period?.solo_lectura) {
                 setIsReadOnly(true);
             }
         }).catch(err => {
@@ -520,7 +520,7 @@ export default function StudentFormPage() {
                         <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 animate-pulse" />
                         <div>
                             <p className="text-sm font-bold">Modo de Solo Lectura Activo</p>
-                            <p className="text-xs text-amber-700 font-medium">Está explorando registros históricos del periodo lectivo cerrado <strong>{activePeriod?.nombre}</strong>. Se han deshabilitado las opciones de edición y guardado.</p>
+                            <p className="text-xs text-amber-700 font-medium">Está viendo el periodo <strong>{activePeriod?.nombre}</strong> en modo solo lectura. Se han deshabilitado las opciones de edición y guardado.</p>
                         </div>
                     </div>
                 )}

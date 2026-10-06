@@ -3,6 +3,7 @@ package dashboard
 import (
 	"context"
 	dtos "dece/internal/application/dtos/dashboard"
+	"dece/internal/application/helpers/periodo"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -23,22 +24,26 @@ func (s *DashboardService) SetContext(ctx context.Context) {
 
 func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 	data := &dtos.DashboardDataDTO{}
-	var err error
+
+	periodoID, err := periodo.ConsultaID(s.db)
+	if err != nil {
+		return nil, err
+	}
 
 	s.db.Raw(`
 		SELECT COUNT(*) 
 		FROM matriculas m
 		JOIN cursos c ON m.curso_id = c.id
 		JOIN periodo_lectivos p ON c.periodo_id = p.id
-		WHERE p.es_activo = 1 AND m.estado = 'Matriculado'
-	`).Scan(&data.KPI.TotalEstudiantes)
+		WHERE p.id = ? AND m.estado = 'Matriculado'
+	`, periodoID).Scan(&data.KPI.TotalEstudiantes)
 
 	s.db.Raw(`
 		SELECT COUNT(*) 
 		FROM casos_sensibles c
 		JOIN periodo_lectivos p ON c.periodo_id = p.id
-		WHERE p.es_activo = 1 AND c.estado = 'Abierto'
-	`).Scan(&data.KPI.CasosAbiertos)
+		WHERE p.id = ? AND c.estado = 'Abierto'
+	`, periodoID).Scan(&data.KPI.CasosAbiertos)
 
 	s.db.Raw(`
 		SELECT COUNT(*) FROM convocatoria WHERE cita_completada = 0
@@ -80,11 +85,11 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 		JOIN cursos c ON m.curso_id = c.id
 		JOIN nivel_educativos ne ON c.nivel_id = ne.id
 		JOIN periodo_lectivos p ON c.periodo_id = p.id
-		WHERE p.es_activo = 1
+		WHERE p.id = ?
 		GROUP BY c.id
 		ORDER BY cantidad_faltas DESC
 		LIMIT 5
-	`).Scan(&data.CursosConflictivos)
+	`, periodoID).Scan(&data.CursosConflictivos)
 
 	s.db.Raw(`
 		SELECT 
@@ -92,9 +97,9 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 			COUNT(*) as cantidad
 		FROM casos_sensibles cs
 		JOIN periodo_lectivos p ON cs.periodo_id = p.id
-		WHERE p.es_activo = 1
+		WHERE p.id = ?
 		GROUP BY tipo_caso
-	`).Scan(&data.CasosPorTipo)
+	`, periodoID).Scan(&data.CasosPorTipo)
 
 	s.db.Raw(`
 		SELECT 
@@ -104,9 +109,9 @@ func (s *DashboardService) GetDashboardData() (*dtos.DashboardDataDTO, error) {
 		JOIN matriculas m ON e.id = m.estudiante_id
 		JOIN cursos c ON m.curso_id = c.id
 		JOIN periodo_lectivos p ON c.periodo_id = p.id
-		WHERE p.es_activo = 1
+		WHERE p.id = ?
 		GROUP BY e.genero_nacimiento
-	`).Scan(&data.EstudiantesGenero)
+	`, periodoID).Scan(&data.EstudiantesGenero)
 
 	err = s.db.Raw(`
 		SELECT * FROM (

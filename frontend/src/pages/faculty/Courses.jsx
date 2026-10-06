@@ -11,7 +11,7 @@ import {
 import { ListarCursos, CrearCurso, ActualizarCurso, EliminarCurso, GenerarCursosMasivos } from '../../../wailsjs/go/services/CourseService';
 import { ListarNiveles } from '../../../wailsjs/go/academic/LevelService';
 import { ListarDocentes } from '../../../wailsjs/go/services/TeacherService';
-import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
+import { ObtenerPeriodoVista } from '../../../wailsjs/go/academic/YearService';
 import DistributivoView from './TeachingLoad';
 
 export default function CoursesPage() {
@@ -53,7 +53,7 @@ export default function CoursesPage() {
     const loadInitialData = async () => {
         setIsLoading(true);
         try {
-            const periodo = await ObtenerPeriodoActivo();
+            const periodo = await ObtenerPeriodoVista();
             if (!periodo) {
                 setActivePeriod(null);
                 setCourses([]);
@@ -254,7 +254,7 @@ export default function CoursesPage() {
         return (
             <DistributivoView
                 course={selectedCourse}
-                isReadOnly={activePeriod?.cerrado}
+                isReadOnly={activePeriod?.solo_lectura}
                 onBack={() => {
                     setViewMode('list');
                     setSelectedCourse(null);
@@ -278,7 +278,7 @@ export default function CoursesPage() {
                             <div className="flex items-center gap-2 mt-1 text-sm text-slate-500 font-medium">
                                 <span>Periodo Lectivo:</span>
                                 {activePeriod ? (
-                                    activePeriod.cerrado ? (
+                                    activePeriod.solo_lectura ? (
                                         <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded border border-amber-200 font-bold flex items-center gap-1 shadow-sm">
                                             <Calendar className="w-3 h-3 text-amber-600 animate-pulse" />
                                             {activePeriod.nombre} (Solo Lectura)
@@ -296,7 +296,7 @@ export default function CoursesPage() {
                         </div>
                     </div>
 
-                    {!activePeriod?.cerrado && (
+                    {!activePeriod?.solo_lectura && (
                         <div className="flex gap-3 w-full sm:w-auto">
                             <button
                                 onClick={handleGenerarMasivo}
@@ -417,7 +417,7 @@ export default function CoursesPage() {
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <div className="flex items-center justify-center gap-2">
-                                                    {activePeriod?.cerrado ? (
+                                                    {activePeriod?.solo_lectura ? (
                                                         <button
                                                             onClick={() => handleOpenDistributivo(course)}
                                                             className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"

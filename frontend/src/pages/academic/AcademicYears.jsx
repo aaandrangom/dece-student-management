@@ -10,6 +10,7 @@ import {
     ListarPeriodos, CrearPeriodo, ActivarPeriodo,
     EliminarPeriodo, ActualizarPeriodo, CerrarPeriodo
 } from '../../../wailsjs/go/academic/YearService';
+import { cambiarPeriodoVista } from '../../hooks/usePeriodoVista';
 
 export default function AcademicYearsPage() {
     const [periods, setPeriods] = useState([]);
@@ -131,14 +132,14 @@ export default function AcademicYearsPage() {
                 confirmButtonColor: '#10b981',
                 confirmButtonText: 'Sí, activar'
             };
-        } else if (type === 'ACTIVATE_CLOSED') {
+        } else if (type === 'CONSULT') {
             swalOptions = {
                 ...swalOptions,
-                title: '¿Visualizar Periodo Cerrado?',
-                text: `El periodo ${period.nombre} está CERRADO. El sistema entrará temporalmente en modo de SOLO LECTURA. No se podrán modificar datos.`,
-                icon: 'warning',
+                title: '¿Consultar periodo?',
+                text: `Verá los datos de ${period.nombre} en modo SOLO LECTURA. El año de trabajo no cambia: puede volver en cualquier momento desde la franja superior.`,
+                icon: 'info',
                 confirmButtonColor: '#f59e0b',
-                confirmButtonText: 'Sí, visualizar'
+                confirmButtonText: 'Sí, consultar'
             };
         } else if (type === 'DELETE') {
             swalOptions = {
@@ -153,7 +154,7 @@ export default function AcademicYearsPage() {
             swalOptions = {
                 ...swalOptions,
                 title: '¿Cerrar Periodo?',
-                text: `El periodo ${period.nombre} quedará cerrado y no podrá editarse.`,
+                text: `El periodo ${period.nombre} quedará cerrado y no podrá editarse. Si es el año de trabajo, seguirá visible en solo lectura hasta que active el siguiente año.`,
                 icon: 'warning',
                 confirmButtonColor: '#f59e0b',
                 confirmButtonText: 'Sí, cerrar'
@@ -164,15 +165,21 @@ export default function AcademicYearsPage() {
 
         if (result.isConfirmed) {
             try {
-                if (type === 'ACTIVATE' || type === 'ACTIVATE_CLOSED') {
+                if (type === 'CONSULT') {
+                    await cambiarPeriodoVista(period.id);
+                    return;
+                } else if (type === 'ACTIVATE') {
                     await ActivarPeriodo(period.id);
-                    toast.success(`Periodo ${period.nombre} activado ${type === 'ACTIVATE_CLOSED' ? 'en modo solo lectura' : ''}`);
+                    toast.success(`Periodo ${period.nombre} activado como año de trabajo`);
+                    // Recarga para que toda la app (selector, franja, módulos) use el nuevo año.
+                    setTimeout(() => window.location.reload(), 900);
                 } else if (type === 'DELETE') {
                     await EliminarPeriodo(period.id);
                     toast.success("Periodo eliminado");
                 } else if (type === 'CLOSE') {
                     await CerrarPeriodo(period.id);
                     toast.success("Periodo cerrado");
+                    setTimeout(() => window.location.reload(), 900);
                 }
                 loadPeriods();
             } catch (error) {
@@ -371,15 +378,15 @@ export default function AcademicYearsPage() {
                                                         <div className="flex items-center gap-2">
                                                             {!period.es_activo ? (
                                                                 <button
-                                                                    onClick={() => handleAction('ACTIVATE_CLOSED', period)}
+                                                                    onClick={() => handleAction('CONSULT', period)}
                                                                     className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all border border-transparent hover:border-amber-100 shadow-sm"
-                                                                    title="Visualizar Periodo (Solo Lectura)"
+                                                                    title="Consultar periodo (solo lectura)"
                                                                 >
                                                                     <Eye className="w-4 h-4" />
                                                                 </button>
                                                             ) : (
                                                                 <>
-                                                                    <span className="text-xs text-amber-600 font-medium italic mr-2">Visualizando</span>
+                                                                    <span className="text-xs text-amber-600 font-medium italic mr-2">Año de trabajo (cerrado)</span>
                                                                     <button
                                                                         disabled
                                                                         className="p-2 text-amber-500 bg-amber-50 rounded-lg cursor-not-allowed border border-amber-100"

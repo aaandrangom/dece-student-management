@@ -2,7 +2,9 @@ package academic
 
 import (
 	academicDTO "dece/internal/application/dtos/academic"
+	"dece/internal/application/helpers/periodo"
 	"dece/internal/domain/academic"
+	"dece/internal/domain/management"
 	"errors"
 	"fmt"
 	"time"
@@ -117,6 +119,10 @@ func (s *YearService) ActivarPeriodo(id uint) error {
 		tx.Rollback()
 		return errors.New("El periodo seleccionado no existe")
 	}
+	if target.Cerrado {
+		tx.Rollback()
+		return errors.New("El periodo está cerrado: use \"Consultar\" para ver sus datos sin cambiar el año de trabajo")
+	}
 
 	result := tx.Model(&academic.PeriodoLectivo{}).
 		Where("id = ?", id).
@@ -127,7 +133,11 @@ func (s *YearService) ActivarPeriodo(id uint) error {
 		return result.Error
 	}
 
-	return tx.Commit().Error
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+	periodo.SetConsulta(0)
+	return nil
 }
 
 func (s *YearService) ObtenerPeriodoActivo() (*academicDTO.PeriodoResponseDTO, error) {
@@ -238,7 +248,7 @@ func (s *YearService) EliminarPeriodo(id uint) error {
 	}
 
 	var totalCapacitaciones int64
-	s.db.Table("capacitaciones").Where("periodo_id = ?", id).Count(&totalCapacitaciones)
+	s.db.Model(&management.Capacitacion{}).Where("periodo_id = ?", id).Count(&totalCapacitaciones)
 	if totalCapacitaciones > 0 {
 		return fmt.Errorf("Imposible eliminar: existen %d capacitaciones registradas en este periodo", totalCapacitaciones)
 	}
@@ -267,12 +277,63 @@ func (s *YearService) CerrarPeriodo(id uint) error {
 		return errors.New("El periodo ya está cerrado")
 	}
 
-	periodo.EsActivo = false
 	periodo.Cerrado = true
 
 	if err := s.db.Save(&periodo).Error; err != nil {
 		return fmt.Errorf("Error al cerrar el periodo: %v", err)
 	}
 
+	return nil
+}
+
+// ObtenerPeriodoVista devuelve el periodo que se está viendo (el de consulta o el activo)
+// e indica si está en modo solo lectura.
+func (s *YearService) ObtenerPeriodoVista() (*academicDTO.PeriodoVistaDTO, error) {
+	id, err := periodo.ConsultaID(s.db)
+	if err != nil || id == 0 {
+		return nil, err
+	}
+	activoID, err := periodo.ActivoID(s.db)
+	if err != nil {
+		return nil, err
+	}
+
+	var p academic.PeriodoLectivo
+	if err := s.db.First(&p, id).Error; err != nil {
+		return nil, err
+	}
+
+	esConsulta := p.ID != activoID
+	return &academicDTO.PeriodoVistaDTO{
+		PeriodoResponseDTO: academicDTO.PeriodoResponseDTO{
+			ID:          p.ID,
+			Nombre:      p.Nombre,
+			FechaInicio: p.FechaInicio,
+			FechaFin:    p.FechaFin,
+			EsActivo:    p.EsActivo,
+			Cerrado:     p.Cerrado,
+		},
+		EsConsulta:      esConsulta,
+		SoloLectura:     esConsulta || p.Cerrado,
+		PeriodoActivoID: activoID,
+	}, nil
+}
+
+// CambiarPeriodoConsulta cambia el año que se está viendo sin tocar el año de trabajo.
+// Con id 0 (o el id del periodo activo) se vuelve al año de trabajo.
+func (s *YearService) CambiarPeriodoConsulta(id uint) error {
+	if id > 0 {
+		var count int64
+		if err := s.db.Model(&academic.PeriodoLectivo{}).Where("id = ?", id).Count(&count).Error; err != nil {
+			return err
+		}
+		if count == 0 {
+			return errors.New("El periodo seleccionado no existe")
+		}
+		if activoID, _ := periodo.ActivoID(s.db); activoID == id {
+			id = 0
+		}
+	}
+	periodo.SetConsulta(id)
 	return nil
 }

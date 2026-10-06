@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import usePeriodoVista from '../../hooks/usePeriodoVista';
 import Swal from 'sweetalert2';
 import {
     ShieldAlert, Plus, Save, X, FileText, UploadCloud,
@@ -12,6 +13,7 @@ import {
 } from '../../../wailsjs/go/services/TrackingService';
 
 export default function SensitiveManager({ studentId, studentName, onBack }) {
+    const { soloLectura } = usePeriodoVista();
     const [casos, setCasos] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +52,7 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
     };
 
     const handleSave = async (e) => {
+        if (soloLectura) { e.preventDefault(); return; }
         e.preventDefault();
         setIsSubmitting(true);
         try {
@@ -65,6 +68,7 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
     };
 
     const handleUploadEvidence = async (casoId) => {
+        if (soloLectura) return;
         try {
             const path = await SeleccionarArchivo('pdf');
             if (!path) return;
@@ -108,6 +112,7 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
     };
 
     const handleDeleteEvidence = async (casoId, ruta) => {
+        if (soloLectura) return;
         const result = await Swal.fire({
             title: '¿Eliminar evidencia?',
             text: 'Esta acción no se puede deshacer.',
@@ -207,12 +212,14 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                         <span className="text-xs text-slate-400 font-medium uppercase">Total Casos</span>
                         <p className="text-xl font-bold text-slate-800 leading-none">{casos.length}</p>
                     </div>
-                    <button
-                        onClick={openNewModal}
-                        className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium flex items-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95"
-                    >
-                        <Plus className="w-4 h-4" /> Aperturar Caso
-                    </button>
+                    {!soloLectura && (
+                        <button
+                            onClick={openNewModal}
+                            className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium flex items-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95"
+                        >
+                            <Plus className="w-4 h-4" /> Aperturar Caso
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -303,7 +310,7 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                             <form onSubmit={handleSave} className="h-full flex flex-col">
                                 <div className="flex-1 grid grid-cols-1 lg:grid-cols-12">
 
-                                    <div className="lg:col-span-7 p-8 border-r border-slate-100">
+                                    <div className={`lg:col-span-7 p-8 border-r border-slate-100 ${soloLectura ? 'pointer-events-none select-text' : ''}`} aria-disabled={soloLectura}>
                                         <h4 className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-6 flex items-center gap-2">
                                             <FileText className="w-4 h-4" /> Detalles del Suceso
                                         </h4>
@@ -426,14 +433,14 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                                             </div>
                                         ) : (
                                             <div className="flex flex-col h-full">
-                                                <button
+                                                {!soloLectura && <button
                                                     type="button"
                                                     onClick={() => handleUploadEvidence(formData.id)}
                                                     className="w-full py-3 bg-white border border-indigo-200 text-indigo-700 rounded-xl hover:bg-indigo-50 transition-all font-semibold shadow-sm flex items-center justify-center gap-2 mb-4 group"
                                                 >
                                                     <UploadCloud className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                                     Adjuntar Nueva Evidencia (PDF)
-                                                </button>
+                                                </button>}
 
                                                 <div className="flex-1 overflow-y-auto pr-1 space-y-3">
                                                     {formData.rutas_evidencias && formData.rutas_evidencias.length > 0 ? (
@@ -457,14 +464,14 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
                                                                     >
                                                                         <Eye className="w-4 h-4" />
                                                                     </button>
-                                                                    <button
+                                                                    {!soloLectura && <button
                                                                         type="button"
                                                                         onClick={() => handleDeleteEvidence(formData.id, ev.ruta)}
                                                                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1"
                                                                         title="Eliminar evidencia"
                                                                     >
                                                                         <Trash2 className="w-4 h-4" />
-                                                                    </button>
+                                                                    </button>}
                                                                 </div>
                                                             </div>
                                                         ))
@@ -482,12 +489,12 @@ export default function SensitiveManager({ studentId, studentName, onBack }) {
 
                                 <div className="px-8 py-4 border-t border-slate-200 bg-white flex justify-end gap-3 shrink-0">
                                     <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors">
-                                        Cancelar
+                                        {soloLectura ? 'Cerrar' : 'Cancelar'}
                                     </button>
-                                    <button type="submit" disabled={isSubmitting} className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium flex items-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+                                    {!soloLectura && <button type="submit" disabled={isSubmitting} className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium flex items-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed">
                                         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                         {formData.id === 0 ? 'Crear Caso' : 'Guardar Cambios'}
-                                    </button>
+                                    </button>}
                                 </div>
                             </form>
                         </div>

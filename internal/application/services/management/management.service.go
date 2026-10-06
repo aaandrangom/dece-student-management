@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	dto "dece/internal/application/dtos/management"
+	"dece/internal/application/helpers/periodo"
 	"dece/internal/application/services/sync"
 	"dece/internal/domain/academic"
 	"dece/internal/domain/common"
@@ -34,6 +35,9 @@ func (s *ManagementService) Startup(ctx context.Context) {
 }
 
 func (s *ManagementService) AgendarCita(input dto.AgendarCitaDTO) (*management.Convocatoria, error) {
+	if err := periodo.ValidarMatriculaEditable(s.db, input.MatriculaID); err != nil {
+		return nil, err
+	}
 	layout := "2006-01-02 15:04"
 	fechaParsed, err := time.ParseInLocation(layout, input.FechaCita, time.Local)
 
@@ -66,9 +70,18 @@ func (s *ManagementService) AgendarCita(input dto.AgendarCitaDTO) (*management.C
 func (s *ManagementService) ListarCitas(filtro dto.FiltroCitasDTO) ([]dto.CitaResumenDTO, error) {
 	var citas []management.Convocatoria
 
+	periodoID, err := periodo.ConsultaID(s.db)
+	if err != nil {
+		return nil, err
+	}
+
+	// Solo las citas de matrículas del periodo que se está viendo.
 	query := s.db.Model(&management.Convocatoria{}).
 		Preload("Matricula.Estudiante").
 		Preload("Matricula.Curso.Nivel").
+		Joins("JOIN matriculas m ON m.id = convocatoria.matricula_id").
+		Joins("JOIN cursos c ON c.id = m.curso_id").
+		Where("c.periodo_id = ?", periodoID).
 		Order("fecha_cita ASC")
 
 	if filtro.Tipo == "pendientes" {
@@ -139,7 +152,19 @@ func (s *ManagementService) ListarCitas(filtro dto.FiltroCitasDTO) ([]dto.CitaRe
 	return response, nil
 }
 
+// validarCitaEditable comprueba que la cita pertenezca a una matrícula del periodo editable.
+func (s *ManagementService) validarCitaEditable(id uint) error {
+	var cita management.Convocatoria
+	if err := s.db.Select("id", "matricula_id").First(&cita, id).Error; err != nil {
+		return errors.New("Cita no encontrada")
+	}
+	return periodo.ValidarMatriculaEditable(s.db, cita.MatriculaID)
+}
+
 func (s *ManagementService) MarcarCompletada(id uint, completada bool) error {
+	if err := s.validarCitaEditable(id); err != nil {
+		return err
+	}
 	result := s.db.Model(&management.Convocatoria{}).
 		Where("id = ?", id).
 		Update("cita_completada", completada)
@@ -154,6 +179,9 @@ func (s *ManagementService) MarcarCompletada(id uint, completada bool) error {
 }
 
 func (s *ManagementService) EliminarCita(id uint) error {
+	if err := s.validarCitaEditable(id); err != nil {
+		return err
+	}
 	// Obtener el TelegramID antes de eliminar
 	var cita management.Convocatoria
 	var telegramID int
@@ -249,6 +277,12 @@ func (s *ManagementService) ActualizarCita(input dto.ActualizarCitaDTO) (*manage
 	if err := s.db.First(&cita, input.ID).Error; err != nil {
 		return nil, errors.New("Cita no encontrada")
 	}
+	if err := periodo.ValidarMatriculaEditable(s.db, cita.MatriculaID); err != nil {
+		return nil, err
+	}
+	if err := periodo.ValidarMatriculaEditable(s.db, input.MatriculaID); err != nil {
+		return nil, err
+	}
 
 	cita.MatriculaID = input.MatriculaID
 	cita.Entidad = input.Entidad
@@ -271,16 +305,15 @@ func (s *ManagementService) ActualizarCita(input dto.ActualizarCitaDTO) (*manage
 func (s *ManagementService) ListarCapacitaciones() ([]dto.CapacitacionResumenDTO, error) {
 	var capacitaciones []management.Capacitacion
 
-	var periodos []academic.PeriodoLectivo
-	if err := s.db.Where("es_activo = ?", true).Limit(1).Find(&periodos).Error; err != nil {
+	periodoID, err := periodo.ConsultaID(s.db)
+	if err != nil {
+		return nil, err
+	}
+	if periodoID == 0 {
 		return []dto.CapacitacionResumenDTO{}, nil
 	}
-	if len(periodos) == 0 {
-		return []dto.CapacitacionResumenDTO{}, nil
-	}
-	periodoActivo := periodos[0]
 
-	result := s.db.Where("periodo_id = ?", periodoActivo.ID).
+	result := s.db.Where("periodo_id = ?", periodoID).
 		Order("fecha DESC").
 		Find(&capacitaciones)
 
@@ -332,14 +365,10 @@ func (s *ManagementService) RegistrarCapacitacion(input dto.GuardarCapacitacionD
 	var capacitacion management.Capacitacion
 	var rutaEvidenciaPrevia string
 
-	var periodos []academic.PeriodoLectivo
-	if err := s.db.Where("es_activo = ?", true).Limit(1).Find(&periodos).Error; err != nil {
+	periodoActivoID, err := periodo.ValidarActivoEditable(s.db)
+	if err != nil {
 		return nil, err
 	}
-	if len(periodos) == 0 {
-		return nil, errors.New("Debe configurar un periodo lectivo activo antes de registrar capacitaciones")
-	}
-	periodoActivo := periodos[0]
 
 	var gradoEspecificoFinal string
 	var paraleloEspecificoFinal string
@@ -347,7 +376,7 @@ func (s *ManagementService) RegistrarCapacitacion(input dto.GuardarCapacitacionD
 	if len(input.CursosIDs) > 0 {
 		var cursosSeleccionados []faculty.Curso
 		if err := s.db.Preload("Nivel").
-			Where("id IN ? AND periodo_id = ?", input.CursosIDs, periodoActivo.ID).
+			Where("id IN ? AND periodo_id = ?", input.CursosIDs, periodoActivoID).
 			Find(&cursosSeleccionados).Error; err != nil {
 			return nil, errors.New("Error al consultar aulas seleccionadas")
 		}
@@ -365,7 +394,7 @@ func (s *ManagementService) RegistrarCapacitacion(input dto.GuardarCapacitacionD
 	} else if input.CursoID > 0 {
 		var cursoSeleccionado faculty.Curso
 		if err := s.db.Preload("Nivel").
-			Where("id = ? AND periodo_id = ?", input.CursoID, periodoActivo.ID).
+			Where("id = ? AND periodo_id = ?", input.CursoID, periodoActivoID).
 			First(&cursoSeleccionado).Error; err == nil {
 
 			nivel := strings.TrimSpace(cursoSeleccionado.Nivel.NombreCompleto)
@@ -398,9 +427,12 @@ func (s *ManagementService) RegistrarCapacitacion(input dto.GuardarCapacitacionD
 		if err := s.db.First(&capacitacion, input.ID).Error; err != nil {
 			return nil, errors.New("Registro no encontrado para editar")
 		}
+		if err := periodo.ValidarEditable(s.db, capacitacion.PeriodoID); err != nil {
+			return nil, err
+		}
 		rutaEvidenciaPrevia = capacitacion.RutaEvidencia
 	} else {
-		capacitacion.PeriodoID = periodoActivo.ID
+		capacitacion.PeriodoID = periodoActivoID
 		capacitacion.RutaEvidencia = ""
 	}
 
@@ -470,6 +502,9 @@ func (s *ManagementService) SubirEvidenciaCapacitacion(id uint, rutaOrigen strin
 	if err := s.db.First(&cap, id).Error; err != nil {
 		return "", errors.New("Capacitación no encontrada")
 	}
+	if err := periodo.ValidarEditable(s.db, cap.PeriodoID); err != nil {
+		return "", err
+	}
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -519,12 +554,19 @@ func (s *ManagementService) SubirEvidenciaCapacitacion(id uint, rutaOrigen strin
 
 func (s *ManagementService) EliminarCapacitacion(id uint) error {
 	var cap management.Capacitacion
-	if err := s.db.First(&cap, id).Error; err == nil {
-		if cap.RutaEvidencia != "" {
-			os.Remove(cap.RutaEvidencia)
-		}
+	if err := s.db.First(&cap, id).Error; err != nil {
+		return errors.New("Capacitación no encontrada")
 	}
-	return s.db.Delete(&management.Capacitacion{}, id).Error
+	if err := periodo.ValidarEditable(s.db, cap.PeriodoID); err != nil {
+		return err
+	}
+	if err := s.db.Delete(&management.Capacitacion{}, id).Error; err != nil {
+		return err
+	}
+	if cap.RutaEvidencia != "" {
+		os.Remove(cap.RutaEvidencia)
+	}
+	return nil
 }
 
 func (s *ManagementService) VerificarAlertas() ([]dto.AlertaDashboardDTO, error) {

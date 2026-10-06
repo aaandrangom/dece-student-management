@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	dto "dece/internal/application/dtos/tracking"
-	"dece/internal/domain/academic"
+	"dece/internal/application/helpers/periodo"
 	"dece/internal/domain/common"
 	"dece/internal/domain/tracking"
 	"encoding/base64"
@@ -94,9 +94,16 @@ func (s *TrackingService) CrearLlamado(input dto.GuardarLlamadoDTO) (*tracking.L
 	var rutaResolucionPrevia string
 	var rutaActaPrevia string
 
+	if err := periodo.ValidarMatriculaEditable(s.db, input.MatriculaID); err != nil {
+		return nil, err
+	}
+
 	if input.ID > 0 {
 		if err := s.db.First(&llamado, input.ID).Error; err != nil {
 			return nil, fmt.Errorf("No se puede editar: el llamado ID %d no existe", input.ID)
+		}
+		if err := periodo.ValidarMatriculaEditable(s.db, llamado.MatriculaID); err != nil {
+			return nil, err
 		}
 
 		rutaActaPrevia = llamado.RutaActa
@@ -135,6 +142,9 @@ func (s *TrackingService) SubirDocumentoDisciplina(llamadoID uint, tipoDoc strin
 
 	if err := s.db.First(&llamado, llamadoID).Error; err != nil {
 		return "", errors.New("Registro disciplinario no encontrado")
+	}
+	if err := periodo.ValidarMatriculaEditable(s.db, llamado.MatriculaID); err != nil {
+		return "", err
 	}
 
 	homeDir, err := os.UserHomeDir()
@@ -258,15 +268,18 @@ func (s *TrackingService) LeerArchivoParaVista(ruta string) (string, error) {
 func (s *TrackingService) BuscarEstudiantesActivos(query string) ([]dto.EstudianteDisciplinaDTO, error) {
 	var resultados []dto.EstudianteDisciplinaDTO
 
+	periodoID, err := periodo.ConsultaID(s.db)
+	if err != nil {
+		return nil, err
+	}
 	query = "%" + query + "%"
 
-	err := s.db.Table("matriculas").
+	err = s.db.Table("matriculas").
 		Select("estudiantes.id, matriculas.id as matricula_id, estudiantes.cedula, estudiantes.nombres, estudiantes.apellidos, estudiantes.ruta_foto, nivel_educativos.nombre || ' ' || cursos.paralelo as curso").
 		Joins("JOIN estudiantes ON estudiantes.id = matriculas.estudiante_id").
 		Joins("JOIN cursos ON cursos.id = matriculas.curso_id").
 		Joins("JOIN nivel_educativos ON nivel_educativos.id = cursos.nivel_id").
-		Joins("JOIN periodo_lectivos ON periodo_lectivos.id = cursos.periodo_id").
-		Where("periodo_lectivos.es_activo = ? AND (estudiantes.cedula LIKE ? OR estudiantes.apellidos LIKE ? OR estudiantes.nombres LIKE ?)", true, query, query, query).
+		Where("cursos.periodo_id = ? AND (estudiantes.cedula LIKE ? OR estudiantes.apellidos LIKE ? OR estudiantes.nombres LIKE ?)", periodoID, query, query, query).
 		Limit(20).
 		Scan(&resultados).Error
 
@@ -340,14 +353,10 @@ func (s *TrackingService) ObtenerCaso(id uint) (*dto.GuardarCasoDTO, error) {
 
 func (s *TrackingService) CrearCaso(input dto.GuardarCasoDTO) (*tracking.CasoSensible, error) {
 	if input.ID == 0 {
-		var periodos []academic.PeriodoLectivo
-		if err := s.db.Where("es_activo = ?", true).Limit(1).Find(&periodos).Error; err != nil {
+		periodoActivoID, err := periodo.ValidarActivoEditable(s.db)
+		if err != nil {
 			return nil, err
 		}
-		if len(periodos) == 0 {
-			return nil, errors.New("No hay un periodo lectivo activo para registrar el caso")
-		}
-		periodoActivo := periodos[0]
 
 		year := time.Now().Year()
 		var count int64
@@ -360,7 +369,7 @@ func (s *TrackingService) CrearCaso(input dto.GuardarCasoDTO) (*tracking.CasoSen
 
 		caso := tracking.CasoSensible{
 			EstudianteID:             input.EstudianteID,
-			PeriodoID:                periodoActivo.ID,
+			PeriodoID:                periodoActivoID,
 			CodigoCaso:               codigoGenerado,
 			TipoCaso:                 input.TipoCaso,
 			FechaDeteccion:           input.FechaDeteccion,
@@ -380,6 +389,9 @@ func (s *TrackingService) CrearCaso(input dto.GuardarCasoDTO) (*tracking.CasoSen
 		var caso tracking.CasoSensible
 		if err := s.db.First(&caso, input.ID).Error; err != nil {
 			return nil, errors.New("Caso no encontrado")
+		}
+		if err := periodo.ValidarEditable(s.db, caso.PeriodoID); err != nil {
+			return nil, err
 		}
 
 		caso.TipoCaso = input.TipoCaso
@@ -401,6 +413,9 @@ func (s *TrackingService) SubirEvidenciaCaso(casoID uint, rutaOrigen string, nom
 
 	if err := s.db.First(&caso, casoID).Error; err != nil {
 		return "", errors.New("Caso sensible no encontrado")
+	}
+	if err := periodo.ValidarEditable(s.db, caso.PeriodoID); err != nil {
+		return "", err
 	}
 
 	homeDir, err := os.UserHomeDir()
@@ -478,6 +493,9 @@ func (s *TrackingService) EliminarEvidenciaCaso(casoID uint, ruta string) error 
 
 	if err := s.db.First(&caso, casoID).Error; err != nil {
 		return errors.New("Caso sensible no encontrado")
+	}
+	if err := periodo.ValidarEditable(s.db, caso.PeriodoID); err != nil {
+		return err
 	}
 
 	if ruta != "" {

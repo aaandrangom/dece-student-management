@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
+import usePeriodoVista from '../../hooks/usePeriodoVista';
 import {
     Presentation, Calendar, Users, FileCheck, UploadCloud,
     Plus, Edit2, Trash2, X, Eye, Loader2, Save, CheckCircle, MoreVertical, ChevronLeft, ChevronRight
@@ -21,6 +22,7 @@ import {
 } from '../../../wailsjs/go/services/TrackingService';
 
 export default function TrainingManager() {
+    const { soloLectura } = usePeriodoVista();
     const [trainings, setTrainings] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -112,6 +114,7 @@ export default function TrainingManager() {
     };
 
     const handleSave = async (e) => {
+        if (soloLectura) { e.preventDefault(); return; }
         e.preventDefault();
         setIsSubmitting(true);
         try {
@@ -132,6 +135,7 @@ export default function TrainingManager() {
     };
 
     const handleDelete = async (id) => {
+        if (soloLectura) return;
         if (!window.confirm("¿Seguro que desea eliminar este registro? Se borrará la evidencia física también.")) return;
         try {
             setOpenActions(null);
@@ -144,6 +148,7 @@ export default function TrainingManager() {
     };
 
     const handleUpload = async (id) => {
+        if (soloLectura) return;
         try {
             const path = await SeleccionarArchivo('pdf');
             if (!path) return;
@@ -250,16 +255,16 @@ export default function TrainingManager() {
                                 <Eye className="w-4 h-4" />
                                 Ver evidencia
                             </button>
-                            <button
+                            {!soloLectura && <button
                                 type="button"
                                 onClick={() => handleUpload(training.id)}
                                 className="w-full px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-2"
                             >
                                 <UploadCloud className="w-4 h-4" />
                                 Cambiar evidencia
-                            </button>
+                            </button>}
                         </>
-                    ) : (
+                    ) : !soloLectura && (
                         <button
                             type="button"
                             onClick={() => handleUpload(training.id)}
@@ -275,16 +280,16 @@ export default function TrainingManager() {
                         className="w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors flex items-center gap-2"
                     >
                         <Edit2 className="w-4 h-4" />
-                        Editar
+                        {soloLectura ? 'Ver' : 'Editar'}
                     </button>
-                    <button
+                    {!soloLectura && <button
                         type="button"
                         onClick={() => handleDelete(training.id)}
                         className="w-full px-3 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2"
                     >
                         <Trash2 className="w-4 h-4" />
                         Eliminar
-                    </button>
+                    </button>}
                 </div>
             </div>,
             document.body
@@ -324,12 +329,14 @@ export default function TrainingManager() {
                             <span className="text-xs text-indigo-400 font-bold uppercase tracking-wider">Registrados</span>
                             <p className="text-xl font-bold text-indigo-700 leading-none">{trainings.length}</p>
                         </div>
-                        <button
-                            onClick={openNew}
-                            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 font-medium"
-                        >
-                            <Plus className="w-5 h-5" /> Registrar Taller
-                        </button>
+                        {!soloLectura && (
+                            <button
+                                onClick={openNew}
+                                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 font-medium"
+                            >
+                                <Plus className="w-5 h-5" /> Registrar Taller
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -482,6 +489,7 @@ export default function TrainingManager() {
 
                         <div className="p-6 bg-slate-50/50 flex-1 overflow-y-auto">
                             <form onSubmit={handleSave} className="flex flex-col h-full">
+                                <fieldset disabled={soloLectura} className="min-w-0">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1">
                                     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 h-fit">
                                         <div className="border-b border-slate-100 pb-2 mb-2">
@@ -628,22 +636,24 @@ export default function TrainingManager() {
                                     </div>
                                 </div>
 
+                                </fieldset>
+
                                 <div className="pt-6 mt-6 flex justify-end gap-3 border-t border-slate-200">
                                     <button
                                         type="button"
                                         onClick={() => setIsModalOpen(false)}
                                         className="px-5 py-2.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium transition-colors"
                                     >
-                                        Cancelar
+                                        {soloLectura ? 'Cerrar' : 'Cancelar'}
                                     </button>
-                                    <button
+                                    {!soloLectura && <button
                                         type="submit"
                                         disabled={isSubmitting}
                                         className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium flex items-center gap-2 shadow-sm hover:shadow-md transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                         Guardar Registro
-                                    </button>
+                                    </button>}
                                 </div>
                             </form>
                         </div>

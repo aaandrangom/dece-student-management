@@ -6,6 +6,7 @@ import {
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { BuscarParaRetiro, RegistrarRetiroCompleto, RevertirRetiro } from '../../../wailsjs/go/services/EnrollmentService';
+import usePeriodoVista from '../../hooks/usePeriodoVista';
 
 // Fecha local AAAA-MM-DD. toISOString() usa UTC y en Ecuador (UTC-5) da el día siguiente desde las 19:00.
 const hoyLocal = () => {
@@ -22,6 +23,7 @@ const StudentModifications = () => {
     const [isSaving, setIsSaving] = useState(false);
     const searchTimer = useRef(null);
     const searchRequestId = useRef(0);
+    const { soloLectura } = usePeriodoVista();
 
     const [formData, setFormData] = useState({
         fecha: hoyLocal(),
@@ -238,7 +240,9 @@ const StudentModifications = () => {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                {st.estado === 'Retirado' ? (
+                                                {soloLectura ? (
+                                                    <span className="text-xs text-slate-400 italic">Solo lectura</span>
+                                                ) : st.estado === 'Retirado' ? (
                                                     <button
                                                         onClick={() => handleRevert(st)}
                                                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-purple-700 text-sm font-bold rounded-lg hover:bg-purple-50 hover:border-purple-200 transition-all shadow-sm"

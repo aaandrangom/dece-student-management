@@ -6,6 +6,8 @@ export function ActivarPeriodo(arg1:number):Promise<void>;
 
 export function ActualizarPeriodo(arg1:academic.ActualizarPeriodoDTO):Promise<void>;
 
+export function CambiarPeriodoConsulta(arg1:number):Promise<void>;
+
 export function CerrarPeriodo(arg1:number):Promise<void>;
 
 export function CrearPeriodo(arg1:academic.CrearPeriodoDTO):Promise<void>;
@@ -15,3 +17,5 @@ export function EliminarPeriodo(arg1:number):Promise<void>;
 export function ListarPeriodos():Promise<Array<academic.PeriodoResponseDTO>>;
 
 export function ObtenerPeriodoActivo():Promise<academic.PeriodoResponseDTO>;
+
+export function ObtenerPeriodoVista():Promise<academic.PeriodoVistaDTO>;

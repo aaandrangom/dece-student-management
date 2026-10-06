@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import usePeriodoVista from '../../hooks/usePeriodoVista';
 import Swal from 'sweetalert2';
 import {
     FileText, Save, Plus, Edit2, X, AlertTriangle, CheckCircle, Loader2,
@@ -12,6 +13,7 @@ import {
 } from '../../../wailsjs/go/services/TrackingService';
 
 export default function LlamadosAtencion({ matriculaId, nombreEstudiante, onBack }) {
+    const { soloLectura } = usePeriodoVista();
     const [llamados, setLlamados] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -53,6 +55,7 @@ export default function LlamadosAtencion({ matriculaId, nombreEstudiante, onBack
     };
 
     const handleUpload = async (idLlamado, tipoDoc) => {
+        if (soloLectura) return;
         try {
             const key = tipoDoc === 'acta' ? 'ruta_acta' : 'ruta_resolucion';
             const existe = !!formData[key];
@@ -127,6 +130,7 @@ export default function LlamadosAtencion({ matriculaId, nombreEstudiante, onBack
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (soloLectura) return;
         setIsSubmitting(true);
         try {
             const nuevoRegistro = await CrearLlamado(formData);
@@ -173,12 +177,14 @@ export default function LlamadosAtencion({ matriculaId, nombreEstudiante, onBack
                         <span className="text-xs text-slate-400 font-medium uppercase">Total Faltas</span>
                         <p className="text-xl font-bold text-slate-800 leading-none">{llamados.length}</p>
                     </div>
-                    <button
-                        onClick={() => handleOpenModal(0)}
-                        className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95"
-                    >
-                        <Plus className="w-4 h-4" /> Nuevo Registro
-                    </button>
+                    {!soloLectura && (
+                        <button
+                            onClick={() => handleOpenModal(0)}
+                            className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95"
+                        >
+                            <Plus className="w-4 h-4" /> Nuevo Registro
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -237,6 +243,7 @@ export default function LlamadosAtencion({ matriculaId, nombreEstudiante, onBack
                                 <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 text-blue-600 animate-spin" /></div>
                             ) : (
                                 <form onSubmit={handleSubmit} className="space-y-6">
+                                    <fieldset disabled={soloLectura} className="space-y-6 min-w-0">
 
                                     <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -310,6 +317,8 @@ export default function LlamadosAtencion({ matriculaId, nombreEstudiante, onBack
                                         </div>
                                     </div>
 
+                                    </fieldset>
+
                                     <div className="bg-slate-100 p-6 rounded-xl border border-slate-200">
                                         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                                             <UploadCloud className="w-4 h-4" /> Evidencia Digital
@@ -344,10 +353,12 @@ export default function LlamadosAtencion({ matriculaId, nombreEstudiante, onBack
                                                                     <Eye className="w-4 h-4" />
                                                                 </button>
                                                             )}
-                                                            <button type="button" onClick={() => handleUpload(formData.id, doc.type)}
-                                                                className="text-xs font-semibold bg-slate-900 text-white px-3 py-1.5 rounded hover:bg-slate-800 transition-colors">
-                                                                {formData[doc.key] ? 'Cambiar' : 'Subir'}
-                                                            </button>
+                                                            {!soloLectura && (
+                                                                <button type="button" onClick={() => handleUpload(formData.id, doc.type)}
+                                                                    className="text-xs font-semibold bg-slate-900 text-white px-3 py-1.5 rounded hover:bg-slate-800 transition-colors">
+                                                                    {formData[doc.key] ? 'Cambiar' : 'Subir'}
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 ))}
@@ -357,13 +368,13 @@ export default function LlamadosAtencion({ matriculaId, nombreEstudiante, onBack
 
                                     <div className="pt-4 flex justify-end gap-3 border-t border-slate-200">
                                         <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors">
-                                            Cancelar
+                                            {soloLectura ? 'Cerrar' : 'Cancelar'}
                                         </button>
-                                        <button type="submit" disabled={isSubmitting}
+                                        {!soloLectura && <button type="submit" disabled={isSubmitting}
                                             className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md shadow-blue-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2 transition-all">
                                             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                             {formData.id === 0 ? 'Guardar Registro' : 'Actualizar Cambios'}
-                                        </button>
+                                        </button>}
                                     </div>
 
                                 </form>

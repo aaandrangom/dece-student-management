@@ -4,7 +4,7 @@ import { Save, ArrowLeft, BookOpen, Activity, HeartPulse, Users, Baby, AlertTria
 import { GuardarMatricula, ObtenerMatriculaActual, SeleccionarArchivo, LeerArchivoParaVista } from '../../../wailsjs/go/services/EnrollmentService';
 import { ListarCursos } from '../../../wailsjs/go/services/CourseService';
 import { ListarMaterias } from '../../../wailsjs/go/academic/SubjectService';
-import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
+import { ObtenerPeriodoVista } from '../../../wailsjs/go/academic/YearService';
 import { PreviewModal } from './EnrollmentUI';
 import { AcademicTab, PhysicalTab, HealthTab, SocialTab, GenderTab } from './EnrollmentTabs';
 
@@ -17,7 +17,7 @@ export default function EnrollmentFormPage({ studentId, studentGender, onBack })
     const [previewFile, setPreviewFile] = useState(null);
     const [activePeriod, setActivePeriod] = useState(null);
 
-    const isReadOnly = activePeriod?.cerrado;
+    const isReadOnly = activePeriod?.solo_lectura;
     // El backend devuelve la matrícula retirada con id 0: al guardar se crea una nueva (reingreso).
     const isReingreso = formData.id === 0 && formData.estado === 'Retirado';
 
@@ -41,7 +41,7 @@ export default function EnrollmentFormPage({ studentId, studentGender, onBack })
         const loadInitialData = async () => {
             setIsLoading(true);
             try {
-                const [periodo, materias] = await Promise.all([ObtenerPeriodoActivo(), ListarMaterias()]);
+                const [periodo, materias] = await Promise.all([ObtenerPeriodoVista(), ListarMaterias()]);
                 if (materias) setSubjectsList(materias);
                 if (periodo) {
                     setActivePeriod(periodo);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
+import usePeriodoVista from '../../hooks/usePeriodoVista';
 import Swal from 'sweetalert2';
 import { useLocation } from 'react-router-dom';
 import {
@@ -20,6 +21,7 @@ function useQuery() {
 }
 
 export default function MeetingManager() {
+    const { soloLectura } = usePeriodoVista();
     const query = useQuery();
     const openCitaId = query.get('open');
 
@@ -90,6 +92,7 @@ export default function MeetingManager() {
     };
 
     const handleToggleComplete = async (id, currentStatus) => {
+        if (soloLectura) return;
         const willComplete = !currentStatus;
         const result = await Swal.fire({
             title: willComplete ? '¿Marcar como realizada?' : '¿Marcar como pendiente?',
@@ -117,6 +120,7 @@ export default function MeetingManager() {
     };
 
     const handleDelete = async (id) => {
+        if (soloLectura) return;
         const result = await Swal.fire({
             title: '¿Eliminar esta cita?',
             text: 'Esta acción no se puede deshacer.',
@@ -164,6 +168,7 @@ export default function MeetingManager() {
     }, [openCitaId, meetings.length]);
 
     const handleSave = async (e) => {
+        if (soloLectura) { e.preventDefault(); return; }
         e.preventDefault();
         if (!selectedStudent) return toast.error("Seleccione un estudiante");
 
@@ -265,8 +270,9 @@ export default function MeetingManager() {
                         className="w-full px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-2"
                     >
                         <Edit2 className="w-4 h-4" />
-                        Ver / Editar
+                        {soloLectura ? 'Ver' : 'Ver / Editar'}
                     </button>
+                    {!soloLectura && <>
                     <button
                         type="button"
                         onClick={() => handleToggleComplete(cita.id, cita.completada)}
@@ -283,6 +289,7 @@ export default function MeetingManager() {
                         <Trash2 className="w-4 h-4" />
                         Eliminar
                     </button>
+                    </>}
                 </div>
             </div>,
             document.body
@@ -332,12 +339,14 @@ export default function MeetingManager() {
                             <span className="text-xs text-indigo-400 font-bold uppercase tracking-wider">Pendientes</span>
                             <p className="text-xl font-bold text-indigo-700 leading-none">{stats.pendientes}</p>
                         </div>
-                        <button
-                            onClick={() => { resetForm(); setIsModalOpen(true); }}
-                            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 font-medium"
-                        >
-                            <Plus className="w-5 h-5" /> Nueva Cita
-                        </button>
+                        {!soloLectura && (
+                            <button
+                                onClick={() => { resetForm(); setIsModalOpen(true); }}
+                                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 font-medium"
+                            >
+                                <Plus className="w-5 h-5" /> Nueva Cita
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -492,6 +501,7 @@ export default function MeetingManager() {
 
                         <div className="p-6 overflow-y-auto bg-slate-50/50">
                             <form onSubmit={handleSave} className="space-y-6">
+                                <fieldset disabled={soloLectura} className="space-y-6 min-w-0">
 
                                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
@@ -609,14 +619,16 @@ export default function MeetingManager() {
                                     </div>
                                 </div>
 
+                                </fieldset>
+
                                 <div className="pt-4 flex justify-end gap-3 border-t border-slate-200">
                                     <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium transition-colors">
-                                        Cancelar
+                                        {soloLectura ? 'Cerrar' : 'Cancelar'}
                                     </button>
-                                    <button type="submit" disabled={isSubmitting || !selectedStudent} className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium flex items-center gap-2 shadow-sm hover:shadow-md transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+                                    {!soloLectura && <button type="submit" disabled={isSubmitting || !selectedStudent} className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium flex items-center gap-2 shadow-sm hover:shadow-md transition-all disabled:opacity-70 disabled:cursor-not-allowed">
                                         {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                                         {formData.id > 0 ? 'Actualizar Cita' : 'Agendar Cita'}
-                                    </button>
+                                    </button>}
                                 </div>
                             </form>
                         </div>

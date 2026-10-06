@@ -132,6 +132,36 @@ export namespace academic {
 	        this.estado = source["estado"];
 	    }
 	}
+	export class PeriodoVistaDTO {
+	    id: number;
+	    nombre: string;
+	    fecha_inicio: string;
+	    fecha_fin: string;
+	    es_activo: boolean;
+	    cerrado: boolean;
+	    estado: string;
+	    es_consulta: boolean;
+	    solo_lectura: boolean;
+	    periodo_activo_id: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new PeriodoVistaDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.nombre = source["nombre"];
+	        this.fecha_inicio = source["fecha_inicio"];
+	        this.fecha_fin = source["fecha_fin"];
+	        this.es_activo = source["es_activo"];
+	        this.cerrado = source["cerrado"];
+	        this.estado = source["estado"];
+	        this.es_consulta = source["es_consulta"];
+	        this.solo_lectura = source["solo_lectura"];
+	        this.periodo_activo_id = source["periodo_activo_id"];
+	    }
+	}
 
 }
 

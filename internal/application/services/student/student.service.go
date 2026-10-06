@@ -4,6 +4,7 @@ import (
 	"context"
 	studentDTO "dece/internal/application/dtos/student"
 	"dece/internal/application/helpers/busqueda"
+	"dece/internal/application/helpers/periodo"
 	"dece/internal/domain/common"
 	"dece/internal/domain/enrollment"
 	"dece/internal/domain/faculty"
@@ -399,16 +400,9 @@ func CaclularEdad(fechaNacimiento string) int {
 	return edad
 }
 
-// periodoActivoID devuelve el ID del periodo activo, o 0 si no hay ninguno.
-func (s *StudentService) periodoActivoID() (uint, error) {
-	var ids []uint
-	if err := s.db.Table("periodo_lectivos").Where("es_activo = ?", true).Limit(1).Pluck("id", &ids).Error; err != nil {
-		return 0, err
-	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-	return ids[0], nil
+// periodoConsultaID devuelve el periodo que se está viendo (el de consulta o el activo).
+func (s *StudentService) periodoConsultaID() (uint, error) {
+	return periodo.ConsultaID(s.db)
 }
 
 func filtrarYMapearEstudiantes(estudiantes []student.Estudiante, query string) []studentDTO.EstudianteListaDTO {
@@ -457,7 +451,7 @@ func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.Estudiant
 // cambio, los estudiantes sin matrícula vigente en el periodo activo (y se ignoran los filtros de curso).
 // La búsqueda de texto ignora mayúsculas y tildes y se hace en Go: SQLite LIKE no lo soporta.
 func (s *StudentService) BuscarEstudiantesFiltrados(query string, nivelID uint, paralelo string, jornada string, sinMatricula bool) ([]studentDTO.EstudianteListaDTO, error) {
-	periodoID, err := s.periodoActivoID()
+	periodoID, err := s.periodoConsultaID()
 	if err != nil {
 		return nil, err
 	}
@@ -511,7 +505,7 @@ func (s *StudentService) BuscarEstudiantesFicha(query string) ([]studentDTO.Estu
 		resultados = resultados[:50]
 	}
 
-	periodoID, err := s.periodoActivoID()
+	periodoID, err := s.periodoConsultaID()
 	if err != nil || periodoID == 0 || len(resultados) == 0 {
 		return resultados, err
 	}
