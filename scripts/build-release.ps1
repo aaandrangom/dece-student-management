@@ -9,7 +9,8 @@
     3. Compila con "wails build" inyectando APP_ENV=production y las claves de Telegram
        dentro del ejecutable (-ldflags -X). La inyección se hace en CADA compilación:
        un ejecutable compilado sin este script no lleva las claves.
-    4. Genera build\bin\version.json con la versión, el enlace de descarga y las notas,
+    4. Genera build\bin\version.json con la versión, el enlace de descarga, el checksum
+       SHA-256 del ejecutable y las notas,
        listo para subir a R2 junto con build\bin\SIGDECE.exe.
 
 .EXAMPLE
@@ -74,9 +75,13 @@ if (-not (Test-Path $exe)) { throw "No se encontró $exe" }
 
 # ---------------------------------------------------------------- 4. version.json
 Paso "Generando version.json"
+# El sistema verifica este checksum antes de instalar: si la descarga llega incompleta
+# o dañada, no reemplaza el ejecutable.
+$sha256 = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLower()
 $info = [ordered]@{
     version      = $goVersion
     download_url = $DownloadUrl
+    sha256       = $sha256
     fecha        = $entrada.fecha
     resumen      = $entrada.resumen
     notas        = @($entrada.notas)

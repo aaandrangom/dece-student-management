@@ -1,10 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CheckUpdate, DoUpdate, RestartApp, GetVersion } from "../../wailsjs/go/main/App";
+import { EventsOn } from "../../wailsjs/runtime/runtime";
 import { Download, RefreshCw, CheckCircle, XCircle, Sparkles, X, ChevronRight } from 'lucide-react';
 import { ReleaseNotesModal, entradaDeVersion, formatoFecha } from './ReleaseNotes';
 
 const CLAVE_VERSION_VISTA = 'sigdece_version_vista';
 const CLAVE_POSPUESTA = 'sigdece_actualizacion_pospuesta';
+
+const mb = (bytes) => (bytes / (1024 * 1024)).toFixed(1);
+
+const tiempoRestante = (segundos) => {
+    if (!isFinite(segundos) || segundos <= 0) return '';
+    if (segundos < 60) return `${Math.ceil(segundos)} s`;
+    const min = Math.floor(segundos / 60);
+    return `${min} min ${Math.round(segundos % 60)} s`;
+};
 
 const leer = (storage, clave) => { try { return storage.getItem(clave); } catch { return null; } };
 const guardar = (storage, clave, valor) => { try { storage.setItem(clave, valor); } catch { /* sin almacenamiento */ } };
@@ -15,6 +25,24 @@ export default function UpdateNotification() {
     const [errorMessage, setErrorMessage] = useState('');
     const [verNotasUpdate, setVerNotasUpdate] = useState(false);
     const [novedades, setNovedades] = useState(null); // entrada del changelog de la versión instalada
+    const [progreso, setProgreso] = useState({ fase: 'conectando', descargado: 0, total: -1, velocidad: 0 });
+    const muestra = useRef(null); // última medición, para calcular la velocidad
+
+    // Progreso que envía DoUpdate desde Go (fase, bytes descargados, total).
+    useEffect(() => {
+        const cancelar = EventsOn('update:progress', (p) => {
+            const ahora = performance.now();
+            let velocidad = muestra.current?.velocidad || 0;
+            if (p.fase === 'descargando' && muestra.current && p.descargado > muestra.current.bytes) {
+                const instantanea = (p.descargado - muestra.current.bytes) / ((ahora - muestra.current.t) / 1000);
+                // Media móvil para que la velocidad no salte en cada aviso.
+                velocidad = velocidad ? velocidad * 0.7 + instantanea * 0.3 : instantanea;
+            }
+            muestra.current = { t: ahora, bytes: p.descargado, velocidad };
+            setProgreso({ ...p, velocidad });
+        });
+        return () => { if (cancelar) cancelar(); };
+    }, []);
 
     useEffect(() => {
         CheckUpdate().then((result) => {
@@ -37,6 +65,8 @@ export default function UpdateNotification() {
 
     const handleUpdateClick = async () => {
         setVerNotasUpdate(false);
+        muestra.current = null;
+        setProgreso({ fase: 'conectando', descargado: 0, total: -1, velocidad: 0 });
         setStatus('downloading');
         const result = await DoUpdate();
         if (result === "SUCCESS") {
@@ -146,15 +176,61 @@ export default function UpdateNotification() {
                             </>
                         )}
 
-                        {status === 'downloading' && (
-                            <div className="flex items-center gap-4 p-5">
-                                <RefreshCw className="w-8 h-8 text-violet-500 animate-spin shrink-0" />
-                                <div>
-                                    <h3 className="font-semibold text-slate-800">Descargando versión {update?.version}...</h3>
-                                    <p className="text-xs text-slate-500 mt-0.5">No cierre la aplicación. Se reiniciará automáticamente.</p>
+                        {status === 'downloading' && (() => {
+                            const conTotal = progreso.total > 0;
+                            const porcentaje = conTotal ? Math.min(100, Math.round((progreso.descargado / progreso.total) * 100)) : 0;
+                            const restante = conTotal && progreso.velocidad > 0
+                                ? tiempoRestante((progreso.total - progreso.descargado) / progreso.velocidad)
+                                : '';
+                            const titulo = progreso.fase === 'instalando'
+                                ? 'Instalando la actualización...'
+                                : progreso.fase === 'conectando'
+                                    ? 'Conectando con el servidor...'
+                                    : `Descargando versión ${update?.version}`;
+                            const indeterminada = progreso.fase !== 'descargando' || !conTotal;
+                            return (
+                                <div className="p-5">
+                                    <div className="flex items-center justify-between gap-3 mb-3">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <RefreshCw className="w-4 h-4 text-violet-500 animate-spin shrink-0" />
+                                            <h3 className="font-semibold text-slate-800 truncate">{titulo}</h3>
+                                        </div>
+                                        {progreso.fase === 'descargando' && conTotal && (
+                                            <span className="text-sm font-bold text-violet-700 tabular-nums">{porcentaje}%</span>
+                                        )}
+                                    </div>
+
+                                    <div
+                                        className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden"
+                                        role="progressbar"
+                                        aria-valuemin={0}
+                                        aria-valuemax={100}
+                                        aria-valuenow={indeterminada ? undefined : porcentaje}
+                                        aria-label="Progreso de la actualización"
+                                    >
+                                        {indeterminada ? (
+                                            <div className="h-full w-1/3 bg-violet-500 rounded-full motion-safe:animate-progreso" />
+                                        ) : (
+                                            <div className="h-full bg-linear-to-r from-violet-500 to-[#5b2c8a] rounded-full transition-[width] duration-300" style={{ width: `${porcentaje}%` }} />
+                                        )}
+                                    </div>
+
+                                    <div className="flex justify-between gap-3 mt-2 text-xs text-slate-500 tabular-nums">
+                                        {progreso.fase === 'descargando' ? (
+                                            <>
+                                                <span>{mb(progreso.descargado)}{conTotal ? ` de ${mb(progreso.total)}` : ''} MB{progreso.velocidad > 0 ? ` · ${mb(progreso.velocidad)} MB/s` : ''}</span>
+                                                {restante && <span>Faltan {restante}</span>}
+                                            </>
+                                        ) : progreso.fase === 'instalando' ? (
+                                            <span>Verificando el archivo y reemplazando el programa. Solo tarda unos segundos.</span>
+                                        ) : (
+                                            <span>Preparando la descarga...</span>
+                                        )}
+                                    </div>
+                                    <p className="text-[11px] text-slate-400 mt-3">No cierre la aplicación. Se reiniciará automáticamente al terminar.</p>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })()}
 
                         {status === 'success' && (
                             <div className="flex items-center gap-4 p-5">

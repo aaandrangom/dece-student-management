@@ -5,6 +5,13 @@
 
   /* Sacudida breve para errores de contraseña (ModuleAuthGate) */
   --animate-shake: shake 0.4s ease-in-out;
+  /* Barra de progreso cuando aún no se conoce el porcentaje (UpdateNotification) */
+  --animate-progreso: progreso 1.2s ease-in-out infinite;
+  @keyframes progreso {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(300%); }
+  }
+
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
     20%, 60% { transform: translateX(-6px); }
