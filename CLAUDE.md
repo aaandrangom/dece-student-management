@@ -59,6 +59,11 @@ Métodos en español con verbo: `Crear*`, `Listar*`, `Actualizar*`, `Eliminar*`,
 - **Escrituras**: validar con `periodo.ValidarEditable` / `ValidarCursoEditable` / `ValidarMatriculaEditable` / `ValidarActivoEditable`.
 - **Frontend**: `usePeriodoVista()` (`src/hooks/`) da `soloLectura`; ocultar botones de crear/editar/eliminar con eso. `ObtenerPeriodoVista` reemplaza a `ObtenerPeriodoActivo` en pantallas.
 
+### Plantillas Word / certificados
+- Motor `.docx` en `services/management/template_docx.go`: busca `{{tag}}` sobre el texto del párrafo pero solo reescribe los `<w:t>` de cada etiqueta (conserva formato, escapa XML). No volver a "colapsar el párrafo en el primer run".
+- Las etiquetas se re-leen del archivo en `ListarPlantillas`/`ObtenerDatosCertificado`/`GenerarCertificado` (`sincronizarTags`), así lo editado en Word se refleja solo.
+- Etiquetas automáticas: `etiquetasAutomaticas` (Go) y `frontend/src/constants/certificateTags.js` deben coincidir.
+
 ### Gotcha: bindings de Wails
 La carpeta en `frontend/wailsjs/go/<pkg>/` usa el **nombre del paquete Go**, no el directorio. Casi todos los servicios declaran `package services`, así que sus bindings están en `wailsjs/go/services/` (Auth, Course, Distributivo, Enrollment, Institution, Management, Notifications, SecurityConfig, Student, Teacher, Template, Tracking, User). Excepciones: `academic/`, `dashboard/`, `reports/`, `search/`, `system/`, `main/` (App). `wailsjs/` es generado: no editar a mano.
 
@@ -75,4 +80,8 @@ La carpeta en `frontend/wailsjs/go/<pkg>/` usa el **nombre del paquete Go**, no 
 `.env` (gitignored, ver `.env.example`): `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `ADMIN_FULL_NAME`, `DB_PATH` (actualmente ignorado por `InitDB`), `APP_ENV`, `TELEGRAM_API_URL`, `TELEGRAM_API_KEY`. `SEED_DEMO=true` carga datos ficticios (`internal/infrastructure/database/seed_demo.go`) al arrancar, solo si no hay estudiantes; para recargar, borrar `%APPDATA%/SigDECE/sigdece.db`. Usuarios demo: `mvalencia`, `jcaicedo`, `lmontano` / `Demo123!`. En prod, los valores Telegram/APP_ENV se inyectan con `-ldflags "-X dece/internal/config.InjectedTelegramKey=..."`.
 
 ## Versionado / release
-Bump en dos lugares: `CurrentVersion` en `updater.go` y `info.productVersion` en `wails.json`. Commit `chore: bump application version to X.Y.Z`. Commits en Conventional Commits (inglés).
+1. Bump en dos lugares: `CurrentVersion` en `updater.go` y `info.productVersion` en `wails.json`.
+2. Agregar la entrada de la versión al inicio de `frontend/src/changelog.json` (tipos: `nuevo`, `mejora`, `correccion`). Es la fuente única: la usan el modal "Novedades", Configuración → Notas de versión y el `version.json`.
+3. `.\scripts\build-release.ps1` (lee `.env.production`, gitignored) → compila inyectando `APP_ENV=production` y Telegram con `-ldflags -X`, y genera `build/bin/version.json`. La inyección es por compilación: un `wails build` sin el script no lleva las claves. `-SoloVerificar` revisa sin compilar.
+4. Subir a R2 `SIGDECE.exe` y luego `version.json`.
+Commit `chore: bump application version to X.Y.Z`. Commits en Conventional Commits (inglés).

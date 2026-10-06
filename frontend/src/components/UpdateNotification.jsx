@@ -1,129 +1,191 @@
 import { useState, useEffect } from 'react';
-// Importamos RestartApp que creamos en Go
-import { CheckUpdate, DoUpdate, RestartApp } from "../../wailsjs/go/main/App";
-import { Download, RefreshCw, CheckCircle, XCircle, Sparkles } from 'lucide-react';
+import { CheckUpdate, DoUpdate, RestartApp, GetVersion } from "../../wailsjs/go/main/App";
+import { Download, RefreshCw, CheckCircle, XCircle, Sparkles, X, ChevronRight } from 'lucide-react';
+import { ReleaseNotesModal, entradaDeVersion, formatoFecha } from './ReleaseNotes';
+
+const CLAVE_VERSION_VISTA = 'sigdece_version_vista';
+const CLAVE_POSPUESTA = 'sigdece_actualizacion_pospuesta';
+
+const leer = (storage, clave) => { try { return storage.getItem(clave); } catch { return null; } };
+const guardar = (storage, clave, valor) => { try { storage.setItem(clave, valor); } catch { /* sin almacenamiento */ } };
 
 export default function UpdateNotification() {
     const [status, setStatus] = useState('idle'); // idle, available, downloading, success, error
-    const [versionInfo, setVersionInfo] = useState({ version: '', current: '' });
+    const [update, setUpdate] = useState(null);    // { version, current, fecha, resumen, notas }
     const [errorMessage, setErrorMessage] = useState('');
+    const [verNotasUpdate, setVerNotasUpdate] = useState(false);
+    const [novedades, setNovedades] = useState(null); // entrada del changelog de la versión instalada
 
     useEffect(() => {
-        // Comprobamos actualizaciones al montar el componente
         CheckUpdate().then((result) => {
-            if (result.available) {
-                setVersionInfo({ version: result.version, current: result.current });
-                setStatus('available');
+            if (!result?.available) return;
+            setUpdate(result);
+            // "Más tarde" oculta el aviso hasta reiniciar la app, solo para esa versión.
+            if (leer(sessionStorage, CLAVE_POSPUESTA) !== result.version) setStatus('available');
+        }).catch(() => { });
+
+        // Primera vez que se abre una versión nueva: mostrar sus novedades una sola vez.
+        GetVersion().then((actual) => {
+            const vista = leer(localStorage, CLAVE_VERSION_VISTA);
+            guardar(localStorage, CLAVE_VERSION_VISTA, actual);
+            if (vista && vista !== actual) {
+                const entrada = entradaDeVersion(actual);
+                if (entrada) setNovedades(entrada);
             }
-        });
+        }).catch(() => { });
     }, []);
 
     const handleUpdateClick = async () => {
+        setVerNotasUpdate(false);
         setStatus('downloading');
-
-        // Llamamos a la función de actualización en Go
         const result = await DoUpdate();
-
         if (result === "SUCCESS") {
             setStatus('success');
-
-            // Esperamos 3 segundos para que el usuario vea el mensaje de éxito
-            // y luego reiniciamos la aplicación automáticamente.
-            setTimeout(() => {
-                RestartApp();
-            }, 3000);
+            // Unos segundos para leer el mensaje y reiniciar con la versión nueva.
+            setTimeout(() => RestartApp(), 3000);
         } else {
             setErrorMessage(result);
             setStatus('error');
         }
     };
 
-    if (status === 'idle') return null;
+    const posponer = () => {
+        guardar(sessionStorage, CLAVE_POSPUESTA, update?.version || '');
+        setVerNotasUpdate(false);
+        setStatus('idle');
+    };
+
+    const notas = update?.notas || [];
+    const entradaUpdate = update ? { version: update.version, fecha: update.fecha, resumen: update.resumen, notas } : null;
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full animate-in slide-in-from-right-10 fade-in duration-500">
-            <div className="bg-slate-900/95 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-2xl relative overflow-hidden group hover:border-purple-500/30 transition-all duration-300">
-                {/* Decorative Background Glows */}
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-600/20 rounded-full blur-3xl group-hover:bg-purple-600/30 transition-all duration-700"></div>
-                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl"></div>
+        <>
+            <ReleaseNotesModal
+                open={!!novedades}
+                onClose={() => setNovedades(null)}
+                entradas={novedades ? [novedades] : []}
+                titulo={`¡Bienvenido a la versión ${novedades?.version || ''}!`}
+                subtitulo="Esto es lo nuevo en SIGDECE"
+            />
 
-                <div className="relative z-10">
-                    {status === 'available' && (
-                        <div className="space-y-4">
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center shrink-0 border border-purple-500/30">
-                                    <Sparkles className="w-5 h-5 text-purple-300 animate-pulse" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="text-white font-semibold text-lg leading-tight mb-1">
-                                        Actualización Disponible
-                                    </h3>
-                                    <p className="text-slate-400 text-sm">
-                                        La versión <span className="text-purple-300 font-bold">{versionInfo.version}</span> está lista.
-                                        <span className="block text-xs mt-1 opacity-70">Versión actual: {versionInfo.current}</span>
+            <ReleaseNotesModal
+                open={verNotasUpdate && !!entradaUpdate}
+                onClose={() => setVerNotasUpdate(false)}
+                entradas={entradaUpdate ? [entradaUpdate] : []}
+                titulo={`Versión ${update?.version || ''} disponible`}
+                subtitulo={`Tiene instalada la versión ${update?.current || ''}`}
+                acciones={
+                    <button
+                        onClick={handleUpdateClick}
+                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#5b2c8a] hover:bg-[#4a1d7c] flex items-center gap-2"
+                    >
+                        <Download className="w-4 h-4" /> Actualizar ahora
+                    </button>
+                }
+            />
+
+            {status !== 'idle' && (
+                <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full animate-in slide-in-from-right-10 fade-in duration-500">
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden">
+                        {status === 'available' && (
+                            <>
+                                <div className="px-5 pt-5 pb-4 bg-linear-to-br from-[#5b2c8a] to-[#3f1d63] text-white relative">
+                                    <button onClick={posponer} className="absolute top-3 right-3 p-1 rounded-full text-white/70 hover:text-white hover:bg-white/10" aria-label="Recordar más tarde">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center ring-1 ring-white/20 shrink-0">
+                                            <Sparkles className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-white/70 font-medium">Actualización disponible</p>
+                                            <h3 className="font-bold text-lg leading-tight">Versión {update.version}</h3>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-white/70 mt-3">
+                                        Tiene la {update.current}{update.fecha ? ` · Publicada el ${formatoFecha(update.fecha)}` : ''}
                                     </p>
                                 </div>
-                            </div>
 
-                            <button
-                                onClick={handleUpdateClick}
-                                className="w-full bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-medium py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-purple-500/25 active:scale-95 group/btn"
-                            >
-                                <Download className="w-4 h-4 group-hover/btn:-translate-y-0.5 transition-transform" />
-                                Actualizar Ahora
-                            </button>
-                        </div>
-                    )}
+                                <div className="px-5 py-4">
+                                    {update.resumen && <p className="text-sm font-medium text-slate-700">{update.resumen}</p>}
+                                    {notas.length > 0 ? (
+                                        <>
+                                            <ul className="mt-2 space-y-1.5">
+                                                {notas.slice(0, 3).map((n, i) => (
+                                                    <li key={i} className="flex gap-2 text-xs text-slate-600 leading-relaxed">
+                                                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0" />
+                                                        <span className="line-clamp-2">{n.texto}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <button
+                                                onClick={() => setVerNotasUpdate(true)}
+                                                className="mt-2 flex items-center gap-1 text-xs font-bold text-violet-700 hover:text-violet-800"
+                                            >
+                                                Ver todas las novedades ({notas.length}) <ChevronRight className="w-3.5 h-3.5" />
+                                            </button>
+                                        </>
+                                    ) : !update.resumen && (
+                                        <p className="text-sm text-slate-500">Incluye mejoras y correcciones.</p>
+                                    )}
 
-                    {status === 'downloading' && (
-                        <div className="flex flex-col items-center justify-center py-2 text-center space-y-3">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-purple-500 blur-lg opacity-20 animate-pulse"></div>
-                                <RefreshCw className="w-8 h-8 text-purple-400 animate-spin relative z-10" />
-                            </div>
-                            <div>
-                                <h3 className="text-white font-medium">Descargando actualización...</h3>
-                                <p className="text-slate-400 text-xs mt-1">La aplicación se reiniciará automáticamente.</p>
-                            </div>
-                        </div>
-                    )}
+                                    <div className="flex gap-2 mt-4">
+                                        <button onClick={posponer} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50">
+                                            Más tarde
+                                        </button>
+                                        <button
+                                            onClick={handleUpdateClick}
+                                            className="flex-[1.4] py-2.5 rounded-xl text-sm font-bold text-white bg-[#5b2c8a] hover:bg-[#4a1d7c] flex items-center justify-center gap-2 active:scale-95"
+                                        >
+                                            <Download className="w-4 h-4" /> Actualizar ahora
+                                        </button>
+                                    </div>
+                                    <p className="text-[11px] text-slate-400 mt-2 text-center">La aplicación se reinicia sola al terminar.</p>
+                                </div>
+                            </>
+                        )}
 
-                    {status === 'success' && (
-                        <div className="flex items-center gap-4 py-1">
-                            <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center shrink-0 border border-green-500/30">
-                                <CheckCircle className="w-6 h-6 text-green-400" />
+                        {status === 'downloading' && (
+                            <div className="flex items-center gap-4 p-5">
+                                <RefreshCw className="w-8 h-8 text-violet-500 animate-spin shrink-0" />
+                                <div>
+                                    <h3 className="font-semibold text-slate-800">Descargando versión {update?.version}...</h3>
+                                    <p className="text-xs text-slate-500 mt-0.5">No cierre la aplicación. Se reiniciará automáticamente.</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="text-white font-semibold">¡Actualización Exitosa!</h3>
-                                <p className="text-green-300/80 text-sm">Reiniciando sistema...</p>
-                            </div>
-                        </div>
-                    )}
+                        )}
 
-                    {status === 'error' && (
-                        <div className="space-y-3">
-                            <div className="flex items-start gap-3">
-                                <div className="relative">
-                                    <XCircle className="w-6 h-6 text-red-400 shrink-0 mt-0.5 relative z-10" />
-                                    <div className="absolute inset-0 bg-red-500/20 blur-md rounded-full"></div>
+                        {status === 'success' && (
+                            <div className="flex items-center gap-4 p-5">
+                                <div className="w-11 h-11 bg-green-50 rounded-full flex items-center justify-center shrink-0 border border-green-100">
+                                    <CheckCircle className="w-6 h-6 text-green-600" />
                                 </div>
                                 <div>
-                                    <h3 className="text-white font-medium">Error al actualizar</h3>
-                                    <p className="text-red-300/70 text-sm mt-1 leading-relaxed">
-                                        {errorMessage || "Ha ocurrido un error inesperado."}
-                                    </p>
+                                    <h3 className="font-semibold text-slate-800">¡Actualización lista!</h3>
+                                    <p className="text-sm text-green-700">Reiniciando el sistema...</p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setStatus('available')}
-                                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm py-2 rounded-lg transition-colors border border-white/5"
-                            >
-                                Intentar de nuevo
-                            </button>
-                        </div>
-                    )}
+                        )}
+
+                        {status === 'error' && (
+                            <div className="p-5 space-y-3">
+                                <div className="flex items-start gap-3">
+                                    <XCircle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+                                    <div>
+                                        <h3 className="font-semibold text-slate-800">No se pudo actualizar</h3>
+                                        <p className="text-sm text-red-600/80 mt-1 leading-relaxed">{errorMessage || 'Ocurrió un error inesperado.'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button onClick={posponer} className="flex-1 py-2 rounded-lg text-sm text-slate-600 border border-slate-200 hover:bg-slate-50">Cerrar</button>
+                                    <button onClick={() => setStatus('available')} className="flex-1 py-2 rounded-lg text-sm font-semibold text-white bg-slate-800 hover:bg-slate-700">Intentar de nuevo</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-        </div>
+            )}
+        </>
     );
 }

@@ -3,6 +3,8 @@
 import {management} from '../models';
 import {context} from '../models';
 
+export function AbrirCarpetaCertificados():Promise<void>;
+
 export function AbrirPlantillaEnEditor(arg1:number):Promise<void>;
 
 export function ActualizarPlantilla(arg1:number,arg2:string,arg3:string):Promise<management.Plantilla>;
@@ -15,7 +17,7 @@ export function GenerarCertificado(arg1:number,arg2:number,arg3:Record<string, s
 
 export function ListarPlantillas():Promise<Array<management.Plantilla>>;
 
-export function ObtenerDatosCertificado(arg1:number,arg2:number):Promise<Record<string, string>>;
+export function ObtenerDatosCertificado(arg1:number,arg2:number,arg3:number):Promise<management.DatosCertificadoDTO>;
 
 export function ObtenerFirmaBase64():Promise<string>;
 

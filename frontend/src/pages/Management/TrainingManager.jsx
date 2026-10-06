@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import usePeriodoVista from '../../hooks/usePeriodoVista';
+import CalendarView, { ViewToggle, useVistaGuardada } from '../../components/CalendarView';
 import {
     Presentation, Calendar, Users, FileCheck, UploadCloud,
     Plus, Edit2, Trash2, X, Eye, Loader2, Save, CheckCircle, MoreVertical, ChevronLeft, ChevronRight
@@ -21,9 +22,18 @@ import {
     LeerArchivoParaVista
 } from '../../../wailsjs/go/services/TrackingService';
 
+// Color de cada capacitación en el calendario según el público objetivo.
+const TONO_GRUPO = {
+    'Estudiantes': 'indigo',
+    'Padres de Familia': 'pink',
+    'Docentes': 'sky',
+    'Comunidad': 'green',
+};
+
 export default function TrainingManager() {
     const { soloLectura } = usePeriodoVista();
     const [trainings, setTrainings] = useState([]);
+    const [vista, setVista] = useVistaGuardada('vista_capacitaciones');
     const [isLoading, setIsLoading] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -202,6 +212,20 @@ export default function TrainingManager() {
         }
     };
 
+    const eventosCalendario = useMemo(() => trainings.map(t => ({
+        id: t.id,
+        fecha: t.fecha,
+        titulo: t.tema,
+        detalle: `${t.grupo_objetivo || 'Sin grupo'} · ${t.cantidad_beneficiarios} beneficiarios${t.tiene_evidencia ? ' · Con evidencia' : ''}`,
+        etiqueta: t.grupo_objetivo,
+        tono: TONO_GRUPO[t.grupo_objetivo] || 'slate',
+    })), [trainings]);
+
+    const nuevaEnDia = (dia) => {
+        openNew();
+        setFormData(prev => ({ ...prev, fecha: `${dia}T09:00` }));
+    };
+
     const openNew = () => {
         const now = new Date();
         const pad = (n) => String(n).padStart(2, '0');
@@ -324,7 +348,8 @@ export default function TrainingManager() {
                         </h1>
                         <p className="text-slate-500 text-sm mt-1">Registro de actividades de prevención y promoción.</p>
                     </div>
-                    <div className="flex items-center gap-4 w-full sm:w-auto justify-end">
+                    <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto justify-end">
+                        <ViewToggle value={vista} onChange={setVista} />
                         <div className="hidden md:block text-right bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-100">
                             <span className="text-xs text-indigo-400 font-bold uppercase tracking-wider">Registrados</span>
                             <p className="text-xl font-bold text-indigo-700 leading-none">{trainings.length}</p>
@@ -340,6 +365,20 @@ export default function TrainingManager() {
                     </div>
                 </div>
 
+                {vista === 'calendario' ? (
+                    <CalendarView
+                        events={eventosCalendario}
+                        onEventClick={(ev) => handleEdit(ev.id)}
+                        onDayCreate={soloLectura ? undefined : nuevaEnDia}
+                        leyenda={[
+                            { tono: 'indigo', label: 'Estudiantes' },
+                            { tono: 'pink', label: 'Padres de Familia' },
+                            { tono: 'sky', label: 'Docentes' },
+                            { tono: 'green', label: 'Comunidad' },
+                        ]}
+                        vacio="Sin capacitaciones este mes"
+                    />
+                ) : (
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -459,6 +498,7 @@ export default function TrainingManager() {
                         </div>
                     )}
                 </div>
+                )}
 
                 {renderActionsMenu()}
             </div>

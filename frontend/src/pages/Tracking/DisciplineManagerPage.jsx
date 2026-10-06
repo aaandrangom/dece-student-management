@@ -7,7 +7,8 @@ import {
 import { BuscarEstudiantesActivos } from '../../../wailsjs/go/services/TrackingService';
 import { ObtenerFotoBase64 } from '../../../wailsjs/go/services/StudentService';
 import { ObtenerConfiguracion } from '../../../wailsjs/go/services/SecurityConfigService';
-import ModuleAuthGate from '../../components/ModuleAuthGate';
+import ModuleAuthGate, { moduloAutorizado } from '../../components/ModuleAuthGate';
+import { useScreenLock } from '../../context/ScreenLockContext';
 
 import LlamadosAtencion from './Warning';
 import SensitiveManager from './SensitiveManager';
@@ -93,7 +94,8 @@ export default function DisciplineManagerPage() {
 
     // ── Control de acceso ──
     const [requiresAuth, setRequiresAuth] = useState(null); // null = cargando, true/false
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const { user } = useScreenLock();
+    const [isAuthenticated, setIsAuthenticated] = useState(() => moduloAutorizado(user?.id));
 
     useEffect(() => {
         const checkSecurity = async () => {

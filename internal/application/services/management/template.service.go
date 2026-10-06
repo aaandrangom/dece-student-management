@@ -1,8 +1,8 @@
 package services
 
 import (
-	"archive/zip"
 	"context"
+	dto "dece/internal/application/dtos/management"
 	"dece/internal/application/helpers/periodo"
 	"dece/internal/domain/common"
 	"dece/internal/domain/enrollment"
@@ -20,7 +20,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -55,84 +54,59 @@ func (s *TemplateService) getTemplatesDir() (string, error) {
 	return dir, nil
 }
 
-// extractTagsFromDocx lee un archivo .docx y extrae las etiquetas {{tag}}
-func extractTagsFromDocx(rutaArchivo string) ([]string, error) {
-	r, err := zip.OpenReader(rutaArchivo)
+// copiarArchivo copia origen a destino cerrando ambos archivos antes de volver
+// (en Windows un archivo abierto no se puede borrar si algo falla después).
+func copiarArchivo(origen, destino string) error {
+	src, err := os.Open(origen)
 	if err != nil {
-		return nil, fmt.Errorf("error al abrir archivo docx: %v", err)
+		return fmt.Errorf("no se pudo leer el archivo: %v", err)
 	}
-	defer r.Close()
+	defer src.Close()
 
-	// Patrones
-	tagPattern := regexp.MustCompile(`\{\{([^}]+)\}\}`)
-	paragraphPattern := regexp.MustCompile(`(?s)<w:p[ >].*?</w:p>`)
-	xmlTagStripper := regexp.MustCompile(`<[^>]+>`)
-	tagSet := make(map[string]bool)
+	dst, err := os.Create(destino)
+	if err != nil {
+		return fmt.Errorf("no se pudo crear el archivo destino: %v", err)
+	}
+	if _, err := io.Copy(dst, src); err != nil {
+		dst.Close()
+		os.Remove(destino)
+		return fmt.Errorf("error copiando archivo: %v", err)
+	}
+	return dst.Close()
+}
 
-	// Buscar tags en los archivos XML del docx (document.xml, headers, footers)
-	for _, f := range r.File {
-		if !strings.HasSuffix(f.Name, ".xml") {
-			continue
-		}
-
-		rc, err := f.Open()
-		if err != nil {
-			continue
-		}
-
-		content, err := io.ReadAll(rc)
-		rc.Close()
-		if err != nil {
-			continue
-		}
-
-		xmlStr := string(content)
-
-		// Estrategia 1: Extraer por párrafo (<w:p>) y limpiar XML
-		// Esto maneja el caso donde Word divide {{tag}} en múltiples <w:r> runs
-		paragraphs := paragraphPattern.FindAllString(xmlStr, -1)
-		for _, para := range paragraphs {
-			// Quitar TODAS las etiquetas XML, dejando solo texto plano
-			rawText := xmlTagStripper.ReplaceAllString(para, "")
-			// Buscar tags {{...}} en el texto limpio del párrafo
-			matches := tagPattern.FindAllStringSubmatch(rawText, -1)
-			for _, match := range matches {
-				if len(match) > 1 {
-					tag := strings.TrimSpace(match[1])
-					if tag != "" {
-						tagSet[tag] = true
-					}
-				}
-			}
-		}
-
-		// Estrategia 2 (fallback): Concatenar todo el texto <w:t> del archivo
-		// Por si la estructura no usa <w:p> estándar
-		textPattern := regexp.MustCompile(`<w:t[^>]*>([^<]*)</w:t>`)
-		textMatches := textPattern.FindAllStringSubmatch(xmlStr, -1)
-		var fullText strings.Builder
-		for _, m := range textMatches {
-			if len(m) > 1 {
-				fullText.WriteString(m[1])
-			}
-		}
-		matches := tagPattern.FindAllStringSubmatch(fullText.String(), -1)
-		for _, match := range matches {
-			if len(match) > 1 {
-				tag := strings.TrimSpace(match[1])
-				if tag != "" {
-					tagSet[tag] = true
-				}
-			}
+func mismaLista(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
 		}
 	}
+	return true
+}
 
-	// Convertir set a slice
-	tags := make([]string, 0, len(tagSet))
-	for tag := range tagSet {
-		tags = append(tags, tag)
+// sincronizarTags vuelve a leer las etiquetas del archivo y las guarda si cambiaron.
+// Así, lo que se edite en Word ("Abrir en Word") se refleja sin pasos manuales.
+func (s *TemplateService) sincronizarTags(p *management.Plantilla) error {
+	if p.RutaArchivo == "" {
+		return nil
 	}
-	return tags, nil
+	if _, err := os.Stat(p.RutaArchivo); err != nil {
+		return nil
+	}
+	tags, err := extractTagsFromDocx(p.RutaArchivo)
+	if err != nil {
+		return err
+	}
+	if mismaLista(tags, p.Tags.Data.Tags) {
+		return nil
+	}
+	labels := preserveTagLabels(tags, p.Tags.Data.TagLabels)
+	p.Tags = common.JSONMap[management.PlantillaTags]{Data: management.PlantillaTags{Tags: tags, TagLabels: labels}}
+	p.FechaModificacion = time.Now().Format("2006-01-02 15:04:05")
+	return s.db.Model(p).Updates(map[string]interface{}{"tags": p.Tags, "fecha_modificacion": p.FechaModificacion}).Error
 }
 
 // getFirmaPath devuelve la ruta donde se almacena la imagen de firma
@@ -249,12 +223,18 @@ func getFirmaDimensions(firmaPath string) (widthEMU int64, heightEMU int64) {
 	widthEMU = int64(config.Width) * 9525
 	heightEMU = int64(config.Height) * 9525
 
-	// Limitar ancho máximo a 5cm (1800000 EMU) y escalar proporcionalmente
-	maxWidthEMU := int64(1800000)
+	// Limitar a 5cm de ancho y 2cm de alto, escalando proporcionalmente. Una firma más alta
+	// empuja el final del documento a una página nueva.
+	maxWidthEMU, maxHeightEMU := int64(1800000), int64(720000)
 	if widthEMU > maxWidthEMU {
 		scale := float64(maxWidthEMU) / float64(widthEMU)
 		widthEMU = maxWidthEMU
 		heightEMU = int64(float64(heightEMU) * scale)
+	}
+	if heightEMU > maxHeightEMU {
+		scale := float64(maxHeightEMU) / float64(heightEMU)
+		heightEMU = maxHeightEMU
+		widthEMU = int64(float64(widthEMU) * scale)
 	}
 
 	return widthEMU, heightEMU
@@ -263,7 +243,7 @@ func getFirmaDimensions(firmaPath string) (widthEMU int64, heightEMU int64) {
 // buildFirmaImageXML genera el XML de Word para insertar una imagen inline
 func buildFirmaImageXML(relID string, widthEMU, heightEMU int64) string {
 	return fmt.Sprintf(
-		`<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing>`+
+		`<w:p><w:pPr><w:keepNext/><w:spacing w:before="0" w:after="0"/><w:jc w:val="center"/></w:pPr><w:r><w:drawing>`+
 			`<wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">`+
 			`<wp:extent cx="%d" cy="%d"/>`+
 			`<wp:docPr id="99" name="Firma"/>`+
@@ -351,20 +331,8 @@ func (s *TemplateService) SubirPlantilla(nombre string, descripcion string) (*ma
 	safeFileName := fmt.Sprintf("TPL_%d%s", time.Now().UnixNano(), ext)
 	destPath := filepath.Join(destDir, safeFileName)
 
-	srcFile, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("no se pudo leer el archivo original: %v", err)
-	}
-	defer srcFile.Close()
-
-	dstFile, err := os.Create(destPath)
-	if err != nil {
-		return nil, fmt.Errorf("no se pudo crear el archivo destino: %v", err)
-	}
-	defer dstFile.Close()
-
-	if _, err := io.Copy(dstFile, srcFile); err != nil {
-		return nil, fmt.Errorf("error copiando archivo: %v", err)
+	if err := copiarArchivo(filePath, destPath); err != nil {
+		return nil, err
 	}
 
 	ahora := time.Now().Format("2006-01-02 15:04:05")
@@ -394,11 +362,13 @@ func (s *TemplateService) ListarPlantillas() ([]management.Plantilla, error) {
 		return nil, err
 	}
 
-	// Verificar que los archivos existan (marcar los que no)
+	// Verificar que los archivos existan (marcar los que no) y refrescar sus etiquetas
 	for i := range plantillas {
 		if _, err := os.Stat(plantillas[i].RutaArchivo); os.IsNotExist(err) {
 			plantillas[i].RutaArchivo = "" // Indicar que el archivo no existe
+			continue
 		}
+		s.sincronizarTags(&plantillas[i])
 	}
 
 	return plantillas, nil
@@ -471,14 +441,7 @@ func (s *TemplateService) ReemplazarArchivoPlantilla(id uint) (*management.Plant
 		return nil, fmt.Errorf("error analizando la plantilla: %v", err)
 	}
 
-	// Eliminar archivo anterior
-	if plantilla.RutaArchivo != "" {
-		if _, err := os.Stat(plantilla.RutaArchivo); err == nil {
-			os.Remove(plantilla.RutaArchivo)
-		}
-	}
-
-	// Copiar nuevo archivo
+	// Copiar el archivo nuevo primero: si algo falla, la plantilla conserva el anterior.
 	destDir, err := s.getTemplatesDir()
 	if err != nil {
 		return nil, err
@@ -492,22 +455,11 @@ func (s *TemplateService) ReemplazarArchivoPlantilla(id uint) (*management.Plant
 	safeFileName := fmt.Sprintf("TPL_%d%s", time.Now().UnixNano(), ext)
 	destPath := filepath.Join(destDir, safeFileName)
 
-	srcFile, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("no se pudo leer el archivo: %v", err)
-	}
-	defer srcFile.Close()
-
-	dstFile, err := os.Create(destPath)
-	if err != nil {
-		return nil, fmt.Errorf("no se pudo crear archivo destino: %v", err)
-	}
-	defer dstFile.Close()
-
-	if _, err := io.Copy(dstFile, srcFile); err != nil {
-		return nil, fmt.Errorf("error copiando archivo: %v", err)
+	if err := copiarArchivo(filePath, destPath); err != nil {
+		return nil, err
 	}
 
+	rutaAnterior := plantilla.RutaArchivo
 	plantilla.RutaArchivo = destPath
 
 	// Preservar labels existentes para tags que siguen presentes
@@ -518,7 +470,12 @@ func (s *TemplateService) ReemplazarArchivoPlantilla(id uint) (*management.Plant
 	plantilla.FechaModificacion = time.Now().Format("2006-01-02 15:04:05")
 
 	if err := s.db.Save(&plantilla).Error; err != nil {
+		os.Remove(destPath)
 		return nil, fmt.Errorf("error al actualizar plantilla: %v", err)
+	}
+
+	if rutaAnterior != "" && rutaAnterior != destPath {
+		os.Remove(rutaAnterior)
 	}
 
 	return &plantilla, nil
@@ -612,126 +569,110 @@ func (s *TemplateService) getCertificatesDir() (string, error) {
 	return dir, nil
 }
 
-// ObtenerDatosCertificado pre-llena los tags de una plantilla con datos del estudiante
-func (s *TemplateService) ObtenerDatosCertificado(plantillaID uint, estudianteID uint) (map[string]string, error) {
-	// Obtener plantilla con sus tags
+// etiquetasAutomaticas son las que el sistema completa con datos del estudiante o del usuario.
+var etiquetasAutomaticas = map[string]bool{
+	"nombre_de_quien_suscribe":     true,
+	"en_calidad_de":                true,
+	"nombres_completos_estudiante": true,
+	"cedula_estudiante":            true,
+	"curso_actual_del_estudiante":  true,
+	"paralelo_actual":              true,
+	"check_registra":               true,
+	"check_no_registra":            true,
+	"fecha_dias":                   true,
+	"fecha_mes":                    true,
+	"fecha_anio":                   true,
+}
+
+// ObtenerDatosCertificado devuelve los campos de la plantilla, en el orden del documento,
+// pre-llenados con datos del estudiante y del usuario que genera el certificado.
+func (s *TemplateService) ObtenerDatosCertificado(plantillaID uint, estudianteID uint, usuarioID uint) (*dto.DatosCertificadoDTO, error) {
 	var plantilla management.Plantilla
 	if err := s.db.First(&plantilla, plantillaID).Error; err != nil {
 		return nil, errors.New("plantilla no encontrada")
 	}
-
-	tags := plantilla.Tags.Data.Tags
-	if len(tags) == 0 {
-		return nil, errors.New("la plantilla no tiene tags definidos")
+	if err := s.sincronizarTags(&plantilla); err != nil {
+		return nil, fmt.Errorf("no se pudo leer la plantilla: %v", err)
 	}
 
-	// Obtener datos del estudiante
 	var estudiante student.Estudiante
 	if err := s.db.First(&estudiante, estudianteID).Error; err != nil {
 		return nil, errors.New("estudiante no encontrado")
 	}
 
-	// Obtener matrícula actual con curso y nivel
+	// Matrícula del periodo que se está viendo, con curso y nivel
 	var matricula enrollment.Matricula
 	periodoID, _ := periodo.ConsultaID(s.db)
 	s.db.Preload("Curso.Nivel").Preload("Curso.Periodo").
 		Joins("JOIN cursos ON cursos.id = matriculas.curso_id").
 		Where("matriculas.estudiante_id = ? AND cursos.periodo_id = ?", estudianteID, periodoID).
+		Order("CASE WHEN matriculas.estado = 'Matriculado' THEN 0 ELSE 1 END, matriculas.id DESC").
 		First(&matricula)
 
-	// Obtener usuario actual (admin)
-	var currentUser security.Usuario
-	s.db.Where("rol = ? AND activo = true", "admin").First(&currentUser)
+	// Quien suscribe: el usuario de la sesión; si no llega, el primer administrador activo.
+	var firmante security.Usuario
+	if usuarioID == 0 || s.db.Where("id = ? AND activo = ?", usuarioID, true).First(&firmante).Error != nil {
+		s.db.Where("rol = ? AND activo = ?", "admin", true).First(&firmante)
+	}
 
-	// Verificar si tiene historial (llamados de atención o casos)
-	var countLlamados int64
+	var countLlamados, countCasos int64
 	s.db.Model(&tracking.LlamadoAtencion{}).
 		Joins("JOIN matriculas ON matriculas.id = llamados_atencion.matricula_id").
 		Where("matriculas.estudiante_id = ?", estudianteID).
 		Count(&countLlamados)
-
-	var countCasos int64
-	s.db.Model(&tracking.CasoSensible{}).
-		Where("estudiante_id = ?", estudianteID).
-		Count(&countCasos)
-
+	s.db.Model(&tracking.CasoSensible{}).Where("estudiante_id = ?", estudianteID).Count(&countCasos)
 	tieneHistorial := countLlamados > 0 || countCasos > 0
 
-	// Preparar datos de fecha actual
 	now := time.Now()
-	meses := []string{
-		"", "enero", "febrero", "marzo", "abril", "mayo", "junio",
-		"julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-	}
+	meses := []string{"", "enero", "febrero", "marzo", "abril", "mayo", "junio",
+		"julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"}
 
-	// Construir curso completo
-	cursoCompleto := ""
-	paralelo := ""
+	cursoCompleto, paralelo := "", ""
 	if matricula.ID > 0 {
-		if matricula.Curso.Nivel.NombreCompleto != "" {
-			cursoCompleto = matricula.Curso.Nivel.NombreCompleto
-		} else {
+		cursoCompleto = matricula.Curso.Nivel.NombreCompleto
+		if cursoCompleto == "" {
 			cursoCompleto = matricula.Curso.Nivel.Nombre
 		}
 		paralelo = matricula.Curso.Paralelo
 	}
-
-	// Pre-llenar el mapa de valores para cada tag
-	result := make(map[string]string)
-	for _, tag := range tags {
-		switch tag {
-		case "nombre_de_quien_suscribe":
-			result[tag] = currentUser.NombreCompleto
-		case "en_calidad_de":
-			if currentUser.Cargo != "" {
-				result[tag] = currentUser.Cargo
-			} else {
-				result[tag] = currentUser.Rol
-			}
-		case "nombres_completos_estudiante":
-			result[tag] = estudiante.Apellidos + " " + estudiante.Nombres
-		case "cedula_estudiante":
-			result[tag] = estudiante.Cedula
-		case "curso_actual_del_estudiante":
-			result[tag] = cursoCompleto
-		case "paralelo_actual":
-			result[tag] = paralelo
-		case "check_registra":
-			if tieneHistorial {
-				result[tag] = "■"
-			} else {
-				result[tag] = "☐"
-			}
-		case "check_no_registra":
-			if tieneHistorial {
-				result[tag] = "☐"
-			} else {
-				result[tag] = "■"
-			}
-		case "fecha_dias":
-			result[tag] = fmt.Sprintf("%d", now.Day())
-		case "fecha_mes":
-			result[tag] = meses[now.Month()]
-		case "fecha_anio":
-			result[tag] = fmt.Sprintf("%d", now.Year())
-		case "firma":
-			// Se maneja como imagen automáticamente, no mostrar en formulario
-		default:
-			result[tag] = "" // Tag desconocido, dejarlo vacío para que el usuario lo llene
+	marca := func(activo bool) string {
+		if activo {
+			return "■"
 		}
+		return "☐"
+	}
+	cargo := firmante.Cargo
+	if cargo == "" {
+		cargo = firmante.Rol
 	}
 
-	// Asegurar que los checks estén siempre presentes y calculados
-	// Esto es crucial si la plantilla no tiene los tags explícitamente registrados
-	if tieneHistorial {
-		result["check_registra"] = "■"
-		result["check_no_registra"] = "☐"
-	} else {
-		result["check_registra"] = "☐"
-		result["check_no_registra"] = "■"
+	valorAutomatico := map[string]string{
+		"nombre_de_quien_suscribe":     firmante.NombreCompleto,
+		"en_calidad_de":                cargo,
+		"nombres_completos_estudiante": strings.TrimSpace(estudiante.Apellidos + " " + estudiante.Nombres),
+		"cedula_estudiante":            estudiante.Cedula,
+		"curso_actual_del_estudiante":  cursoCompleto,
+		"paralelo_actual":              paralelo,
+		"check_registra":               marca(tieneHistorial),
+		"check_no_registra":            marca(!tieneHistorial),
+		"fecha_dias":                   fmt.Sprintf("%d", now.Day()),
+		"fecha_mes":                    meses[now.Month()],
+		"fecha_anio":                   fmt.Sprintf("%d", now.Year()),
 	}
 
-	return result, nil
+	resultado := &dto.DatosCertificadoDTO{Campos: []dto.CampoCertificadoDTO{}}
+	for _, tag := range plantilla.Tags.Data.Tags {
+		clave := strings.ToLower(tag)
+		if clave == "firma" {
+			continue // se reemplaza por la imagen de firma, no es un campo del formulario
+		}
+		resultado.Campos = append(resultado.Campos, dto.CampoCertificadoDTO{
+			Tag:        tag,
+			Valor:      valorAutomatico[clave],
+			Automatico: etiquetasAutomaticas[clave],
+		})
+	}
+	return resultado, nil
 }
 
 // GenerarCertificado reemplaza los tags en la plantilla y genera el documento final
@@ -750,6 +691,19 @@ func (s *TemplateService) GenerarCertificado(plantillaID uint, estudianteID uint
 		return "", errors.New("el archivo de la plantilla no existe en el disco")
 	}
 
+	if err := s.sincronizarTags(&plantilla); err != nil {
+		return "", fmt.Errorf("no se pudo leer la plantilla: %v", err)
+	}
+	// Ninguna etiqueta queda como "{{texto}}" en el certificado: las que no llegan van vacías.
+	if valores == nil {
+		valores = map[string]string{}
+	}
+	for _, tag := range plantilla.Tags.Data.Tags {
+		if _, ok := valores[tag]; !ok {
+			valores[tag] = ""
+		}
+	}
+
 	// Obtener nombre del estudiante para el nombre del archivo
 	var estudiante student.Estudiante
 	if err := s.db.First(&estudiante, estudianteID).Error; err != nil {
@@ -762,8 +716,8 @@ func (s *TemplateService) GenerarCertificado(plantillaID uint, estudianteID uint
 		return "", err
 	}
 
-	safeStudentName := strings.ReplaceAll(estudiante.Apellidos+"_"+estudiante.Nombres, " ", "_")
-	fileName := fmt.Sprintf("CERT_%s_%d.docx", safeStudentName, time.Now().Unix())
+	safeStudentName := nombreArchivoSeguro(estudiante.Apellidos + "_" + estudiante.Nombres)
+	fileName := fmt.Sprintf("CERT_%s_%s.docx", safeStudentName, time.Now().Format("20060102_150405"))
 	outputPath := filepath.Join(certDir, fileName)
 
 	// Determinar ruta de firma si la plantilla la incluye
@@ -775,9 +729,6 @@ func (s *TemplateService) GenerarCertificado(plantillaID uint, estudianteID uint
 			}
 		}
 	}
-	// Eliminar tag firma de valores de texto (se maneja como imagen)
-	delete(valores, "firma")
-
 	// Abrir docx como ZIP y procesar XML
 	err = replaceTagsInDocx(plantilla.RutaArchivo, outputPath, valores, firmaPath)
 	if err != nil {
@@ -799,265 +750,26 @@ func (s *TemplateService) GenerarCertificado(plantillaID uint, estudianteID uint
 	return outputPath, nil
 }
 
-// replaceTagsInDocx abre el .docx, reemplaza {{tag}} por sus valores en los XML internos,
-// y escribe un nuevo .docx con los reemplazos aplicados. Si firmaPath no está vacío,
-// inserta la imagen de firma donde se encuentre el tag {{firma}}.
-func replaceTagsInDocx(inputPath, outputPath string, valores map[string]string, firmaPath string) error {
-	r, err := zip.OpenReader(inputPath)
+// nombreArchivoSeguro quita caracteres no válidos en nombres de archivo de Windows.
+func nombreArchivoSeguro(nombre string) string {
+	reemplazo := strings.NewReplacer(" ", "_", "/", "-", "\\", "-", ":", "-", "*", "", "?", "", "\"", "", "<", "", ">", "", "|", "")
+	return reemplazo.Replace(strings.TrimSpace(nombre))
+}
+
+// AbrirCarpetaCertificados abre en el explorador la carpeta donde se guardan los certificados.
+func (s *TemplateService) AbrirCarpetaCertificados() error {
+	dir, err := s.getCertificatesDir()
 	if err != nil {
-		return fmt.Errorf("error abriendo plantilla: %v", err)
+		return err
 	}
-	defer r.Close()
-
-	// Crear archivo de salida
-	outFile, err := os.Create(outputPath)
-	if err != nil {
-		return fmt.Errorf("error creando archivo de salida: %v", err)
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("explorer", dir)
+	case "darwin":
+		cmd = exec.Command("open", dir)
+	default:
+		cmd = exec.Command("xdg-open", dir)
 	}
-	defer outFile.Close()
-
-	w := zip.NewWriter(outFile)
-	defer w.Close()
-
-	// Configuración de firma
-	hasFirma := firmaPath != ""
-	firmaRelID := "rIdFirmaImg"
-	var firmaWidthEMU, firmaHeightEMU int64
-	if hasFirma {
-		firmaWidthEMU, firmaHeightEMU = getFirmaDimensions(firmaPath)
-	}
-
-	// Patrones para manejar tags fragmentados
-	paragraphPattern := regexp.MustCompile(`(?s)(<w:p[ >].*?</w:p>)`)
-	runPattern := regexp.MustCompile(`(?s)<w:r[ >].*?</w:r>`)
-	textContentPattern := regexp.MustCompile(`(?s)<w:t[^>]*>([^<]*)</w:t>`)
-	xmlTagStripper := regexp.MustCompile(`<[^>]+>`)
-
-	for _, f := range r.File {
-		rc, err := f.Open()
-		if err != nil {
-			return err
-		}
-		content, err := io.ReadAll(rc)
-		rc.Close()
-		if err != nil {
-			return err
-		}
-
-		// Agregar relación de imagen en el archivo de relaciones del documento
-		if hasFirma && f.Name == "word/_rels/document.xml.rels" {
-			xmlStr := string(content)
-			relEntry := fmt.Sprintf(`<Relationship Id="%s" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/firma_cert.png"/>`, firmaRelID)
-			xmlStr = strings.Replace(xmlStr, "</Relationships>", relEntry+"</Relationships>", 1)
-			content = []byte(xmlStr)
-		}
-
-		// Agregar content type para PNG si no existe
-		if hasFirma && f.Name == "[Content_Types].xml" {
-			xmlStr := string(content)
-			if !strings.Contains(xmlStr, `Extension="png"`) {
-				xmlStr = strings.Replace(xmlStr, "</Types>",
-					`<Default Extension="png" ContentType="image/png"/></Types>`, 1)
-			}
-			content = []byte(xmlStr)
-		}
-
-		// Solo procesar archivos XML relevantes
-		if strings.HasSuffix(f.Name, ".xml") &&
-			(strings.Contains(f.Name, "document") ||
-				strings.Contains(f.Name, "header") ||
-				strings.Contains(f.Name, "footer")) {
-
-			xmlStr := string(content)
-
-			// Procesar párrafo por párrafo para manejar tags fragmentados
-			xmlStr = paragraphPattern.ReplaceAllStringFunc(xmlStr, func(paragraph string) string {
-				// Extraer texto completo del párrafo limpiando XML
-				rawText := xmlTagStripper.ReplaceAllString(paragraph, "")
-
-				// Verificar si este párrafo contiene {{firma}} y hay imagen disponible
-				if hasFirma {
-					if strings.Contains(rawText, "{{firma}}") {
-						return buildFirmaImageXML(firmaRelID, firmaWidthEMU, firmaHeightEMU)
-					}
-					firmaFlexRe := regexp.MustCompile(`(?i)\{\{\s*firma\s*\}\}`)
-					if firmaFlexRe.MatchString(rawText) {
-						return buildFirmaImageXML(firmaRelID, firmaWidthEMU, firmaHeightEMU)
-					}
-				}
-
-				// Si no hay firma pero el párrafo tiene {{firma}}, reemplazar con vacío
-				if !hasFirma && (strings.Contains(rawText, "{{firma}}") || func() bool {
-					re := regexp.MustCompile(`(?i)\{\{\s*firma\s*\}\}`)
-					return re.MatchString(rawText)
-				}()) {
-					// Tratar como tag de texto normal, reemplazar con vacío
-					textMatches := textContentPattern.FindAllStringSubmatch(paragraph, -1)
-					var fullText strings.Builder
-					for _, m := range textMatches {
-						if len(m) > 1 {
-							fullText.WriteString(m[1])
-						}
-					}
-					replacedText := strings.ReplaceAll(fullText.String(), "{{firma}}", "")
-					firmaFlexRe := regexp.MustCompile(`(?i)\{\{\s*firma\s*\}\}`)
-					replacedText = firmaFlexRe.ReplaceAllString(replacedText, "")
-
-					runs := runPattern.FindAllString(paragraph, -1)
-					if len(runs) == 0 {
-						return paragraph
-					}
-					firstTextRun := true
-					resultPara := paragraph
-					for _, run := range runs {
-						if !textContentPattern.MatchString(run) {
-							continue
-						}
-						if firstTextRun {
-							newRun := textContentPattern.ReplaceAllStringFunc(run, func(match string) string {
-								openTag := match[:strings.Index(match, ">")+1]
-								return openTag + replacedText + "</w:t>"
-							})
-							firstWT := textContentPattern.FindString(newRun)
-							if firstWT != "" {
-								newRunClean := textContentPattern.ReplaceAllString(newRun, "")
-								newRunClean = strings.Replace(newRunClean, "</w:r>", firstWT+"</w:r>", 1)
-								resultPara = strings.Replace(resultPara, run, newRunClean, 1)
-							}
-							firstTextRun = false
-						} else {
-							cleanedRun := textContentPattern.ReplaceAllStringFunc(run, func(match string) string {
-								openTag := match[:strings.Index(match, ">")+1]
-								return openTag + "</w:t>"
-							})
-							resultPara = strings.Replace(resultPara, run, cleanedRun, 1)
-						}
-					}
-					return resultPara
-				}
-
-				// Extraer texto completo del párrafo concatenando todos los <w:t>
-				textMatches := textContentPattern.FindAllStringSubmatch(paragraph, -1)
-				var fullText strings.Builder
-				for _, m := range textMatches {
-					if len(m) > 1 {
-						fullText.WriteString(m[1])
-					}
-				}
-
-				rawTextClean := fullText.String()
-
-				// Verificar si hay algún tag {{...}} en el texto concatenado
-				hasTag := false
-				for tag := range valores {
-					// Check simple
-					if strings.Contains(rawTextClean, "{{"+tag+"}}") {
-						hasTag = true
-						break
-					}
-					// Check con espacios (regex) e insensitive
-					tagName := regexp.QuoteMeta(tag)
-					if ok, _ := regexp.MatchString(`(?i)\{\{\s*`+tagName+`\s*\}\}`, rawTextClean); ok {
-						hasTag = true
-						break
-					}
-				}
-
-				if !hasTag {
-					return paragraph // Sin cambios
-				}
-
-				// Hay tags: hacer el reemplazo en el texto concatenado
-				replacedText := rawTextClean
-				for tag, valor := range valores {
-					// Reemplazo exacto
-					replacedText = strings.ReplaceAll(replacedText, "{{"+tag+"}}", valor)
-
-					// Reemplazo flexible con regex e insensitive case
-					tagName := regexp.QuoteMeta(tag)
-					re := regexp.MustCompile(`(?i)\{\{\s*` + tagName + `\s*\}\}`)
-					replacedText = re.ReplaceAllString(replacedText, valor)
-				}
-
-				// Estrategia: poner todo el texto reemplazado en el primer <w:r>
-				// y vaciar los demás <w:r> que contengan texto
-				runs := runPattern.FindAllString(paragraph, -1)
-				if len(runs) == 0 {
-					return paragraph
-				}
-
-				firstTextRun := true
-				result := paragraph
-
-				for _, run := range runs {
-					if !textContentPattern.MatchString(run) {
-						continue // Este run no tiene texto
-					}
-
-					if firstTextRun {
-						// Primer run con texto: reemplazar su contenido con el texto completo
-						newRun := textContentPattern.ReplaceAllStringFunc(run, func(match string) string {
-							// Preservar el tag de apertura <w:t...> y reemplazar contenido
-							openTag := match[:strings.Index(match, ">")+1]
-							return openTag + replacedText + "</w:t>"
-						})
-						// Solo tomar el primer <w:t> y quitar duplicados
-						firstWT := textContentPattern.FindString(newRun)
-						if firstWT != "" {
-							newRunClean := textContentPattern.ReplaceAllString(newRun, "")
-							// Insertar el primer w:t de vuelta antes del cierre </w:r>
-							newRunClean = strings.Replace(newRunClean, "</w:r>", firstWT+"</w:r>", 1)
-							result = strings.Replace(result, run, newRunClean, 1)
-						}
-						firstTextRun = false
-					} else {
-						// Demás runs con texto: vaciar su contenido
-						cleanedRun := textContentPattern.ReplaceAllStringFunc(run, func(match string) string {
-							openTag := match[:strings.Index(match, ">")+1]
-							return openTag + "</w:t>"
-						})
-						result = strings.Replace(result, run, cleanedRun, 1)
-					}
-				}
-
-				return result
-			})
-
-			content = []byte(xmlStr)
-		}
-
-		// Escribir el archivo (modificado o no) al nuevo ZIP
-		header, err := zip.FileInfoHeader(f.FileInfo())
-		if err != nil {
-			return err
-		}
-		header.Name = f.Name
-		header.Method = f.Method
-
-		writer, err := w.CreateHeader(header)
-		if err != nil {
-			return err
-		}
-		_, err = writer.Write(content)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Agregar imagen de firma al ZIP si es necesario
-	if hasFirma {
-		firmaContent, fErr := os.ReadFile(firmaPath)
-		if fErr != nil {
-			return fmt.Errorf("error leyendo imagen de firma: %v", fErr)
-		}
-		firmaWriter, fErr := w.Create("word/media/firma_cert.png")
-		if fErr != nil {
-			return fmt.Errorf("error agregando firma al documento: %v", fErr)
-		}
-		if _, fErr = firmaWriter.Write(firmaContent); fErr != nil {
-			return fmt.Errorf("error escribiendo firma: %v", fErr)
-		}
-	}
-
-	return nil
+	return cmd.Start()
 }

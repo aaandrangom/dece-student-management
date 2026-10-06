@@ -11,23 +11,37 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const CurrentVersion = "1.2.3"
+const CurrentVersion = "1.3.0"
 
 // GetVersion expone la versión actual al frontend
 func (a *App) GetVersion() string {
 	return CurrentVersion
 }
 
+// NotaVersion es un cambio de una versión: tipo "nuevo", "mejora" o "correccion".
+type NotaVersion struct {
+	Tipo  string `json:"tipo"`
+	Texto string `json:"texto"`
+}
+
+// UpdateInfo es el contenido de version.json en R2 (lo genera scripts/build-release.ps1).
+// fecha, resumen y notas son opcionales: las versiones antiguas del sistema los ignoran.
 type UpdateInfo struct {
-	Version     string `json:"version"`
-	DownloadURL string `json:"download_url"`
+	Version     string        `json:"version"`
+	DownloadURL string        `json:"download_url"`
+	Fecha       string        `json:"fecha,omitempty"`
+	Resumen     string        `json:"resumen,omitempty"`
+	Notas       []NotaVersion `json:"notas,omitempty"`
 }
 
 type UpdateCheckResult struct {
-	Available bool   `json:"available"`
-	Version   string `json:"version"`
-	Current   string `json:"current"`
-	Error     string `json:"error,omitempty"`
+	Available bool          `json:"available"`
+	Version   string        `json:"version"`
+	Current   string        `json:"current"`
+	Fecha     string        `json:"fecha,omitempty"`
+	Resumen   string        `json:"resumen,omitempty"`
+	Notas     []NotaVersion `json:"notas,omitempty"`
+	Error     string        `json:"error,omitempty"`
 }
 
 func (a *App) CheckUpdate() UpdateCheckResult {
@@ -55,6 +69,9 @@ func (a *App) CheckUpdate() UpdateCheckResult {
 			Available: true,
 			Version:   info.Version,
 			Current:   CurrentVersion,
+			Fecha:     info.Fecha,
+			Resumen:   info.Resumen,
+			Notas:     info.Notas,
 		}
 	}
 

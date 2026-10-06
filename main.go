@@ -36,7 +36,8 @@ func main() {
 
 	db := database.InitDB()
 	database.SeedAll(db)
-	if os.Getenv("SEED_DEMO") == "true" {
+	// Los datos demo nunca se cargan en un ejecutable de producción.
+	if os.Getenv("SEED_DEMO") == "true" && config.AppConfig.AppEnv != "production" {
 		if err := database.SeedDemo(db); err != nil {
 			log.Printf("Error cargando datos demo: %v", err)
 		}

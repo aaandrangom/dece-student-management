@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import usePeriodoVista from '../../hooks/usePeriodoVista';
+import CalendarView, { ViewToggle, useVistaGuardada } from '../../components/CalendarView';
 import Swal from 'sweetalert2';
 import { useLocation } from 'react-router-dom';
 import {
@@ -29,6 +30,8 @@ export default function MeetingManager() {
     const [stats, setStats] = useState({ pendientes: 0, total: 0 });
     const [activeFilter, setActiveFilter] = useState('pendientes');
     const [dateFilter, setDateFilter] = useState('');
+    const [vista, setVista] = useVistaGuardada('vista_convocatorias');
+    const [calendarMeetings, setCalendarMeetings] = useState([]);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -54,7 +57,7 @@ export default function MeetingManager() {
     useEffect(() => {
         loadMeetings();
         setCurrentPage(1);
-    }, [activeFilter, dateFilter]);
+    }, [activeFilter, dateFilter, vista]);
 
     useEffect(() => {
         const onMouseDown = (event) => {
@@ -88,7 +91,33 @@ export default function MeetingManager() {
                     pendientes: data.filter(c => !c.completada).length
                 });
             }
+            // El calendario muestra todas las citas del periodo, sin los filtros de la lista.
+            if (vista === 'calendario') {
+                const todas = await ListarCitas({ tipo: 'todas', fecha_solo: '' });
+                setCalendarMeetings(todas || []);
+            }
         } catch (error) { toast.error("Error al cargar agenda"); }
+    };
+
+    const eventosCalendario = useMemo(() => {
+        const ahora = new Date();
+        return calendarMeetings.map(c => {
+            const vencida = !c.completada && new Date((c.fecha_hora || '').replace(' ', 'T')) < ahora;
+            return {
+                id: c.id,
+                fecha: c.fecha_hora,
+                titulo: c.estudiante_nombre,
+                detalle: `${c.entidad} · ${c.motivo}`,
+                etiqueta: c.curso,
+                tono: c.completada ? 'green' : vencida ? 'red' : c.alerta ? 'amber' : 'indigo',
+            };
+        });
+    }, [calendarMeetings]);
+
+    const nuevaCitaEnDia = (dia) => {
+        resetForm();
+        setFormData({ ...initialForm, fecha_cita: `${dia}T09:00` });
+        setIsModalOpen(true);
     };
 
     const handleToggleComplete = async (id, currentStatus) => {
@@ -334,7 +363,8 @@ export default function MeetingManager() {
                             Gestiona reuniones con representantes y entidades externas.
                         </p>
                     </div>
-                    <div className="flex items-center gap-4 w-full sm:w-auto justify-end">
+                    <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto justify-end">
+                        <ViewToggle value={vista} onChange={setVista} />
                         <div className="hidden md:block text-right bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-100">
                             <span className="text-xs text-indigo-400 font-bold uppercase tracking-wider">Pendientes</span>
                             <p className="text-xl font-bold text-indigo-700 leading-none">{stats.pendientes}</p>
@@ -350,6 +380,20 @@ export default function MeetingManager() {
                     </div>
                 </div>
 
+                {vista === 'calendario' ? (
+                    <CalendarView
+                        events={eventosCalendario}
+                        onEventClick={(ev) => handleEdit(ev.id)}
+                        onDayCreate={soloLectura ? undefined : nuevaCitaEnDia}
+                        leyenda={[
+                            { tono: 'indigo', label: 'Programada' },
+                            { tono: 'amber', label: 'En alerta' },
+                            { tono: 'red', label: 'Vencida' },
+                            { tono: 'green', label: 'Realizada' },
+                        ]}
+                        vacio="Sin citas este mes"
+                    />
+                ) : (<>
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm flex gap-1 w-full md:w-auto">
                         <button
@@ -473,6 +517,7 @@ export default function MeetingManager() {
                         </div>
                     )}
                 </div>
+                </>)}
 
                 {renderActionsMenu()}
             </div>

@@ -1,0 +1,36 @@
+[
+    {
+        "version": "1.3.0",
+        "fecha": "2026-10-06",
+        "resumen": "Consulta de años anteriores, calendarios y certificados más confiables.",
+        "notas": [
+            { "tipo": "nuevo", "texto": "Consulta de años lectivos anteriores desde el selector de año de la barra superior, en modo solo lectura y sin cambiar el año de trabajo." },
+            { "tipo": "nuevo", "texto": "Vista de calendario en Convocatorias y Capacitaciones." },
+            { "tipo": "nuevo", "texto": "Notas de versión dentro del sistema y aviso de actualización con las novedades." },
+            { "tipo": "nuevo", "texto": "Ficha DECE: reingreso de estudiantes retirados y opción para revertir un retiro registrado por error." },
+            { "tipo": "nuevo", "texto": "Gestión de estudiantes: filtro «Sin matrícula activa» para encontrar estudiantes creados o importados sin curso." },
+            { "tipo": "mejora", "texto": "Gestión de plantillas rediseñada, con guía de etiquetas para copiar y pegar en Word." },
+            { "tipo": "mejora", "texto": "Generar certificado: campos separados en «Por completar» y «Completado automáticamente», con aviso de campos vacíos." },
+            { "tipo": "mejora", "texto": "Nueva pantalla de acceso a Seguimiento DECE: recuerda el acceso 10 minutos y bloquea 30 segundos tras 5 intentos fallidos." },
+            { "tipo": "mejora", "texto": "Los buscadores de estudiantes ignoran tildes y mayúsculas y permiten buscar nombre y apellido juntos." },
+            { "tipo": "mejora", "texto": "Al cerrar el año lectivo, el sistema sigue mostrando sus datos en solo lectura hasta activar el siguiente año." },
+            { "tipo": "correccion", "texto": "Los certificados conservan el formato de Word, aceptan caracteres como & y < y ya no generan una página en blanco al final." },
+            { "tipo": "correccion", "texto": "La firma del certificado tiene un tamaño controlado y conserva la línea de firma." },
+            { "tipo": "correccion", "texto": "Los cambios y eliminaciones de familiares en la ficha del estudiante ahora se guardan correctamente." },
+            { "tipo": "correccion", "texto": "Importación desde Excel: se recupera el 0 inicial de las cédulas y se evita la doble matrícula en un mismo periodo." },
+            { "tipo": "correccion", "texto": "Los filtros de nivel, paralelo y jornada funcionan por separado." },
+            { "tipo": "correccion", "texto": "Los reportes de Nómina de vulnerabilidad y Derivaciones ya no duplican casos." },
+            { "tipo": "correccion", "texto": "La fecha de retiro ya no aparece con el día siguiente después de las 19:00." }
+        ]
+    },
+    {
+        "version": "1.2.3",
+        "fecha": "2026-05-20",
+        "resumen": "Disciplina, casos sensibles y documentos.",
+        "notas": [
+            { "tipo": "nuevo", "texto": "Seguimiento disciplinario y de casos sensibles con carga de documentos y evidencias." },
+            { "tipo": "nuevo", "texto": "Formulario completo de la ficha del estudiante y gestor de matrícula (Ficha DECE)." },
+            { "tipo": "nuevo", "texto": "Importación masiva de estudiantes desde Excel." }
+        ]
+    }
+]

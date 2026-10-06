@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import {
     Settings, Database, Download, Upload, ShieldAlert, FileArchive, Loader2,
-    Shield, Lock, Eye, ToggleLeft, ToggleRight, Info, CheckCircle2
+    Shield, Lock, Eye, ToggleLeft, ToggleRight, Info, CheckCircle2, Rocket, ChevronRight
 } from 'lucide-react';
+import { ReleaseNotesModal, CHANGELOG, entradaDeVersion, formatoFecha } from '../../components/ReleaseNotes';
 import { toast } from 'sonner';
 import { GenerarRespaldo, RestaurarRespaldo } from "../../../wailsjs/go/system/MaintenanceService";
 import { ListarConfiguraciones, ActualizarConfiguracion } from "../../../wailsjs/go/services/SecurityConfigService";
@@ -17,6 +18,7 @@ const SystemSettings = () => {
     const [isLoadingConfigs, setIsLoadingConfigs] = useState(true);
     const [togglingKey, setTogglingKey] = useState(null);
     const [appVersion, setAppVersion] = useState('');
+    const [verNotas, setVerNotas] = useState(false);
 
     useEffect(() => {
         cargarConfiguraciones();
@@ -367,11 +369,36 @@ const SystemSettings = () => {
                     </div>
                 </div>
 
-                <div className="text-center py-8">
-                    <p className="text-xs text-slate-400">
-                        Sistema Integrado de Gestión DECE {appVersion ? `v${appVersion}` : ''} • Módulo de Mantenimiento
-                    </p>
+                {/* Acerca de / notas de versión */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center shrink-0">
+                            <Rocket className="w-6 h-6 text-violet-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-slate-800">SIGDECE {appVersion ? `versión ${appVersion}` : ''}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                                {entradaDeVersion(appVersion)
+                                    ? `${entradaDeVersion(appVersion).resumen} · ${formatoFecha(entradaDeVersion(appVersion).fecha)}`
+                                    : 'Sistema Integrado de Gestión DECE'}
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setVerNotas(true)}
+                        className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-violet-700 border border-violet-200 hover:bg-violet-50 transition-colors"
+                    >
+                        Notas de versión <ChevronRight className="w-4 h-4" />
+                    </button>
                 </div>
+
+                <ReleaseNotesModal
+                    open={verNotas}
+                    onClose={() => setVerNotas(false)}
+                    entradas={CHANGELOG}
+                    titulo="Notas de versión"
+                    subtitulo={appVersion ? `Versión instalada: ${appVersion}` : undefined}
+                />
             </div>
         </div>
     );

@@ -15,8 +15,10 @@ import { ListarCursos } from '../../../wailsjs/go/services/CourseService';
 import { ObtenerPeriodoVista } from '../../../wailsjs/go/academic/YearService';
 import { ListarNiveles } from '../../../wailsjs/go/academic/LevelService';
 import {
-    ListarPlantillas, ObtenerDatosCertificado, GenerarCertificado
+    ListarPlantillas, ObtenerDatosCertificado, GenerarCertificado, AbrirCarpetaCertificados
 } from '../../../wailsjs/go/services/TemplateService';
+import { useScreenLock } from '../../context/ScreenLockContext';
+import { nombreCampo, labelsDePlantilla } from '../../constants/certificateTags';
 
 export default function StudentsPage() {
     const navigate = useNavigate();
@@ -65,7 +67,8 @@ function StudentList({ onCreate, onEdit }) {
     const [certStudent, setCertStudent] = useState(null);
     const [certTemplates, setCertTemplates] = useState([]);
     const [certSelectedTemplate, setCertSelectedTemplate] = useState(null);
-    const [certTagValues, setCertTagValues] = useState({});
+    const [certCampos, setCertCampos] = useState([]); // [{ tag, valor, automatico }] en el orden del documento
+    const { user } = useScreenLock();
     const [isLoadingCert, setIsLoadingCert] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -247,68 +250,75 @@ function StudentList({ onCreate, onEdit }) {
         setCertStudent(student);
         setIsCertModalOpen(true);
         setCertSelectedTemplate(null);
-        setCertTagValues({});
+        setCertCampos([]);
         try {
             const templates = await ListarPlantillas();
-            setCertTemplates((templates || []).filter(t => t.ruta_archivo));
+            const disponibles = (templates || []).filter(t => t.ruta_archivo);
+            setCertTemplates(disponibles);
+            // Con una sola plantilla no hay nada que elegir.
+            if (disponibles.length === 1) handleSelectTemplate(disponibles[0].id, disponibles, student);
         } catch (err) {
             toast.error("Error cargando plantillas: " + String(err));
         }
     };
 
-    const handleSelectTemplate = async (templateId) => {
-        if (!templateId || !certStudent) return;
-        const tpl = certTemplates.find(t => t.id === Number(templateId));
-        setCertSelectedTemplate(tpl);
+    const handleSelectTemplate = async (templateId, lista = certTemplates, estudiante = certStudent) => {
+        if (!templateId || !estudiante) {
+            setCertSelectedTemplate(null);
+            setCertCampos([]);
+            return;
+        }
+        setCertSelectedTemplate(lista.find(t => t.id === Number(templateId)) || null);
         setIsLoadingCert(true);
         try {
-            const datos = await ObtenerDatosCertificado(Number(templateId), certStudent.id);
-            setCertTagValues(datos || {});
+            const datos = await ObtenerDatosCertificado(Number(templateId), estudiante.id, user?.id || 0);
+            setCertCampos(datos?.campos || []);
         } catch (err) {
             toast.error("Error cargando datos: " + String(err));
-            setCertTagValues({});
+            setCertCampos([]);
         } finally {
             setIsLoadingCert(false);
         }
     };
 
+    const setValorCampo = (tag, valor) =>
+        setCertCampos(prev => prev.map(c => c.tag === tag ? { ...c, valor } : c));
+
+    const abrirCarpetaCertificados = () => AbrirCarpetaCertificados().catch(err => toast.error(String(err)));
+
     const handleGenerateCert = async () => {
         if (!certSelectedTemplate || !certStudent) return;
+
+        const vacios = certCampos.filter(c => !c.valor.trim());
+        if (vacios.length > 0) {
+            const labels = labelsDePlantilla(certSelectedTemplate);
+            const lista = vacios.map(c => `<li>${nombreCampo(c.tag, labels)}</li>`).join('');
+            const res = await Swal.fire({
+                title: 'Hay campos vacíos',
+                html: `<p style="margin-bottom:8px">Estos campos quedarán en blanco en el documento:</p><ul style="text-align:left;display:inline-block;list-style:disc;padding-left:20px">${lista}</ul>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Generar igual',
+                cancelButtonText: 'Completar',
+                confirmButtonColor: '#2563eb',
+                reverseButtons: true,
+            });
+            if (!res.isConfirmed) return;
+        }
+
         setIsGenerating(true);
         try {
-            await GenerarCertificado(certSelectedTemplate.id, certStudent.id, certTagValues);
-            toast.success("Certificado generado y abierto correctamente");
+            const valores = Object.fromEntries(certCampos.map(c => [c.tag, c.valor]));
+            await GenerarCertificado(certSelectedTemplate.id, certStudent.id, valores);
+            toast.success("Certificado generado y abierto en Word", {
+                action: { label: 'Ver carpeta', onClick: abrirCarpetaCertificados },
+            });
             setIsCertModalOpen(false);
         } catch (err) {
             toast.error("Error generando certificado: " + String(err));
         } finally {
             setIsGenerating(false);
         }
-    };
-
-    const getTagLabel = (tag) => {
-        // Intentar obtener label personalizado de la plantilla seleccionada
-        if (certSelectedTemplate) {
-            const tagLabels = certSelectedTemplate?.tags?.Data?.tag_labels
-                || certSelectedTemplate?.tags?.tag_labels
-                || {};
-            if (tagLabels[tag]) return tagLabels[tag];
-        }
-        // Fallback: labels por defecto para tags conocidos
-        const defaults = {
-            nombre_de_quien_suscribe: 'Nombre de quien suscribe',
-            en_calidad_de: 'Cargo / En calidad de',
-            nombres_completos_estudiante: 'Nombres completos del estudiante',
-            cedula_estudiante: 'Cédula del estudiante',
-            curso_actual_del_estudiante: 'Curso actual',
-            paralelo_actual: 'Paralelo',
-            check_registra: 'Check REGISTRA',
-            check_no_registra: 'Check NO REGISTRA',
-            fecha_dias: 'Día',
-            fecha_mes: 'Mes',
-            fecha_anio: 'Año'
-        };
-        return defaults[tag] || tag.replace(/_/g, ' ');
     };
 
     return (
@@ -848,46 +858,76 @@ function StudentList({ onCreate, onEdit }) {
                                 </div>
                             )}
 
-                            {/* Tag Values Editor */}
-                            {certSelectedTemplate && !isLoadingCert && Object.keys(certTagValues).length > 0 && (
-                                <div>
-                                    <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                            <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Datos del Documento</h4>
+                            {/* Campos del documento */}
+                            {certSelectedTemplate && !isLoadingCert && (() => {
+                                const labels = labelsDePlantilla(certSelectedTemplate);
+                                const manuales = certCampos.filter(c => !c.automatico);
+                                const automaticos = certCampos.filter(c => c.automatico);
+                                const campo = (c) => {
+                                    const vacio = !c.valor.trim();
+                                    return (
+                                        <div key={c.tag}>
+                                            <label htmlFor={`cert-${c.tag}`} className="flex items-center justify-between text-xs font-bold text-slate-600 mb-1.5">
+                                                <span>{nombreCampo(c.tag, labels)}</span>
+                                                {vacio && <span className="text-[10px] font-semibold text-amber-600">Vacío</span>}
+                                            </label>
+                                            <input
+                                                id={`cert-${c.tag}`}
+                                                type="text"
+                                                value={c.valor}
+                                                onChange={(e) => setValorCampo(c.tag, e.target.value)}
+                                                className={`w-full px-3.5 py-2.5 border rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:bg-white transition-all placeholder:text-slate-300 ${vacio
+                                                    ? 'bg-amber-50/40 border-amber-300 focus:ring-amber-500/20 focus:border-amber-500'
+                                                    : 'bg-slate-50/50 border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'}`}
+                                                placeholder={`Valor para {{${c.tag}}}`}
+                                            />
                                         </div>
-                                        <span className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                                            {Object.keys(certTagValues).length} campos editables
-                                        </span>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                                        {Object.entries(certTagValues).map(([tag, value]) => (
-                                            <div key={tag} className="group">
-                                                <label className="block text-xs font-bold text-slate-500 mb-1.5 ml-1 group-focus-within:text-blue-600 transition-colors">
-                                                    {getTagLabel(tag)}
-                                                </label>
-                                                <div className="relative">
-                                                    <input
-                                                        type="text"
-                                                        value={value}
-                                                        onChange={(e) => setCertTagValues(prev => ({ ...prev, [tag]: e.target.value }))}
-                                                        className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all placeholder:text-slate-300"
-                                                        placeholder={`Valor para {{${tag}}}`}
-                                                    />
-                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-white px-1">
-                                                        {`{{${tag}}}`}
-                                                    </div>
+                                    );
+                                };
+                                if (certCampos.length === 0) {
+                                    return (
+                                        <p className="text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                                            Esta plantilla no tiene campos para completar. Se generará tal como está.
+                                        </p>
+                                    );
+                                }
+                                return (
+                                    <div className="space-y-6">
+                                        {manuales.length > 0 && (
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <span className="w-2 h-2 bg-amber-500 rounded-full" />
+                                                    <h4 className="text-sm font-bold text-slate-700">Por completar</h4>
+                                                    <span className="text-xs text-slate-400">({manuales.length})</span>
                                                 </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{manuales.map(campo)}</div>
                                             </div>
-                                        ))}
+                                        )}
+                                        {automaticos.length > 0 && (
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                                                    <h4 className="text-sm font-bold text-slate-700">Completado automáticamente</h4>
+                                                    <span className="text-xs text-slate-400">({automaticos.length})</span>
+                                                </div>
+                                                <p className="text-xs text-slate-500 mb-3">Datos del estudiante, de su usuario y de la fecha de hoy. Puede corregirlos antes de generar.</p>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{automaticos.map(campo)}</div>
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
-                            )}
+                                );
+                            })()}
                         </div>
 
                         {/* Footer */}
                         <div className="px-6 py-4 border-t border-slate-100 flex gap-3 shrink-0">
+                            <button
+                                onClick={abrirCarpetaCertificados}
+                                className="px-3 py-2.5 text-slate-500 font-semibold rounded-xl hover:bg-slate-50 hover:text-slate-700 transition-colors text-sm"
+                                title="Abrir la carpeta de certificados generados"
+                            >
+                                Ver generados
+                            </button>
                             <button
                                 onClick={() => setIsCertModalOpen(false)}
                                 disabled={isGenerating}

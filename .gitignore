@@ -10,6 +10,7 @@ build/bin/
 # Archivos de sistema y entorno
 .DS_Store
 .env
+.env.production
 
 # Base de Datos (¡Muy importante agregar esto!)
 *.db

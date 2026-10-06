@@ -52,3 +52,15 @@ type FiltroCitasDTO struct {
 	Tipo      string `json:"tipo"`
 	FechaSolo string `json:"fecha_solo"`
 }
+
+// CampoCertificadoDTO es un campo del formulario de "Generar certificado".
+type CampoCertificadoDTO struct {
+	Tag        string `json:"tag"`
+	Valor      string `json:"valor"`
+	Automatico bool   `json:"automatico"` // lo completa el sistema; el usuario puede corregirlo
+}
+
+// DatosCertificadoDTO son los campos de la plantilla en el orden en que aparecen en el documento.
+type DatosCertificadoDTO struct {
+	Campos []CampoCertificadoDTO `json:"campos"`
+}

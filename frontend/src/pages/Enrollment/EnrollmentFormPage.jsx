@@ -18,8 +18,6 @@ export default function EnrollmentFormPage({ studentId, studentGender, onBack })
     const [activePeriod, setActivePeriod] = useState(null);
 
     const isReadOnly = activePeriod?.solo_lectura;
-    // El backend devuelve la matrícula retirada con id 0: al guardar se crea una nueva (reingreso).
-    const isReingreso = formData.id === 0 && formData.estado === 'Retirado';
 
     const [formData, setFormData] = useState({
         id: 0, estudiante_id: studentId, curso_id: 0, es_repetidor: false, direccion_actual: '', ruta_croquis: '', ruta_consentimiento: '',
@@ -36,6 +34,9 @@ export default function EnrollmentFormPage({ studentId, studentGender, onBack })
             detalle_padres_pareja: { nombres: '', apellidos: '', cedula: '', telefono: '', parentesco: 'Padre' }
         }
     });
+
+    // El backend devuelve la matrícula retirada con id 0: al guardar se crea una nueva (reingreso).
+    const isReingreso = formData.id === 0 && formData.estado === 'Retirado';
 
     useEffect(() => {
         const loadInitialData = async () => {
