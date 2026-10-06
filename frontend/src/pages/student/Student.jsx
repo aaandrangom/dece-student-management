@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -10,7 +10,7 @@ import {
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
 import Swal from 'sweetalert2';
 
-import { BuscarEstudiantes, BuscarEstudiantesFiltrados, ObtenerFotoBase64, ImportarEstudiantes, EliminarEstudiante } from '../../../wailsjs/go/services/StudentService';
+import { BuscarEstudiantesFiltrados, ObtenerFotoBase64, ImportarEstudiantes, EliminarEstudiante } from '../../../wailsjs/go/services/StudentService';
 import { ListarCursos } from '../../../wailsjs/go/services/CourseService';
 import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
 import { ListarNiveles } from '../../../wailsjs/go/academic/LevelService';
@@ -43,6 +43,9 @@ function StudentList({ onCreate, onEdit }) {
     const [filterNivel, setFilterNivel] = useState(() => sessionStorage.getItem('student_nivel') || 0);
     const [filterParalelo, setFilterParalelo] = useState(() => sessionStorage.getItem('student_paralelo') || '');
     const [filterJornada, setFilterJornada] = useState(() => sessionStorage.getItem('student_jornada') || '');
+    const [filterSinMatricula, setFilterSinMatricula] = useState(() => sessionStorage.getItem('student_sin_matricula') === 'true');
+    const searchRequestId = useRef(0);
+    const searchTimer = useRef(null);
     const [levels, setLevels] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -88,14 +91,14 @@ function StudentList({ onCreate, onEdit }) {
         return false;
     };
 
-    const search = async (q = query, niv = filterNivel, par = filterParalelo, jor = filterJornada) => {
+    const search = async (q = query, niv = filterNivel, par = filterParalelo, jor = filterJornada, sinMat = filterSinMatricula) => {
+        // Una búsqueda inmediata reemplaza a la que estaba pendiente por el debounce.
+        clearTimeout(searchTimer.current);
+        // Solo se aplica la respuesta de la última búsqueda lanzada; las anteriores se descartan.
+        const requestId = ++searchRequestId.current;
         try {
-            const applyFilters = niv != 0 && par !== '' && jor !== '';
-            const n = applyFilters ? Number(niv) : 0;
-            const p = applyFilters ? par : '';
-            const j = applyFilters ? jor : '';
-
-            const data = await BuscarEstudiantesFiltrados(q, n, p, j);
+            const data = await BuscarEstudiantesFiltrados(q, Number(niv) || 0, par, jor, sinMat);
+            if (requestId !== searchRequestId.current) return;
             setStudents(data || []);
             setCurrentPage(1);
             try {
@@ -113,6 +116,7 @@ function StudentList({ onCreate, onEdit }) {
             } catch (e) {
             }
         } catch (err) {
+            if (requestId !== searchRequestId.current) return;
             toast.error("Error al buscar estudiantes");
         }
     };
@@ -145,7 +149,10 @@ function StudentList({ onCreate, onEdit }) {
         sessionStorage.setItem('student_nivel', filterNivel);
         sessionStorage.setItem('student_paralelo', filterParalelo);
         sessionStorage.setItem('student_jornada', filterJornada);
-    }, [query, filterNivel, filterParalelo, filterJornada]);
+        sessionStorage.setItem('student_sin_matricula', filterSinMatricula);
+    }, [query, filterNivel, filterParalelo, filterJornada, filterSinMatricula]);
+
+    useEffect(() => () => clearTimeout(searchTimer.current), []);
 
     useEffect(() => {
         ListarNiveles().then(data => setLevels(data || [])).catch(() => {});
@@ -158,14 +165,19 @@ function StudentList({ onCreate, onEdit }) {
         const initialNivel = sessionStorage.getItem('student_nivel') || 0;
         const initialParalelo = sessionStorage.getItem('student_paralelo') || '';
         const initialJornada = sessionStorage.getItem('student_jornada') || '';
-        search(initialQuery, initialNivel, initialParalelo, initialJornada); 
+        const initialSinMatricula = sessionStorage.getItem('student_sin_matricula') === 'true';
+        search(initialQuery, initialNivel, initialParalelo, initialJornada, initialSinMatricula);
     }, []);
 
     const handleSearchChange = (e) => {
         const val = e.target.value;
         setQuery(val);
-        search(val, filterNivel, filterParalelo, filterJornada);
+        clearTimeout(searchTimer.current);
+        searchTimer.current = setTimeout(() => search(val), 300);
     };
+
+    const filterSelectClass = (active) =>
+        `w-full py-2.5 px-3 border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all cursor-pointer ${active ? 'bg-purple-50 border-purple-300 text-purple-800' : 'bg-slate-50 border-slate-200 text-slate-700'}`;
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -337,84 +349,116 @@ function StudentList({ onCreate, onEdit }) {
                 )}
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col xl:flex-row justify-between items-center gap-4">
-                <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
-                    <div className="relative w-full sm:w-64 shrink-0">
+            <div className="@container bg-white rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4">
+                    <div className="inline-flex p-1 bg-slate-100 rounded-lg" role="tablist">
+                        {[
+                            { value: false, label: 'Matriculados' },
+                            { value: true, label: 'Sin matrícula activa' },
+                        ].map(tab => {
+                            const active = filterSinMatricula === tab.value;
+                            return (
+                                <button
+                                    key={tab.label}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={active}
+                                    onClick={() => {
+                                        if (active) return;
+                                        setFilterSinMatricula(tab.value);
+                                        search(query, filterNivel, filterParalelo, filterJornada, tab.value);
+                                    }}
+                                    className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${active ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    {tab.label}
+                                    {active && (
+                                        <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold">{students.length}</span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-slate-600">
+                        {(query !== '' || filterNivel != 0 || filterParalelo !== '' || filterJornada !== '') && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setQuery('');
+                                    setFilterNivel(0);
+                                    setFilterParalelo('');
+                                    setFilterJornada('');
+                                    search('', 0, '', '');
+                                }}
+                                className="flex items-center gap-1 px-2 py-1 text-sm font-medium text-slate-500 hover:text-red-600 rounded-md transition-colors"
+                                title="Limpiar búsqueda y filtros"
+                            >
+                                <X className="w-4 h-4" />
+                                Limpiar
+                            </button>
+                        )}
+                        <label className="flex items-center gap-2">
+                            <span className="text-slate-500">Mostrar</span>
+                            <select
+                                value={itemsPerPage}
+                                onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                                className="bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2 focus:outline-none focus:border-purple-500 font-semibold text-slate-700"
+                            >
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span className="text-slate-500">filas</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div className={`grid grid-cols-1 gap-3 p-4 ${filterSinMatricula ? '' : '@xl:grid-cols-3 @5xl:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]'}`}>
+                    <div className="relative @xl:col-span-3 @5xl:col-span-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Buscar por cédula o nombres..."
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            placeholder="Buscar por cédula, nombres o apellidos..."
+                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 focus:bg-white transition-all"
                             value={query}
                             onChange={handleSearchChange}
                         />
                     </div>
-                    <select
-                        className="w-full sm:w-48 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-700 font-medium"
-                        value={filterNivel}
-                        onChange={(e) => { setFilterNivel(e.target.value); search(query, e.target.value, filterParalelo, filterJornada); }}
-                    >
-                        <option value="0">Todos los Cursos</option>
-                        {levels.map(l => (
-                            <option key={l.id} value={l.id}>{l.nombre}</option>
-                        ))}
-                    </select>
-                    <select
-                        className="w-full sm:w-32 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-700 font-medium"
-                        value={filterParalelo}
-                        onChange={(e) => { setFilterParalelo(e.target.value); search(query, filterNivel, e.target.value, filterJornada); }}
-                    >
-                        <option value="">Paralelo</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                        <option value="D">D</option>
-                        <option value="E">E</option>
-                        <option value="F">F</option>
-                        <option value="G">G</option>
-                        <option value="H">H</option>
-                    </select>
-                    <select
-                        className="w-full sm:w-36 py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-700 font-medium"
-                        value={filterJornada}
-                        onChange={(e) => { setFilterJornada(e.target.value); search(query, filterNivel, filterParalelo, e.target.value); }}
-                    >
-                        <option value="">Jornada</option>
-                        <option value="Matutina">Matutina</option>
-                        <option value="Vespertina">Vespertina</option>
-                        <option value="Nocturna">Nocturna</option>
-                    </select>
-                    {(filterNivel != 0 || filterParalelo !== '' || filterJornada !== '') && (
-                        <button 
-                            onClick={() => {
-                                setFilterNivel(0);
-                                setFilterParalelo('');
-                                setFilterJornada('');
-                                search(query, 0, '', '');
-                            }}
-                            className="px-3 py-2 text-sm text-red-600 hover:bg-red-50 font-medium rounded-lg transition-colors border border-transparent hover:border-red-100 flex items-center gap-1 shrink-0"
-                            title="Limpiar filtros"
-                        >
-                            <X className="w-4 h-4" />
-                            <span className="hidden sm:inline">Limpiar</span>
-                        </button>
+                    {!filterSinMatricula && (
+                        <>
+                            <select
+                                className={filterSelectClass(filterNivel != 0)}
+                                value={filterNivel}
+                                onChange={(e) => { setFilterNivel(e.target.value); search(query, e.target.value, filterParalelo, filterJornada); }}
+                            >
+                                <option value="0">Todos los niveles</option>
+                                {levels.map(l => (
+                                    <option key={l.id} value={l.id}>{l.nombre}</option>
+                                ))}
+                            </select>
+                            <select
+                                className={filterSelectClass(filterParalelo !== '')}
+                                value={filterParalelo}
+                                onChange={(e) => { setFilterParalelo(e.target.value); search(query, filterNivel, e.target.value, filterJornada); }}
+                            >
+                                <option value="">Todos los paralelos</option>
+                                {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(p => (
+                                    <option key={p} value={p}>Paralelo {p}</option>
+                                ))}
+                            </select>
+                            <select
+                                className={filterSelectClass(filterJornada !== '')}
+                                value={filterJornada}
+                                onChange={(e) => { setFilterJornada(e.target.value); search(query, filterNivel, filterParalelo, e.target.value); }}
+                            >
+                                <option value="">Todas las jornadas</option>
+                                <option value="Matutina">Matutina</option>
+                                <option value="Vespertina">Vespertina</option>
+                                <option value="Nocturna">Nocturna</option>
+                            </select>
+                        </>
                     )}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <span className="font-medium text-slate-500 mr-2">Total: {students.length}</span>
-                    <span>Mostrar</span>
-                    <select
-                        value={itemsPerPage}
-                        onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                        className="bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 focus:outline-none focus:border-purple-500 font-semibold text-slate-700"
-                    >
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                    <span>filas</span>
                 </div>
             </div>
 

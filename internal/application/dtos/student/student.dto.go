@@ -18,6 +18,10 @@ type EstudianteListaDTO struct {
 	CorreoElectronico     string               `json:"correo_electronico"`
 	Edad                  int                  `json:"edad"`
 	InfoNacionalidad      *InfoNacionalidadDTO `json:"info_nacionalidad"`
+
+	// Solo en BuscarEstudiantesFicha: curso y estado en el periodo activo (vacío = sin matrícula).
+	Curso           string `json:"curso,omitempty"`
+	EstadoMatricula string `json:"estado_matricula,omitempty"`
 }
 
 type DatosFamiliarDTO struct {

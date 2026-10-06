@@ -6,7 +6,9 @@ import {context} from '../models';
 
 export function BuscarEstudiantes(arg1:string):Promise<Array<student.EstudianteListaDTO>>;
 
-export function BuscarEstudiantesFiltrados(arg1:string,arg2:number,arg3:string,arg4:string):Promise<Array<student.EstudianteListaDTO>>;
+export function BuscarEstudiantesFicha(arg1:string):Promise<Array<student.EstudianteListaDTO>>;
+
+export function BuscarEstudiantesFiltrados(arg1:string,arg2:number,arg3:string,arg4:string,arg5:boolean):Promise<Array<student.EstudianteListaDTO>>;
 
 export function EliminarEstudiante(arg1:number):Promise<void>;
 

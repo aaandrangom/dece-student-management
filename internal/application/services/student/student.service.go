@@ -3,8 +3,10 @@ package services
 import (
 	"context"
 	studentDTO "dece/internal/application/dtos/student"
+	"dece/internal/application/helpers/busqueda"
 	"dece/internal/domain/common"
 	"dece/internal/domain/enrollment"
+	"dece/internal/domain/faculty"
 	"dece/internal/domain/student"
 	"encoding/base64"
 	"errors"
@@ -95,6 +97,18 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 		return nil, nil // Usuario canceló
 	}
 
+	return s.importarArchivo(filePath, cursoID)
+}
+
+// emitirProgresoImportacion avisa al frontend; sin contexto de Wails (pruebas) no hace nada.
+func (s *StudentService) emitirProgresoImportacion(datos map[string]int) {
+	if s.ctx != nil {
+		runtime.EventsEmit(s.ctx, "student:import_progress", datos)
+	}
+}
+
+// importarArchivo procesa el Excel ya elegido; separado del diálogo para poder probarlo.
+func (s *StudentService) importarArchivo(filePath string, cursoID uint) (*ImportResult, error) {
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("error al abrir el archivo Excel: %v", err)
@@ -108,7 +122,7 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 	}
 
 	// === DETECCIÓN FLEXIBLE DE COLUMNAS ===
-	idxCedula, idxNombresCompletos, idxNombres, idxApellidos, idxCorreo := -1, -1, -1, -1, -1
+	idxCedula, idxNombresCompletos, idxNombres, idxApellidos, idxCorreo, idxGenero := -1, -1, -1, -1, -1, -1
 	headerRowIndex := -1
 
 	for i, row := range rows {
@@ -130,6 +144,8 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 				idxApellidos = j
 			case strings.Contains(valNorm, "correo") || valNorm == "email" || valNorm == "cuenta" || valNorm == "e-mail" || valNorm == "mail":
 				idxCorreo = j
+			case valNorm == "genero" || valNorm == "sexo":
+				idxGenero = j
 			}
 		}
 
@@ -157,6 +173,16 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 		Errores:    make([]ImportRowError, 0),
 	}
 
+	// Periodo del curso destino, para no matricular dos veces en el mismo periodo.
+	var periodoCursoID uint
+	if cursoID > 0 {
+		var curso faculty.Curso
+		if err := s.db.Select("id", "periodo_id").First(&curso, cursoID).Error; err != nil {
+			return nil, errors.New("El curso seleccionado no existe")
+		}
+		periodoCursoID = curso.PeriodoID
+	}
+
 	processedCount := 0
 
 	for i := headerRowIndex + 1; i < len(rows); i++ {
@@ -165,7 +191,7 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 
 		// Emitir progreso cada 5 filas o en la última
 		if processedCount%5 == 0 || processedCount == totalFilas {
-			runtime.EventsEmit(s.ctx, "student:import_progress", map[string]int{
+			s.emitirProgresoImportacion(map[string]int{
 				"current":      processedCount,
 				"total":        totalFilas,
 				"creados":      result.Creados,
@@ -182,12 +208,21 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 			return ""
 		}
 
-		cedula := getVal(idxCedula)
+		cedula := normalizarCedula(getVal(idxCedula))
 		correo := getVal(idxCorreo)
+		genero := normalizarGenero(getVal(idxGenero))
 
 		// --- Validación: Cédula vacía → omitir (fila vacía) ---
 		if cedula == "" {
 			result.Omitidos++
+			continue
+		}
+		if !cedulaEcuatorianaValida(cedula) {
+			result.Errores = append(result.Errores, ImportRowError{
+				Fila:    filaExcel,
+				Cedula:  cedula,
+				Detalle: "Cédula inválida (debe tener 10 dígitos y un dígito verificador correcto)",
+			})
 			continue
 		}
 
@@ -236,6 +271,9 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 			if correo != "" {
 				updates["correo_electronico"] = correo
 			}
+			if genero != "" {
+				updates["genero_nacimiento"] = genero
+			}
 
 			if len(updates) > 0 {
 				if err := s.db.Model(&existente).Updates(updates).Error; err != nil {
@@ -244,8 +282,7 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 						Cedula:  cedula,
 						Detalle: fmt.Sprintf("Error al actualizar: %v", err),
 					})
-					// A pesar del error de actualización, intentamos continuar si tenemos ID,
-					// pero si falló update es riesgoso. Continuemos.
+					continue
 				}
 			}
 			result.Actualizados++
@@ -258,7 +295,8 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 				Nombres:           nombres,
 				CorreoElectronico: correo,
 				InfoNacionalidad:  common.JSONMap[student.InfoNacionalidad]{Data: student.InfoNacionalidad{EsExtranjero: false}},
-				GeneroNacimiento:  "M",
+				GeneroNacimiento:  genero, // vacío si el Excel no trae la columna; se completa en la ficha
+				FechaCreacion:     time.Now().Format("2006-01-02 15:04:05"),
 			}
 			if err := s.db.Create(&nuevo).Error; err != nil {
 				result.Errores = append(result.Errores, ImportRowError{
@@ -284,10 +322,18 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 		// --- MATRICULACIÓN AUTOMÁTICA (Si se seleccionó curso) ---
 		if cursoID > 0 && estudianteID > 0 {
 			var matriculaExistente enrollment.Matricula
-			// Verificar si ya está matriculado en ESTE curso
-			errMat := s.db.Where("estudiante_id = ? AND curso_id = ?", estudianteID, cursoID).First(&matriculaExistente).Error
+			// Verificar si ya tiene matrícula vigente en cualquier curso del mismo periodo
+			errMat := s.db.Joins("JOIN cursos ON cursos.id = matriculas.curso_id").
+				Where("matriculas.estudiante_id = ? AND matriculas.estado = ? AND cursos.periodo_id = ?", estudianteID, "Matriculado", periodoCursoID).
+				First(&matriculaExistente).Error
 
-			if errors.Is(errMat, gorm.ErrRecordNotFound) {
+			if errMat == nil && matriculaExistente.CursoID != cursoID {
+				result.Errores = append(result.Errores, ImportRowError{
+					Fila:    filaExcel,
+					Cedula:  cedula,
+					Detalle: "Estudiante procesado, pero no se matriculó: ya está matriculado en otro curso de este periodo",
+				})
+			} else if errors.Is(errMat, gorm.ErrRecordNotFound) {
 				// Crear matrícula
 				nuevaMatricula := enrollment.Matricula{
 					EstudianteID:  estudianteID,
@@ -310,7 +356,7 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 	}
 
 	// Emitir progreso final
-	runtime.EventsEmit(s.ctx, "student:import_progress", map[string]int{
+	s.emitirProgresoImportacion(map[string]int{
 		"current":      totalFilas,
 		"total":        totalFilas,
 		"creados":      result.Creados,
@@ -319,6 +365,17 @@ func (s *StudentService) ImportarEstudiantes(cursoID uint) (*ImportResult, error
 	})
 
 	return result, nil
+}
+
+// normalizarGenero convierte los valores habituales del Excel a "M"/"F"; vacío si no se reconoce.
+func normalizarGenero(valor string) string {
+	switch strings.ToLower(strings.TrimSpace(valor)) {
+	case "m", "masculino", "hombre", "h":
+		return "M"
+	case "f", "femenino", "mujer":
+		return "F"
+	}
+	return ""
 }
 
 func CaclularEdad(fechaNacimiento string) int {
@@ -342,106 +399,27 @@ func CaclularEdad(fechaNacimiento string) int {
 	return edad
 }
 
-func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.EstudianteListaDTO, error) {
-	var estudiantes []student.Estudiante
-	query = strings.TrimSpace(query)
-
-	// 1. Obtener el periodo activo
-	var activePeriods []struct {
-		ID uint
+// periodoActivoID devuelve el ID del periodo activo, o 0 si no hay ninguno.
+func (s *StudentService) periodoActivoID() (uint, error) {
+	var ids []uint
+	if err := s.db.Table("periodo_lectivos").Where("es_activo = ?", true).Limit(1).Pluck("id", &ids).Error; err != nil {
+		return 0, err
 	}
-	if err := s.db.Table("periodo_lectivos").Where("es_activo = ?", true).Select("id").Limit(1).Find(&activePeriods).Error; err != nil {
-		return nil, err
+	if len(ids) == 0 {
+		return 0, nil
 	}
-	if len(activePeriods) == 0 {
-		// Si no hay periodo activo, devolver lista vacía sin error
-		return []studentDTO.EstudianteListaDTO{}, nil
-	}
-	activePeriod := activePeriods[0]
-
-	likeQuery := "%" + query + "%"
-
-	result := s.db.Model(&student.Estudiante{}).
-		Joins("JOIN matriculas ON matriculas.estudiante_id = estudiantes.id AND matriculas.estado = 'Matriculado'").
-		Joins("JOIN cursos ON cursos.id = matriculas.curso_id AND cursos.periodo_id = ?", activePeriod.ID).
-		Where("(estudiantes.cedula LIKE ? OR estudiantes.apellidos LIKE ? OR estudiantes.nombres LIKE ? OR json_extract(estudiantes.info_nacionalidad, '$.pasaporte_odni') LIKE ?)", likeQuery, likeQuery, likeQuery, likeQuery).
-		Order("estudiantes.apellidos ASC").
-		Limit(3000).
-		Find(&estudiantes)
-
-	if result.Error != nil {
-		return nil, result.Error
-	}
-
-	response := make([]studentDTO.EstudianteListaDTO, len(estudiantes))
-	for i, e := range estudiantes {
-		response[i] = studentDTO.EstudianteListaDTO{
-			ID:                    e.ID,
-			Cedula:                e.Cedula,
-			Apellidos:             e.Apellidos,
-			Nombres:               e.Nombres,
-			CorreoElectronico:     e.CorreoElectronico,
-			RutaFoto:              e.RutaFoto,
-			RutaCedula:            e.RutaCedula,
-			RutaPartidaNacimiento: e.RutaPartidaNacimiento,
-			FechaNacimiento:       e.FechaNacimiento,
-			Edad:                  CaclularEdad(e.FechaNacimiento),
-			InfoNacionalidad: &studentDTO.InfoNacionalidadDTO{
-				EsExtranjero:   e.InfoNacionalidad.Data.EsExtranjero,
-				PaisOrigen:     e.InfoNacionalidad.Data.PaisOrigen,
-				PasaporteOrDNI: e.InfoNacionalidad.Data.PasaporteOrDNI,
-			},
-		}
-	}
-
-	return response, nil
+	return ids[0], nil
 }
 
-func (s *StudentService) BuscarEstudiantesFiltrados(query string, nivelID uint, paralelo string, jornada string) ([]studentDTO.EstudianteListaDTO, error) {
-	var estudiantes []student.Estudiante
-	query = strings.TrimSpace(query)
+func filtrarYMapearEstudiantes(estudiantes []student.Estudiante, query string) []studentDTO.EstudianteListaDTO {
+	palabras := busqueda.Palabras(query)
 
-	// 1. Obtener el periodo activo
-	var activePeriods []struct {
-		ID uint
-	}
-	if err := s.db.Table("periodo_lectivos").Where("es_activo = ?", true).Select("id").Limit(1).Find(&activePeriods).Error; err != nil {
-		return nil, err
-	}
-	if len(activePeriods) == 0 {
-		// Si no hay periodo activo, devolver lista vacía sin error
-		return []studentDTO.EstudianteListaDTO{}, nil
-	}
-	activePeriod := activePeriods[0]
-
-	dbQuery := s.db.Model(&student.Estudiante{}).
-		Joins("JOIN matriculas ON matriculas.estudiante_id = estudiantes.id AND matriculas.estado = 'Matriculado'").
-		Joins("JOIN cursos ON cursos.id = matriculas.curso_id AND cursos.periodo_id = ?", activePeriod.ID)
-
-	if nivelID > 0 {
-		dbQuery = dbQuery.Where("cursos.nivel_id = ?", nivelID)
-	}
-	if paralelo != "" {
-		dbQuery = dbQuery.Where("cursos.paralelo = ?", paralelo)
-	}
-	if jornada != "" {
-		dbQuery = dbQuery.Where("cursos.jornada = ?", jornada)
-	}
-
-	if query != "" {
-		likeQuery := "%" + query + "%"
-		dbQuery = dbQuery.Where("(estudiantes.cedula LIKE ? OR estudiantes.apellidos LIKE ? OR estudiantes.nombres LIKE ? OR json_extract(estudiantes.info_nacionalidad, '$.pasaporte_odni') LIKE ?)", likeQuery, likeQuery, likeQuery, likeQuery)
-	}
-
-	result := dbQuery.Order("estudiantes.apellidos ASC").Limit(3000).Find(&estudiantes)
-
-	if result.Error != nil {
-		return nil, result.Error
-	}
-
-	response := make([]studentDTO.EstudianteListaDTO, len(estudiantes))
-	for i, e := range estudiantes {
-		response[i] = studentDTO.EstudianteListaDTO{
+	response := make([]studentDTO.EstudianteListaDTO, 0, len(estudiantes))
+	for _, e := range estudiantes {
+		if !busqueda.Coincide(palabras, e.Cedula, e.Apellidos, e.Nombres, e.InfoNacionalidad.Data.PasaporteOrDNI) {
+			continue
+		}
+		response = append(response, studentDTO.EstudianteListaDTO{
 			ID:                    e.ID,
 			Cedula:                e.Cedula,
 			Apellidos:             e.Apellidos,
@@ -457,10 +435,117 @@ func (s *StudentService) BuscarEstudiantesFiltrados(query string, nivelID uint, 
 				PaisOrigen:     e.InfoNacionalidad.Data.PaisOrigen,
 				PasaporteOrDNI: e.InfoNacionalidad.Data.PasaporteOrDNI,
 			},
-		}
+		})
+	}
+	return response
+}
+
+// matriculaActivaSQL comprueba que el estudiante tenga una matrícula vigente en el periodo activo.
+const matriculaActivaSQL = `EXISTS (
+	SELECT 1 FROM matriculas
+	JOIN cursos ON cursos.id = matriculas.curso_id
+	WHERE matriculas.estudiante_id = estudiantes.id
+	  AND matriculas.estado = 'Matriculado'
+	  AND cursos.periodo_id = ?`
+
+func (s *StudentService) BuscarEstudiantes(query string) ([]studentDTO.EstudianteListaDTO, error) {
+	return s.BuscarEstudiantesFiltrados(query, 0, "", "", false)
+}
+
+// BuscarEstudiantesFiltrados lista estudiantes matriculados en el periodo activo, filtrando
+// por nivel, paralelo y jornada (cada filtro es opcional). Con sinMatricula=true lista, en
+// cambio, los estudiantes sin matrícula vigente en el periodo activo (y se ignoran los filtros de curso).
+// La búsqueda de texto ignora mayúsculas y tildes y se hace en Go: SQLite LIKE no lo soporta.
+func (s *StudentService) BuscarEstudiantesFiltrados(query string, nivelID uint, paralelo string, jornada string, sinMatricula bool) ([]studentDTO.EstudianteListaDTO, error) {
+	periodoID, err := s.periodoActivoID()
+	if err != nil {
+		return nil, err
 	}
 
-	return response, nil
+	dbQuery := s.db.Model(&student.Estudiante{})
+
+	if sinMatricula {
+		if periodoID > 0 {
+			dbQuery = dbQuery.Where("NOT "+matriculaActivaSQL+")", periodoID)
+		}
+	} else {
+		if periodoID == 0 {
+			// Sin periodo activo no hay matriculados: lista vacía sin error.
+			return []studentDTO.EstudianteListaDTO{}, nil
+		}
+		filtroCurso := matriculaActivaSQL
+		args := []any{periodoID}
+		if nivelID > 0 {
+			filtroCurso += " AND cursos.nivel_id = ?"
+			args = append(args, nivelID)
+		}
+		if paralelo != "" {
+			filtroCurso += " AND cursos.paralelo = ?"
+			args = append(args, paralelo)
+		}
+		if jornada != "" {
+			filtroCurso += " AND cursos.jornada = ?"
+			args = append(args, jornada)
+		}
+		dbQuery = dbQuery.Where(filtroCurso+")", args...)
+	}
+
+	var estudiantes []student.Estudiante
+	if err := dbQuery.Order("estudiantes.apellidos ASC, estudiantes.nombres ASC").Find(&estudiantes).Error; err != nil {
+		return nil, err
+	}
+
+	return filtrarYMapearEstudiantes(estudiantes, query), nil
+}
+
+// BuscarEstudiantesFicha busca entre todos los estudiantes (matriculados o no) e indica
+// su curso y estado de matrícula en el periodo activo. La usa la Ficha DECE para poder
+// matricular estudiantes nuevos o reingresar retirados.
+func (s *StudentService) BuscarEstudiantesFicha(query string) ([]studentDTO.EstudianteListaDTO, error) {
+	var estudiantes []student.Estudiante
+	if err := s.db.Order("apellidos ASC, nombres ASC").Find(&estudiantes).Error; err != nil {
+		return nil, err
+	}
+	resultados := filtrarYMapearEstudiantes(estudiantes, query)
+	if len(resultados) > 50 {
+		resultados = resultados[:50]
+	}
+
+	periodoID, err := s.periodoActivoID()
+	if err != nil || periodoID == 0 || len(resultados) == 0 {
+		return resultados, err
+	}
+
+	ids := make([]uint, len(resultados))
+	for i, r := range resultados {
+		ids[i] = r.ID
+	}
+	var matriculas []struct {
+		EstudianteID uint
+		Estado       string
+		Curso        string
+	}
+	// Ordenadas por id: si hay reingreso, la última matrícula sobrescribe a la retirada.
+	err = s.db.Table("matriculas").
+		Select("matriculas.estudiante_id, matriculas.estado, nivel_educativos.nombre || ' ' || cursos.paralelo AS curso").
+		Joins("JOIN cursos ON cursos.id = matriculas.curso_id").
+		Joins("JOIN nivel_educativos ON nivel_educativos.id = cursos.nivel_id").
+		Where("cursos.periodo_id = ? AND matriculas.estudiante_id IN ?", periodoID, ids).
+		Order("matriculas.id ASC").
+		Scan(&matriculas).Error
+	if err != nil {
+		return nil, err
+	}
+	porEstudiante := map[uint]int{}
+	for i, r := range resultados {
+		porEstudiante[r.ID] = i
+	}
+	for _, m := range matriculas {
+		r := &resultados[porEstudiante[m.EstudianteID]]
+		r.Curso = m.Curso
+		r.EstadoMatricula = m.Estado
+	}
+	return resultados, nil
 }
 
 func (s *StudentService) ObtenerEstudiante(id uint) (*student.Estudiante, error) {
@@ -472,7 +557,68 @@ func (s *StudentService) ObtenerEstudiante(id uint) (*student.Estudiante, error)
 	return &est, nil
 }
 
+// cedulaEcuatorianaValida verifica formato, código de provincia y dígito verificador (módulo 10).
+func cedulaEcuatorianaValida(cedula string) bool {
+	if len(cedula) != 10 {
+		return false
+	}
+	d := make([]int, 10)
+	for i, c := range cedula {
+		if c < '0' || c > '9' {
+			return false
+		}
+		d[i] = int(c - '0')
+	}
+	provincia := d[0]*10 + d[1]
+	if (provincia < 1 || provincia > 24) && provincia != 30 {
+		return false
+	}
+	if d[2] > 5 {
+		return false
+	}
+	suma := 0
+	for i := 0; i < 9; i++ {
+		v := d[i]
+		if i%2 == 0 {
+			v *= 2
+			if v > 9 {
+				v -= 9
+			}
+		}
+		suma += v
+	}
+	return (10-suma%10)%10 == d[9]
+}
+
+// normalizarCedula limpia la cédula y recupera el 0 inicial que Excel elimina
+// cuando la celda es numérica (provincias 01-09: "812345678" -> "0812345678").
+func normalizarCedula(cedula string) string {
+	cedula = strings.TrimSpace(cedula)
+	if len(cedula) == 9 && strings.Trim(cedula, "0123456789") == "" {
+		return "0" + cedula
+	}
+	return cedula
+}
+
 func (s *StudentService) GuardarEstudiante(input studentDTO.GuardarEstudianteDTO) (*student.Estudiante, error) {
+	input.Apellidos = strings.TrimSpace(input.Apellidos)
+	input.Nombres = strings.TrimSpace(input.Nombres)
+	input.PasaporteOrDNI = strings.ToUpper(strings.TrimSpace(input.PasaporteOrDNI))
+	input.Cedula = strings.TrimSpace(input.Cedula)
+
+	if input.Apellidos == "" || input.Nombres == "" {
+		return nil, errors.New("Nombres y apellidos son obligatorios")
+	}
+	if input.EsExtranjero {
+		// Los extranjeros sin cédula se identifican por su pasaporte o DNI.
+		if input.PasaporteOrDNI == "" {
+			return nil, errors.New("El pasaporte o DNI es obligatorio para estudiantes extranjeros")
+		}
+		input.Cedula = input.PasaporteOrDNI
+	} else if !cedulaEcuatorianaValida(input.Cedula) {
+		return nil, fmt.Errorf("La cédula %s no es válida", input.Cedula)
+	}
+
 	var estGuardado *student.Estudiante
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -482,10 +628,12 @@ func (s *StudentService) GuardarEstudiante(input studentDTO.GuardarEstudianteDTO
 		if input.ID > 0 {
 			query = query.Where("id <> ?", input.ID)
 		}
-		query.Count(&count)
+		if err := query.Count(&count).Error; err != nil {
+			return fmt.Errorf("Error al verificar la cédula: %v", err)
+		}
 
 		if count > 0 {
-			return fmt.Errorf("La cédula %s ya pertenece a otro estudiante", input.Cedula)
+			return fmt.Errorf("La identificación %s ya pertenece a otro estudiante", input.Cedula)
 		}
 
 		est := student.Estudiante{
@@ -495,7 +643,7 @@ func (s *StudentService) GuardarEstudiante(input studentDTO.GuardarEstudianteDTO
 			Nombres:           strings.ToUpper(input.Nombres),
 			FechaNacimiento:   input.FechaNacimiento,
 			GeneroNacimiento:  input.GeneroNacimiento,
-			CorreoElectronico: input.CorreoElectronico,
+			CorreoElectronico: strings.TrimSpace(input.CorreoElectronico),
 
 			RutaFoto: input.RutaFoto,
 
@@ -511,35 +659,29 @@ func (s *StudentService) GuardarEstudiante(input studentDTO.GuardarEstudianteDTO
 			},
 		}
 
-		listaFamiliares := make([]student.Familiar, len(input.Familiares))
-
-		for i, f := range input.Familiares {
-			listaFamiliares[i] = student.Familiar{
-				ID:                   f.ID,
-				Cedula:               f.Cedula,
-				NombresCompletos:     strings.ToUpper(f.NombresCompletos),
-				Parentesco:           f.Parentesco,
-				EsRepresentanteLegal: f.EsRepresentanteLegal,
-				ViveConEstudiante:    f.ViveConEstudiante,
-				TelefonoPersonal:     f.TelefonoPersonal,
-				Fallecido:            f.Fallecido,
-
-				DatosExtendidos: common.JSONMap[student.DatosFamiliar]{
-					Data: student.DatosFamiliar{
-						NivelInstruccion: f.DatosExtendidos.NivelInstruccion,
-						Profesion:        f.DatosExtendidos.Profesion,
-						LugarTrabajo:     f.DatosExtendidos.LugarTrabajo,
-					},
-				},
+		// Los familiares se sincronizan aparte: Save no actualiza ni borra asociaciones existentes.
+		if est.ID == 0 {
+			est.FechaCreacion = time.Now().Format("2006-01-02 15:04:05")
+			if err := tx.Omit("Familiares").Create(&est).Error; err != nil {
+				return fmt.Errorf("Error al guardar ficha completa: %v", err)
+			}
+		} else {
+			res := tx.Model(&est).Select("*").Omit("ID", "FechaCreacion", "Familiares").Updates(&est)
+			if res.Error != nil {
+				return fmt.Errorf("Error al guardar ficha completa: %v", res.Error)
+			}
+			if res.RowsAffected == 0 {
+				return errors.New("Estudiante no encontrado")
 			}
 		}
 
-		est.Familiares = listaFamiliares
-
-		if err := tx.Save(&est).Error; err != nil {
-			return fmt.Errorf("Error al guardar ficha completa: %v", err)
+		if err := sincronizarFamiliares(tx, est.ID, input.Familiares); err != nil {
+			return err
 		}
 
+		if err := tx.Preload("Familiares").First(&est, est.ID).Error; err != nil {
+			return err
+		}
 		estGuardado = &est
 		return nil
 	})
@@ -549,6 +691,64 @@ func (s *StudentService) GuardarEstudiante(input studentDTO.GuardarEstudianteDTO
 	}
 
 	return estGuardado, nil
+}
+
+// sincronizarFamiliares deja en la BD exactamente los familiares recibidos:
+// crea los nuevos (ID 0), actualiza los existentes y elimina los que ya no vienen.
+func sincronizarFamiliares(tx *gorm.DB, estudianteID uint, familiares []studentDTO.GuardarFamiliarDTO) error {
+	conservar := []uint{}
+	for _, f := range familiares {
+		if f.ID > 0 {
+			conservar = append(conservar, f.ID)
+		}
+	}
+
+	borrar := tx.Where("estudiante_id = ?", estudianteID)
+	if len(conservar) > 0 {
+		borrar = borrar.Where("id NOT IN ?", conservar)
+	}
+	if err := borrar.Delete(&student.Familiar{}).Error; err != nil {
+		return fmt.Errorf("Error al eliminar familiares: %v", err)
+	}
+
+	for _, f := range familiares {
+		fam := student.Familiar{
+			ID:                   f.ID,
+			EstudianteID:         estudianteID,
+			Cedula:               strings.TrimSpace(f.Cedula),
+			NombresCompletos:     strings.ToUpper(strings.TrimSpace(f.NombresCompletos)),
+			Parentesco:           f.Parentesco,
+			EsRepresentanteLegal: f.EsRepresentanteLegal,
+			ViveConEstudiante:    f.ViveConEstudiante,
+			TelefonoPersonal:     strings.TrimSpace(f.TelefonoPersonal),
+			Fallecido:            f.Fallecido,
+
+			DatosExtendidos: common.JSONMap[student.DatosFamiliar]{
+				Data: student.DatosFamiliar{
+					NivelInstruccion: f.DatosExtendidos.NivelInstruccion,
+					Profesion:        f.DatosExtendidos.Profesion,
+					LugarTrabajo:     f.DatosExtendidos.LugarTrabajo,
+				},
+			},
+		}
+
+		if fam.ID == 0 {
+			if err := tx.Create(&fam).Error; err != nil {
+				return fmt.Errorf("Error al guardar familiar %s: %v", fam.NombresCompletos, err)
+			}
+			continue
+		}
+
+		// El filtro por estudiante evita modificar un familiar de otro estudiante.
+		res := tx.Model(&fam).Where("estudiante_id = ?", estudianteID).Select("*").Omit("ID").Updates(&fam)
+		if res.Error != nil {
+			return fmt.Errorf("Error al guardar familiar %s: %v", fam.NombresCompletos, res.Error)
+		}
+		if res.RowsAffected == 0 {
+			return fmt.Errorf("El familiar %s no pertenece a este estudiante", fam.NombresCompletos)
+		}
+	}
+	return nil
 }
 
 func (s *StudentService) GuardarFoto(id uint, rutaOrigen string) (string, error) {
@@ -706,6 +906,11 @@ func (s *StudentService) ObtenerFotoBase64(id uint) (string, error) {
 }
 
 func (s *StudentService) GuardarDocumentoPDF(id uint, tipoDocumento string, base64Data string) (string, error) {
+	safeTipo := strings.ToLower(tipoDocumento)
+	if safeTipo != "cedula" && safeTipo != "partida" {
+		return "", errors.New("Tipo de documento inválido")
+	}
+
 	var est student.Estudiante
 
 	if err := s.db.First(&est, id).Error; err != nil {
@@ -733,7 +938,6 @@ func (s *StudentService) GuardarDocumentoPDF(id uint, tipoDocumento string, base
 		return "", fmt.Errorf("Error al decodificar base64: %v", err)
 	}
 
-	safeTipo := strings.ToLower(tipoDocumento)
 	nuevoNombre := fmt.Sprintf("%s_%s_%d.pdf", est.Cedula, safeTipo, time.Now().Unix())
 	rutaDestinoCompleta := filepath.Join(destinoDir, nuevoNombre)
 
@@ -747,11 +951,9 @@ func (s *StudentService) GuardarDocumentoPDF(id uint, tipoDocumento string, base
 	if safeTipo == "cedula" {
 		updates["ruta_cedula"] = rutaDestinoCompleta
 		oldPath = est.RutaCedula
-	} else if safeTipo == "partida" {
+	} else {
 		updates["ruta_partida_nacimiento"] = rutaDestinoCompleta
 		oldPath = est.RutaPartidaNacimiento
-	} else {
-		return "", errors.New("Tipo de documento inválido")
 	}
 
 	if oldPath != "" {
@@ -853,6 +1055,13 @@ func (s *StudentService) EliminarEstudiante(id uint) error {
 
 	if err != nil {
 		return fmt.Errorf("Error al eliminar el estudiante: %v", err)
+	}
+
+	// Los archivos se borran después de confirmar la transacción; si falla, no afecta al registro.
+	for _, ruta := range []string{est.RutaFoto, est.RutaCedula, est.RutaPartidaNacimiento} {
+		if ruta != "" {
+			os.Remove(ruta)
+		}
 	}
 
 	return nil

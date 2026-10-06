@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Search, User, ArrowRight, Loader2, GraduationCap, FileText } from 'lucide-react';
-import { BuscarEstudiantes, ObtenerEstudiante, ObtenerFotoBase64 } from '../../../wailsjs/go/services/StudentService';
+import { BuscarEstudiantesFicha, ObtenerEstudiante, ObtenerFotoBase64 } from '../../../wailsjs/go/services/StudentService';
 import EnrollmentFormPage from './EnrollmentFormPage';
 
 const StudentCard = ({ student, onSelect }) => {
@@ -39,13 +39,19 @@ const StudentCard = ({ student, onSelect }) => {
                     <span className="text-xs font-mono text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
                         {student.cedula}
                     </span>
-                    {student.curso && (
-                        <>
-                            <span className="text-xs text-slate-300">•</span>
-                            <span className="text-xs font-medium text-slate-600 bg-blue-50 px-2 py-0.5 rounded">
-                                {student.curso}
-                            </span>
-                        </>
+                    <span className="text-xs text-slate-300">•</span>
+                    {student.estado_matricula === 'Matriculado' ? (
+                        <span className="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                            {student.curso}
+                        </span>
+                    ) : student.estado_matricula === 'Retirado' ? (
+                        <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                            Retirado · {student.curso}
+                        </span>
+                    ) : (
+                        <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                            Sin matrícula
+                        </span>
                     )}
                 </div>
             </div>
@@ -71,24 +77,29 @@ export default function EnrollmentManager() {
     const hasActiveSearch = query.trim().length > 0;
 
     useEffect(() => {
+        // Si la búsqueda cambia antes de que responda el backend, se descarta la respuesta vieja.
+        let cancelled = false;
         const timeoutId = setTimeout(async () => {
             if (query.trim().length >= 3) {
                 setIsSearching(true);
                 try {
-                    const data = await BuscarEstudiantes(query);
-                    setResults(data || []);
+                    const data = await BuscarEstudiantesFicha(query);
+                    if (!cancelled) setResults(data || []);
                 } catch (err) {
                     console.error(err);
-                    toast.error("Error al buscar estudiantes");
+                    if (!cancelled) toast.error("Error al buscar estudiantes");
                 } finally {
-                    setIsSearching(false);
+                    if (!cancelled) setIsSearching(false);
                 }
             } else {
                 setResults([]);
             }
         }, 400);
 
-        return () => clearTimeout(timeoutId);
+        return () => {
+            cancelled = true;
+            clearTimeout(timeoutId);
+        };
     }, [query]);
 
     const handleSelectStudent = async (studentSummary) => {
@@ -159,7 +170,7 @@ export default function EnrollmentManager() {
                                 <Search className="w-8 h-8 text-slate-400" />
                             </div>
                             <h2 className="text-2xl font-bold text-slate-800">Buscar Estudiante</h2>
-                            <p className="text-slate-500 text-sm">Ingrese cédula o apellidos para iniciar o editar el proceso de matrícula</p>
+                            <p className="text-slate-500 text-sm">Ingrese cédula, nombres o apellidos para matricular, editar o reingresar a un estudiante</p>
                         </div>
 
                         <div className="relative shadow-sm z-10 transition-transform duration-300">
@@ -174,7 +185,7 @@ export default function EnrollmentManager() {
                                 type="text"
                                 className={`block w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-lg placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800 font-medium ${hasActiveSearch ? 'shadow-md bg-white' : ''
                                     }`}
-                                placeholder="Buscar por cédula o apellidos..."
+                                placeholder="Buscar por cédula, nombres o apellidos..."
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 autoFocus

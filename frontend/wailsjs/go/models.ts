@@ -1077,6 +1077,34 @@ export namespace enrollment {
 	        this.practica_actividad = source["practica_actividad"];
 	    }
 	}
+	export class EstudianteRetiroDTO {
+	    estudiante_id: number;
+	    matricula_id: number;
+	    cedula: string;
+	    nombres: string;
+	    apellidos: string;
+	    curso: string;
+	    estado: string;
+	    fecha_retiro: string;
+	    motivo_retiro: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EstudianteRetiroDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.estudiante_id = source["estudiante_id"];
+	        this.matricula_id = source["matricula_id"];
+	        this.cedula = source["cedula"];
+	        this.nombres = source["nombres"];
+	        this.apellidos = source["apellidos"];
+	        this.curso = source["curso"];
+	        this.estado = source["estado"];
+	        this.fecha_retiro = source["fecha_retiro"];
+	        this.motivo_retiro = source["motivo_retiro"];
+	    }
+	}
 	export class MateriaReferencia {
 	    id: number;
 	    nombre: string;
@@ -2682,6 +2710,8 @@ export namespace student {
 	    correo_electronico: string;
 	    edad: number;
 	    info_nacionalidad?: InfoNacionalidadDTO;
+	    curso?: string;
+	    estado_matricula?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new EstudianteListaDTO(source);
@@ -2700,6 +2730,8 @@ export namespace student {
 	        this.correo_electronico = source["correo_electronico"];
 	        this.edad = source["edad"];
 	        this.info_nacionalidad = this.convertValues(source["info_nacionalidad"], InfoNacionalidadDTO);
+	        this.curso = source["curso"];
+	        this.estado_matricula = source["estado_matricula"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

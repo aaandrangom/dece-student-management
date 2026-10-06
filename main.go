@@ -5,6 +5,7 @@ import (
 	"dece/internal/infrastructure/database"
 	"embed"
 	"log"
+	"os"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -35,6 +36,11 @@ func main() {
 
 	db := database.InitDB()
 	database.SeedAll(db)
+	if os.Getenv("SEED_DEMO") == "true" {
+		if err := database.SeedDemo(db); err != nil {
+			log.Printf("Error cargando datos demo: %v", err)
+		}
+	}
 
 	authService := security.NewAuthService(db)
 	userService := security.NewUserService(db)

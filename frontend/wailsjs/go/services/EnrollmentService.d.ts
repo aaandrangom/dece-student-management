@@ -3,6 +3,8 @@
 import {enrollment} from '../models';
 import {context} from '../models';
 
+export function BuscarParaRetiro(arg1:string):Promise<Array<enrollment.EstudianteRetiroDTO>>;
+
 export function GuardarMatricula(arg1:enrollment.GuardarMatriculaDTO):Promise<enrollment.Matricula>;
 
 export function LeerArchivoParaVista(arg1:string):Promise<string>;
@@ -14,6 +16,8 @@ export function ObtenerMatriculaActual(arg1:number):Promise<enrollment.Matricula
 export function RegistrarRetiroCompleto(arg1:number,arg2:string,arg3:string,arg4:string,arg5:string,arg6:string):Promise<void>;
 
 export function RetirarEstudiante(arg1:number,arg2:string):Promise<void>;
+
+export function RevertirRetiro(arg1:number):Promise<void>;
 
 export function SeleccionarArchivo(arg1:string):Promise<string>;
 

@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	enrollmentDTO "dece/internal/application/dtos/enrollment"
+	"dece/internal/application/helpers/busqueda"
 	"dece/internal/domain/common"
 	domain "dece/internal/domain/enrollment"
 	"dece/internal/domain/faculty"
@@ -138,6 +139,9 @@ func (s *EnrollmentService) guardarArchivo(rutaOrigen string, subCarpeta string,
 	return rutaDestino, nil
 }
 
+// ObtenerMatriculaActual devuelve la matrícula vigente del periodo activo. Si el estudiante
+// fue retirado en este periodo, devuelve los datos de esa matrícula con ID 0 y estado
+// "Retirado": al guardar se crea una matrícula nueva (reingreso) y el retiro queda en el historial.
 func (s *EnrollmentService) ObtenerMatriculaActual(estudianteID uint) (*enrollmentDTO.MatriculaResponseDTO, error) {
 	var matricula domain.Matricula
 
@@ -145,6 +149,7 @@ func (s *EnrollmentService) ObtenerMatriculaActual(estudianteID uint) (*enrollme
 		Joins("JOIN cursos c ON c.id = matriculas.curso_id").
 		Joins("JOIN periodo_lectivos p ON p.id = c.periodo_id").
 		Where("matriculas.estudiante_id = ? AND p.es_activo = ?", estudianteID, true).
+		Order("CASE WHEN matriculas.estado = 'Matriculado' THEN 0 ELSE 1 END, matriculas.id DESC").
 		First(&matricula).Error
 
 	if err != nil {
@@ -172,70 +177,92 @@ func (s *EnrollmentService) ObtenerMatriculaActual(estudianteID uint) (*enrollme
 		},
 	}
 
+	if matricula.Estado == estadoRetirado {
+		response.ID = 0
+	}
+
 	return response, nil
+}
+
+const (
+	estadoMatriculado = "Matriculado"
+	estadoRetirado    = "Retirado"
+)
+
+// cursoEnPeriodoEditable valida que el curso exista y pertenezca al periodo activo y abierto.
+func (s *EnrollmentService) cursoEnPeriodoEditable(tx *gorm.DB, cursoID uint) (*faculty.Curso, error) {
+	var curso faculty.Curso
+	if err := tx.Preload("Periodo").First(&curso, cursoID).Error; err != nil {
+		return nil, errors.New("El curso seleccionado no existe")
+	}
+	if !curso.Periodo.EsActivo || curso.Periodo.Cerrado {
+		return nil, errors.New("Solo se pueden registrar matrículas en el periodo lectivo activo y abierto")
+	}
+	return &curso, nil
 }
 
 func (s *EnrollmentService) GuardarMatricula(input enrollmentDTO.GuardarMatriculaDTO) (*domain.Matricula, error) {
 
 	var est student.Estudiante
 	if err := s.db.Select("cedula").First(&est, input.EstudianteID).Error; err != nil {
-		return nil, errors.New("Estudiante no encontrado para procesar archivos")
+		return nil, errors.New("Estudiante no encontrado")
 	}
 
-	if input.DatosSalud.TieneEvalPsicopedagogica && input.DatosSalud.RutaEvalPsicopedagogica != "" {
-		newPath, err := s.guardarArchivo(
-			input.DatosSalud.RutaEvalPsicopedagogica,
-			"DocumentosEstudiantes",
-			"EVAL_"+est.Cedula,
-		)
-		if err == nil {
-			input.DatosSalud.RutaEvalPsicopedagogica = newPath
-		} else {
-			fmt.Printf("Error guardando PDF eval: %v\n", err)
-		}
-	} else {
-		if !input.DatosSalud.TieneEvalPsicopedagogica {
-			input.DatosSalud.RutaEvalPsicopedagogica = ""
-		}
+	curso, err := s.cursoEnPeriodoEditable(s.db, input.CursoID)
+	if err != nil {
+		return nil, err
 	}
 
-	if input.RutaCroquis != "" {
-		newPath, err := s.guardarArchivo(
-			input.RutaCroquis,
-			"DocumentosEstudiantes",
-			"CROQUIS_"+est.Cedula,
-		)
-		if err == nil {
-			input.RutaCroquis = newPath
+	var matAnterior domain.Matricula
+	if input.ID > 0 {
+		if err := s.db.First(&matAnterior, input.ID).Error; err != nil {
+			return nil, errors.New("Matrícula no encontrada")
+		}
+		if matAnterior.EstudianteID != input.EstudianteID {
+			return nil, errors.New("La matrícula no pertenece a este estudiante")
+		}
+		if _, err := s.cursoEnPeriodoEditable(s.db, matAnterior.CursoID); err != nil {
+			return nil, err
+		}
+		if matAnterior.Estado != estadoMatriculado {
+			return nil, errors.New("La matrícula está retirada; registre un reingreso desde la Ficha DECE")
 		}
 	}
 
-	if input.RutaConsentimiento != "" {
-		newPath, err := s.guardarArchivo(
-			input.RutaConsentimiento,
-			"DocumentosEstudiantes",
-			"CONSENTIMIENTO_"+est.Cedula,
-		)
-		if err == nil {
-			input.RutaConsentimiento = newPath
-		}
+	// Solo cuenta matrículas vigentes: un estudiante retirado puede reingresar en el mismo periodo.
+	var count int64
+	if err := s.db.Table("matriculas").
+		Joins("JOIN cursos c ON c.id = matriculas.curso_id").
+		Where("matriculas.estudiante_id = ? AND c.periodo_id = ? AND matriculas.estado = ? AND matriculas.id <> ?",
+			input.EstudianteID, curso.PeriodoID, estadoMatriculado, input.ID).
+		Count(&count).Error; err != nil {
+		return nil, fmt.Errorf("Error al verificar matrículas: %v", err)
+	}
+	if count > 0 {
+		return nil, errors.New("El estudiante ya se encuentra matriculado en este periodo lectivo")
 	}
 
-	if input.ID == 0 {
-		var curso faculty.Curso
-		if err := s.db.First(&curso, input.CursoID).Error; err != nil {
-			return nil, errors.New("El curso seleccionado no existe")
+	// Los archivos se copian después de validar, para no dejar copias huérfanas.
+	// Si una copia falla se cancela el guardado: guardar la ruta original perdería el documento
+	// cuando el usuario mueva o borre el archivo.
+	if !input.DatosSalud.TieneEvalPsicopedagogica {
+		input.DatosSalud.RutaEvalPsicopedagogica = ""
+	}
+	archivos := []struct {
+		ruta    *string
+		prefijo string
+		nombre  string
+	}{
+		{&input.DatosSalud.RutaEvalPsicopedagogica, "EVAL_", "la evaluación psicopedagógica"},
+		{&input.RutaCroquis, "CROQUIS_", "el croquis"},
+		{&input.RutaConsentimiento, "CONSENTIMIENTO_", "el consentimiento"},
+	}
+	for _, a := range archivos {
+		nuevaRuta, err := s.guardarArchivo(*a.ruta, "DocumentosEstudiantes", a.prefijo+est.Cedula)
+		if err != nil {
+			return nil, fmt.Errorf("No se pudo guardar %s: %v", a.nombre, err)
 		}
-
-		var count int64
-		s.db.Table("matriculas").
-			Joins("JOIN cursos c ON c.id = matriculas.curso_id").
-			Where("matriculas.estudiante_id = ? AND c.periodo_id = ?", input.EstudianteID, curso.PeriodoID).
-			Count(&count)
-
-		if count > 0 {
-			return nil, errors.New("El estudiante ya se encuentra matriculado en este periodo lectivo")
-		}
+		*a.ruta = nuevaRuta
 	}
 
 	mat := domain.Matricula{
@@ -256,13 +283,9 @@ func (s *EnrollmentService) GuardarMatricula(input enrollmentDTO.GuardarMatricul
 	}
 
 	if mat.ID == 0 {
-		mat.Estado = "Matriculado"
+		mat.Estado = estadoMatriculado
 		mat.FechaRegistro = time.Now().Format("2006-01-02 15:04:05")
-
 	} else {
-		var matAnterior domain.Matricula
-		s.db.Select("estado", "fecha_registro").First(&matAnterior, mat.ID)
-
 		mat.Estado = matAnterior.Estado
 		mat.FechaRegistro = matAnterior.FechaRegistro
 	}
@@ -285,12 +308,12 @@ func (s *EnrollmentService) ObtenerHistorial(estudianteID uint) ([]enrollmentDTO
 	}
 	var data []Result
 	err := s.db.Table("matriculas").
-		Select("matriculas.id, periodo_lectivos.nombre as periodo_nombre, niveles_educativos.nombre as curso_nivel, cursos.paralelo as curso_paralelo, matriculas.estado, matriculas.fecha_registro").
+		Select("matriculas.id, periodo_lectivos.nombre as periodo_nombre, nivel_educativos.nombre as curso_nivel, cursos.paralelo as curso_paralelo, matriculas.estado, matriculas.fecha_registro").
 		Joins("JOIN cursos ON cursos.id = matriculas.curso_id").
 		Joins("JOIN periodo_lectivos ON periodo_lectivos.id = cursos.periodo_id").
-		Joins("JOIN niveles_educativos ON niveles_educativos.id = cursos.nivel_id").
+		Joins("JOIN nivel_educativos ON nivel_educativos.id = cursos.nivel_id").
 		Where("matriculas.estudiante_id = ?", estudianteID).
-		Order("periodo_lectivos.fecha_inicio DESC").
+		Order("periodo_lectivos.fecha_inicio DESC, matriculas.id DESC").
 		Scan(&data).Error
 
 	if err != nil {
@@ -309,12 +332,50 @@ func (s *EnrollmentService) ObtenerHistorial(estudianteID uint) ([]enrollmentDTO
 	return response, nil
 }
 
+// BuscarParaRetiro lista las matrículas del periodo activo (vigentes y retiradas) que coinciden
+// con la búsqueda. Las retiradas se muestran para poder revertir un retiro hecho por error.
+func (s *EnrollmentService) BuscarParaRetiro(query string) ([]enrollmentDTO.EstudianteRetiroDTO, error) {
+	palabras := busqueda.Palabras(query)
+	if len(palabras) == 0 {
+		return []enrollmentDTO.EstudianteRetiroDTO{}, nil
+	}
+
+	var filas []enrollmentDTO.EstudianteRetiroDTO
+	err := s.db.Table("matriculas").
+		Select(`estudiantes.id AS estudiante_id, matriculas.id AS matricula_id, estudiantes.cedula,
+			estudiantes.nombres, estudiantes.apellidos, matriculas.estado,
+			nivel_educativos.nombre || ' ' || cursos.paralelo AS curso,
+			retiro_estudiantes.fecha_retiro, retiro_estudiantes.motivo AS motivo_retiro`).
+		Joins("JOIN estudiantes ON estudiantes.id = matriculas.estudiante_id").
+		Joins("JOIN cursos ON cursos.id = matriculas.curso_id").
+		Joins("JOIN nivel_educativos ON nivel_educativos.id = cursos.nivel_id").
+		Joins("JOIN periodo_lectivos ON periodo_lectivos.id = cursos.periodo_id").
+		Joins("LEFT JOIN retiro_estudiantes ON retiro_estudiantes.matricula_id = matriculas.id").
+		Where("periodo_lectivos.es_activo = ?", true).
+		Order("estudiantes.apellidos ASC, estudiantes.nombres ASC, matriculas.id DESC").
+		Scan(&filas).Error
+	if err != nil {
+		return nil, fmt.Errorf("Error al buscar estudiantes: %v", err)
+	}
+
+	resultados := []enrollmentDTO.EstudianteRetiroDTO{}
+	for _, f := range filas {
+		if busqueda.Coincide(palabras, f.Cedula, f.Apellidos, f.Nombres) {
+			resultados = append(resultados, f)
+			if len(resultados) == 50 {
+				break
+			}
+		}
+	}
+	return resultados, nil
+}
+
 func (s *EnrollmentService) RetirarEstudiante(matriculaID uint, motivo string) error {
 	var matricula domain.Matricula
 	if err := s.db.First(&matricula, matriculaID).Error; err != nil {
 		return errors.New("Matrícula no encontrada")
 	}
-	matricula.Estado = "Retirado"
+	matricula.Estado = estadoRetirado
 	if err := s.db.Save(&matricula).Error; err != nil {
 		return fmt.Errorf("Error al retirar estudiante: %v", err)
 	}
@@ -322,18 +383,32 @@ func (s *EnrollmentService) RetirarEstudiante(matriculaID uint, motivo string) e
 }
 
 func (s *EnrollmentService) RegistrarRetiroCompleto(matriculaID uint, fecha string, motivo string, nuevaInstitucion string, provinciaDestino string, observaciones string) error {
+	motivo = strings.TrimSpace(motivo)
+	if motivo == "" {
+		return errors.New("El motivo del retiro es obligatorio")
+	}
+	fechaRetiro, err := time.ParseInLocation("2006-01-02", fecha, time.Local)
+	if err != nil {
+		return errors.New("Fecha de retiro inválida (use AAAA-MM-DD)")
+	}
+	if fechaRetiro.After(time.Now()) {
+		return errors.New("La fecha de retiro no puede ser futura")
+	}
+
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		var matricula domain.Matricula
 		if err := tx.First(&matricula, matriculaID).Error; err != nil {
 			return errors.New("Matrícula no encontrada")
 		}
 
-		if matricula.Estado == "Retirado" {
+		if matricula.Estado == estadoRetirado {
 			return errors.New("El estudiante ya se encuentra retirado")
 		}
+		if _, err := s.cursoEnPeriodoEditable(tx, matricula.CursoID); err != nil {
+			return err
+		}
 
-		matricula.Estado = "Retirado"
-		if err := tx.Save(&matricula).Error; err != nil {
+		if err := tx.Model(&matricula).Update("estado", estadoRetirado).Error; err != nil {
 			return fmt.Errorf("Error al actualizar estado de matrícula: %v", err)
 		}
 
@@ -341,15 +416,52 @@ func (s *EnrollmentService) RegistrarRetiroCompleto(matriculaID uint, fecha stri
 			MatriculaID:      matriculaID,
 			FechaRetiro:      fecha,
 			Motivo:           motivo,
-			NuevaInstitucion: nuevaInstitucion,
-			ProvinciaDestino: provinciaDestino,
-			Observaciones:    observaciones,
+			NuevaInstitucion: strings.TrimSpace(nuevaInstitucion),
+			ProvinciaDestino: strings.TrimSpace(provinciaDestino),
+			Observaciones:    strings.TrimSpace(observaciones),
 		}
 
 		if err := tx.Create(&retiro).Error; err != nil {
 			return fmt.Errorf("Error al registrar el retiro: %v", err)
 		}
 
+		return nil
+	})
+}
+
+// RevertirRetiro deshace un retiro registrado por error: la matrícula vuelve a "Matriculado"
+// y se elimina el registro del retiro. No se permite si el estudiante ya reingresó con otra matrícula.
+func (s *EnrollmentService) RevertirRetiro(matriculaID uint) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		var matricula domain.Matricula
+		if err := tx.First(&matricula, matriculaID).Error; err != nil {
+			return errors.New("Matrícula no encontrada")
+		}
+		if matricula.Estado != estadoRetirado {
+			return errors.New("La matrícula no está retirada")
+		}
+		curso, err := s.cursoEnPeriodoEditable(tx, matricula.CursoID)
+		if err != nil {
+			return err
+		}
+
+		var vigentes int64
+		if err := tx.Table("matriculas").
+			Joins("JOIN cursos c ON c.id = matriculas.curso_id").
+			Where("matriculas.estudiante_id = ? AND c.periodo_id = ? AND matriculas.estado = ?", matricula.EstudianteID, curso.PeriodoID, estadoMatriculado).
+			Count(&vigentes).Error; err != nil {
+			return fmt.Errorf("Error al verificar matrículas: %v", err)
+		}
+		if vigentes > 0 {
+			return errors.New("No se puede revertir: el estudiante ya tiene una matrícula vigente (reingreso) en este periodo")
+		}
+
+		if err := tx.Model(&matricula).Update("estado", estadoMatriculado).Error; err != nil {
+			return fmt.Errorf("Error al revertir el retiro: %v", err)
+		}
+		if err := tx.Where("matricula_id = ?", matriculaID).Delete(&domain.RetiroEstudiante{}).Error; err != nil {
+			return fmt.Errorf("Error al eliminar el registro de retiro: %v", err)
+		}
 		return nil
 	})
 }

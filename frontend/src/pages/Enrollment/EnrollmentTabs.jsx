@@ -39,7 +39,7 @@ export const AcademicTab = ({ data, courses, onChange, onFileSelect, onPreview }
                         </InputGroup>
                         <div className="mt-3 flex items-center gap-2 text-xs text-blue-700 bg-blue-50 p-2.5 rounded-lg border border-blue-100">
                             <Info className="w-4 h-4 shrink-0" />
-                            <p className="font-medium">Solo se muestran los cursos con cupos disponibles en el periodo activo.</p>
+                            <p className="font-medium">Solo se muestran los cursos del periodo lectivo activo.</p>
                         </div>
                     </div>
                 </div>
@@ -505,6 +505,19 @@ export const GenderTab = ({ gender, data, onChange }) => {
 
     const showPartnerSection = (gender === 'F' && (data.esta_embarazada || data.esta_lactando || data.es_maternidad)) || (gender === 'M' && data.es_padre);
     const labelPareja = gender === 'M' ? 'de la Madre (Pareja)' : 'del Padre (Pareja)';
+
+    // Estudiantes importados sin columna de género: no se puede saber qué secciones aplican.
+    if (gender !== 'M' && gender !== 'F') {
+        return (
+            <div className="flex items-start gap-3 p-5 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 animate-in fade-in">
+                <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
+                <div className="text-sm">
+                    <p className="font-bold mb-1">Género no registrado</p>
+                    Registre el género del estudiante en Gestión de Estudiantes (editar ficha) para completar esta sección.
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">

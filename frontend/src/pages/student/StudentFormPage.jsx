@@ -22,6 +22,21 @@ const calculateAge = (dateString) => {
     return age;
 };
 
+// Misma regla que el backend: provincia 01-24 o 30, tercer dígito < 6 y dígito verificador módulo 10.
+const isValidCedula = (cedula) => {
+    if (!/^\d{10}$/.test(cedula)) return false;
+    const d = cedula.split('').map(Number);
+    const provincia = d[0] * 10 + d[1];
+    if ((provincia < 1 || provincia > 24) && provincia !== 30) return false;
+    if (d[2] > 5) return false;
+    const suma = d.slice(0, 9).reduce((acc, v, i) => {
+        let x = i % 2 === 0 ? v * 2 : v;
+        if (x > 9) x -= 9;
+        return acc + x;
+    }, 0);
+    return (10 - (suma % 10)) % 10 === d[9];
+};
+
 const generateTempId = () => -Date.now();
 const LS_KEY = 'student_form_backup';
 
@@ -150,9 +165,6 @@ export default function StudentFormPage() {
         try {
             const data = await ObtenerEstudiante(id);
 
-            console.log("Datos recibidos del backend:", data);
-            console.log("info_nacionalidad original:", data.info_nacionalidad);
-
             let infoNac = { es_extranjero: false, pais_origen: 'Ecuador', pasaporte_odni: '' };
 
             if (data.info_nacionalidad) {
@@ -176,7 +188,6 @@ export default function StudentFormPage() {
             }
 
             data.info_nacionalidad = infoNac;
-            console.log("info_nacionalidad después de procesar:", data.info_nacionalidad);
 
             if (!data.familiares) {
                 data.familiares = [];
@@ -311,11 +322,15 @@ export default function StudentFormPage() {
 
     const handleNextStep = () => {
         if (currentStep === 1) {
-            if (!formData.apellidos || !formData.nombres) {
+            if (!formData.apellidos.trim() || !formData.nombres.trim()) {
                 return toast.warning("Nombres y Apellidos son requeridos");
             }
-            if (!formData.info_nacionalidad.es_extranjero && (!formData.cedula || formData.cedula.length !== 10)) {
-                return toast.warning("Cédula inválida");
+            if (formData.info_nacionalidad.es_extranjero) {
+                if (!formData.info_nacionalidad.pasaporte_odni?.trim()) {
+                    return toast.warning("Ingrese el pasaporte o DNI del estudiante extranjero");
+                }
+            } else if (!isValidCedula(formData.cedula.trim())) {
+                return toast.warning("Cédula inválida: revise que tenga 10 dígitos y sea una cédula ecuatoriana válida");
             }
 
 
@@ -325,7 +340,7 @@ export default function StudentFormPage() {
 
     const initFamilyForm = (familiar = null) => {
         if (familiar) {
-            const datosExt = familiar.datos_extendidos?.data || initialFamilyState.datos_extendidos;
+            const datosExt = familiar.datos_extendidos || initialFamilyState.datos_extendidos;
             setFamilyFormData({ ...familiar, datos_extendidos: datosExt });
         } else {
             setFamilyFormData({ ...initialFamilyState, estudiante_id: formData.id, uiId: generateTempId() });
@@ -419,6 +434,7 @@ export default function StudentFormPage() {
                         }
                     } catch (e) {
                         console.error('Error subiendo foto base64', e);
+                        toast.error("Los datos se guardaron, pero no se pudo guardar la foto: " + e);
                     }
                 } else if (tempPhotoPath && !tempPhotoPath.startsWith('blob:')) {
                     try {
@@ -429,6 +445,7 @@ export default function StudentFormPage() {
                         }
                     } catch (e) {
                         console.error('Error subiendo foto por path', e);
+                        toast.error("Los datos se guardaron, pero no se pudo guardar la foto: " + e);
                     }
                 }
                 setPhotoChanged(false);
@@ -672,9 +689,9 @@ export default function StudentFormPage() {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {!formData.info_nacionalidad.es_extranjero ? (
-                                            <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cédula</label><input type="text" name="cedula" value={formData.cedula} onChange={handleInputChange} maxLength={10} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ingrese cédula" /></div>
+                                            <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cédula</label><input type="text" inputMode="numeric" name="cedula" value={formData.cedula} onChange={handleInputChange} maxLength={10} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ingrese cédula" /></div>
                                         ) : (
-                                            <><div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pasaporte</label><input type="text" name="pasaporte_odni" value={formData.info_nacionalidad.pasaporte_odni} onChange={handleNacionalidadChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" /></div><div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">País</label><select name="pais_origen" value={formData.info_nacionalidad.pais_origen} onChange={handleNacionalidadChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"><option value="">Seleccione...</option><option value="Colombia">Colombia</option><option value="Venezuela">Venezuela</option><option value="Perú">Perú</option><option value="Otro">Otro</option></select></div></>
+                                            <><div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pasaporte / DNI *</label><input type="text" name="pasaporte_odni" value={formData.info_nacionalidad.pasaporte_odni} onChange={handleNacionalidadChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" /></div><div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">País</label><select name="pais_origen" value={formData.info_nacionalidad.pais_origen} onChange={handleNacionalidadChange} className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"><option value="">Seleccione...</option><option value="Colombia">Colombia</option><option value="Venezuela">Venezuela</option><option value="Perú">Perú</option><option value="Otro">Otro</option></select></div></>
                                         )}
                                     </div>
                                 </div>

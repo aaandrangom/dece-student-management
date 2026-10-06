@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Search, UserMinus, Building, MapPin, Calendar, FileText, AlertTriangle, Loader2,
-    Save, X, User, School
+    Save, X, User, School, Undo2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
-import { BuscarEstudiantesActivos } from '../../../wailsjs/go/services/TrackingService';
-import { RegistrarRetiroCompleto } from '../../../wailsjs/go/services/EnrollmentService';
+import { BuscarParaRetiro, RegistrarRetiroCompleto, RevertirRetiro } from '../../../wailsjs/go/services/EnrollmentService';
+
+// Fecha local AAAA-MM-DD. toISOString() usa UTC y en Ecuador (UTC-5) da el día siguiente desde las 19:00.
+const hoyLocal = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 const StudentModifications = () => {
     const [query, setQuery] = useState('');
@@ -15,30 +20,67 @@ const StudentModifications = () => {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const searchTimer = useRef(null);
+    const searchRequestId = useRef(0);
 
     const [formData, setFormData] = useState({
-        fecha: new Date().toISOString().split('T')[0],
+        fecha: hoyLocal(),
         motivo: '',
         nuevaInstitucion: '',
         provinciaDestino: '',
         observaciones: ''
     });
 
-    const handleSearch = async (e) => {
+    useEffect(() => () => clearTimeout(searchTimer.current), []);
+
+    const runSearch = async (val) => {
+        clearTimeout(searchTimer.current);
+        // Solo se aplica la respuesta de la última búsqueda lanzada.
+        const requestId = ++searchRequestId.current;
+        if (val.trim().length <= 2) {
+            setStudents([]);
+            setIsSearching(false);
+            return;
+        }
+        setIsSearching(true);
+        try {
+            const results = await BuscarParaRetiro(val);
+            if (requestId === searchRequestId.current) setStudents(results || []);
+        } catch (error) {
+            console.error("Error searching:", error);
+            if (requestId === searchRequestId.current) toast.error("Error al buscar estudiantes");
+        } finally {
+            if (requestId === searchRequestId.current) setIsSearching(false);
+        }
+    };
+
+    const handleSearch = (e) => {
         const val = e.target.value;
         setQuery(val);
-        if (val.length > 2) {
-            setIsSearching(true);
-            try {
-                const results = await BuscarEstudiantesActivos(val);
-                setStudents(results || []);
-            } catch (error) {
-                console.error("Error searching:", error);
-            } finally {
-                setIsSearching(false);
-            }
-        } else {
-            setStudents([]);
+        clearTimeout(searchTimer.current);
+        searchTimer.current = setTimeout(() => runSearch(val), 300);
+    };
+
+    const handleRevert = async (student) => {
+        const result = await Swal.fire({
+            title: '¿Revertir retiro?',
+            html: `<b>${student.apellidos} ${student.nombres}</b> volverá a estar matriculado en <b>${student.curso}</b>.<br/><br/>` +
+                `Se eliminará el registro del retiro${student.fecha_retiro ? ` del ${student.fecha_retiro}` : ''}${student.motivo_retiro ? ` (${student.motivo_retiro})` : ''}.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#7c3aed',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, revertir',
+            cancelButtonText: 'Cancelar'
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            await RevertirRetiro(student.matricula_id);
+            toast.success("Retiro revertido: el estudiante vuelve a estar matriculado");
+            runSearch(query);
+        } catch (error) {
+            toast.error(String(error));
         }
     };
 
@@ -46,7 +88,7 @@ const StudentModifications = () => {
         setSelectedStudent(student);
         setFormData(prev => ({
             ...prev,
-            fecha: new Date().toISOString().split('T')[0],
+            fecha: hoyLocal(),
             motivo: '',
             nuevaInstitucion: '',
             provinciaDestino: '',
@@ -93,8 +135,7 @@ const StudentModifications = () => {
 
                 toast.success("Estudiante dado de baja correctamente");
                 handleCloseModal();
-                setQuery('');
-                setStudents([]);
+                runSearch(query);
             } catch (error) {
                 console.error("Error withdrawing:", error);
                 toast.error("Error al procesar el retiro: " + error);
@@ -125,14 +166,14 @@ const StudentModifications = () => {
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Baja de Estudiantes</h1>
-                            <p className="text-slate-500 mt-1">Gestión de retiros y cambios de institución</p>
+                            <p className="text-slate-500 mt-1">Gestión de retiros, cambios de institución y reversión de retiros</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-6">
                     <div className="max-w-xl">
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Buscar Estudiante Activo</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Buscar Estudiante del Periodo Activo</label>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
@@ -157,13 +198,14 @@ const StudentModifications = () => {
                                     <th className="px-6 py-4">Estudiante</th>
                                     <th className="px-6 py-4">Cédula</th>
                                     <th className="px-6 py-4">Curso Actual</th>
+                                    <th className="px-6 py-4">Estado</th>
                                     <th className="px-6 py-4 text-center">Acción</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {students.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="py-12 text-center text-slate-400">
+                                        <td colSpan={5} className="py-12 text-center text-slate-400">
                                             {query.length > 0 ? "No se encontraron estudiantes" : "Ingrese un criterio de búsqueda"}
                                         </td>
                                     </tr>
@@ -185,13 +227,32 @@ const StudentModifications = () => {
                                                     {st.curso}
                                                 </span>
                                             </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                {st.estado === 'Retirado' ? (
+                                                    <div>
+                                                        <span className="inline-flex px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 font-bold text-xs">Retirado</span>
+                                                        {st.fecha_retiro && <p className="text-xs text-slate-400 mt-1">{st.fecha_retiro} · {st.motivo_retiro}</p>}
+                                                    </div>
+                                                ) : (
+                                                    <span className="inline-flex px-2.5 py-1 rounded-md bg-green-50 text-green-700 font-bold text-xs">Matriculado</span>
+                                                )}
+                                            </td>
                                             <td className="px-6 py-4 text-center">
-                                                <button
-                                                    onClick={() => handleSelectStudent(st)}
-                                                    className="px-3 py-1.5 bg-white border border-slate-200 text-red-600 text-sm font-bold rounded-lg hover:bg-red-50 hover:border-red-200 transition-all shadow-sm"
-                                                >
-                                                    Dar de Baja
-                                                </button>
+                                                {st.estado === 'Retirado' ? (
+                                                    <button
+                                                        onClick={() => handleRevert(st)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-purple-700 text-sm font-bold rounded-lg hover:bg-purple-50 hover:border-purple-200 transition-all shadow-sm"
+                                                    >
+                                                        <Undo2 size={14} /> Revertir retiro
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleSelectStudent(st)}
+                                                        className="px-3 py-1.5 bg-white border border-slate-200 text-red-600 text-sm font-bold rounded-lg hover:bg-red-50 hover:border-red-200 transition-all shadow-sm"
+                                                    >
+                                                        Dar de Baja
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))
@@ -237,6 +298,7 @@ const StudentModifications = () => {
                                         <input
                                             type="date"
                                             required
+                                            max={hoyLocal()}
                                             value={formData.fecha}
                                             onChange={e => setFormData({ ...formData, fecha: e.target.value })}
                                             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"

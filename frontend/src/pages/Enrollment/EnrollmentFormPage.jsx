@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Save, ArrowLeft, BookOpen, Activity, HeartPulse, Users, Baby } from 'lucide-react';
+import { Save, ArrowLeft, BookOpen, Activity, HeartPulse, Users, Baby, AlertTriangle } from 'lucide-react';
 import { GuardarMatricula, ObtenerMatriculaActual, SeleccionarArchivo, LeerArchivoParaVista } from '../../../wailsjs/go/services/EnrollmentService';
 import { ListarCursos } from '../../../wailsjs/go/services/CourseService';
 import { ListarMaterias } from '../../../wailsjs/go/academic/SubjectService';
@@ -8,7 +8,7 @@ import { ObtenerPeriodoActivo } from '../../../wailsjs/go/academic/YearService';
 import { PreviewModal } from './EnrollmentUI';
 import { AcademicTab, PhysicalTab, HealthTab, SocialTab, GenderTab } from './EnrollmentTabs';
 
-export default function EnrollmentFormPage({ studentId, studentGender = 'M', onBack }) {
+export default function EnrollmentFormPage({ studentId, studentGender, onBack }) {
     const [activeTab, setActiveTab] = useState('academico');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -18,6 +18,8 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
     const [activePeriod, setActivePeriod] = useState(null);
 
     const isReadOnly = activePeriod?.cerrado;
+    // El backend devuelve la matrícula retirada con id 0: al guardar se crea una nueva (reingreso).
+    const isReingreso = formData.id === 0 && formData.estado === 'Retirado';
 
     const [formData, setFormData] = useState({
         id: 0, estudiante_id: studentId, curso_id: 0, es_repetidor: false, direccion_actual: '', ruta_croquis: '', ruta_consentimiento: '',
@@ -52,7 +54,6 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
 
                 if (studentId > 0) {
                     const data = await ObtenerMatriculaActual(studentId);
-                    console.log('Loaded enrollment data:', data);
                     if (data) {
                         setFormData(prev => ({
                             ...prev,
@@ -72,7 +73,7 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                             datos_salud: { ...prev.datos_salud, ...(data.datos_salud || {}) },
                             datos_sociales: {
                                 actividades: data.datos_sociales?.actividades || [],
-                                practica_actividad: (data.datos_sociales?.actividades?.length > 0)
+                                practica_actividad: !!data.datos_sociales?.practica_actividad || (data.datos_sociales?.actividades?.length > 0)
                             },
                             condicion_genero: {
                                 ...prev.condicion_genero, ...(data.condicion_genero || {}),
@@ -135,7 +136,7 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                 }
             };
             await GuardarMatricula(payload);
-            toast.success("Guardado correctamente");
+            toast.success(isReingreso ? "Reingreso registrado: se creó una nueva matrícula" : "Guardado correctamente");
             onBack();
         } catch (err) { toast.error("Error: " + err); } finally { setIsLoading(false); }
     };
@@ -175,6 +176,16 @@ export default function EnrollmentFormPage({ studentId, studentGender = 'M', onB
                         <button onClick={handleSave} disabled={isLoading} className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 shadow-sm transition-all"><Save className="w-4 h-4" /> {isLoading ? 'Guardando...' : 'Guardar'}</button>
                     )}
                 </div>
+
+                {isReingreso && !isReadOnly && (
+                    <div className="mb-6 flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800">
+                        <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
+                        <div className="text-sm">
+                            <p className="font-bold mb-1">Estudiante retirado en este periodo</p>
+                            Se cargaron los datos de su matrícula anterior. Al guardar se registrará un reingreso con una matrícula nueva; el retiro queda en el historial.
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
                     {tabs.map(tab => (

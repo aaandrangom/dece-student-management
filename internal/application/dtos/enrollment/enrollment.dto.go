@@ -33,3 +33,16 @@ type GuardarMatriculaDTO struct {
 type MatriculaResponseDTO struct {
 	GuardarMatriculaDTO
 }
+
+// EstudianteRetiroDTO es una fila del buscador de Modificaciones (bajas y reversión de retiros).
+type EstudianteRetiroDTO struct {
+	EstudianteID uint   `json:"estudiante_id"`
+	MatriculaID  uint   `json:"matricula_id"`
+	Cedula       string `json:"cedula"`
+	Nombres      string `json:"nombres"`
+	Apellidos    string `json:"apellidos"`
+	Curso        string `json:"curso"`
+	Estado       string `json:"estado"`
+	FechaRetiro  string `json:"fecha_retiro"`
+	MotivoRetiro string `json:"motivo_retiro"`
+}
